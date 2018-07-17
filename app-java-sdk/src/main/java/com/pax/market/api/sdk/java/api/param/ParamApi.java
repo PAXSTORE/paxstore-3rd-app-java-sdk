@@ -290,7 +290,12 @@ public class ParamApi extends BaseApi {
         return updateActionObjectList;
     }
 
-
+    /**
+     * parse the downloaded parameter xml file, convert the xml elements to HashMap<String,String>
+     *
+     * @param file the downloaded xml
+     * @return HashMap with key/value of xml elements
+     */
     public HashMap<String,String> parseDownloadParamXml(File file) throws ParseXMLException {
         HashMap<String,String> resultMap = new HashMap<>();
         if(file!=null){
