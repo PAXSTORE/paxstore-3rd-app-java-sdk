@@ -29,4 +29,4 @@ Gradle:
     List<TerminalSyncInfo> terminalSyncInfoList = new ArrayList<TerminalSyncInfo>();
     terminalSyncInfoList.add(terminalSyncInfo);
     SyncApi syncApi = new SyncApi(apiUrl, appKey, appSecret, terminalSerialNo);
-    String result = SyncApi.syncTerminalInfo(terminalSyncInfoList);
+    String result = syncApi.syncTerminalInfo(terminalSyncInfoList);
