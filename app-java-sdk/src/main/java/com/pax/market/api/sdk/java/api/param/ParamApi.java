@@ -135,7 +135,7 @@ public class ParamApi extends BaseApi {
             //compare md， if md is null, pass
             if (paramObject.getMd() == null || paramObject.getMd().equals("")
                     || paramObject.getMd().equals(Md5Utils.getFileMD5(new File(sdkObject.getMessage())))) {
-                logger.debug("downlaod file md5 is correct");
+                logger.debug("download file md5 is correct");
                 //Unzip zipfile and delete it
                 boolean unzipResult = ZipUtil.unzip(sdkObject.getMessage());
                 boolean deleteResult = FileUtils.deleteFile(sdkObject.getMessage());
@@ -146,13 +146,13 @@ public class ParamApi extends BaseApi {
                     //replace file
                     boolean ifReplaceSuccess = ReplaceUtils.replaceParams(saveFilePath, paramObject.getParamVariables());
                     if (!ifReplaceSuccess) {
-                        System.out.println("replace paramVariables failed");
+                        logger.info("replace paramVariables failed");
                         sdkObject.setBusinessCode(ResultCode.SDK_REPLACE_VARIABLES_FAILED);
                         sdkObject.setMessage(ERROR_REMARKS_REPLACE_VARIABLES);
                     }
                 }
             } else {
-                logger.debug("downlaod file md5 is wrong");
+                logger.debug("download file md5 is wrong");
                 sdkObject.setBusinessCode(ResultCode.SDK_MD_FAILED);
                 sdkObject.setMessage(ERROR_REMARKS_VARIFY_MD_FAILED);
             }
@@ -213,6 +213,7 @@ public class ParamApi extends BaseApi {
      * @return
      */
     public DownloadResultObject downloadParamToPath(String packageName, int versionCode, String saveFilePath) {
+        logger.debug("downloadParamToPath: start");
         DownloadResultObject result = new DownloadResultObject();
         result.setParamSavePath(saveFilePath);
         //get paramList
@@ -260,7 +261,7 @@ public class ParamApi extends BaseApi {
                 result.setMessage(DOWNLOAD_SUCCESS);
             }
         }
-
+        logger.debug("downloadParamToPath: end");
         return result;
     }
 
@@ -310,6 +311,8 @@ public class ParamApi extends BaseApi {
             }catch (Exception e){
                 throw new ParseXMLException(e);
             }
+        }else{
+            logger.info("parseDownloadParamXml: file is null, please make sure the file is correct.");
         }
         return resultMap;
     }
