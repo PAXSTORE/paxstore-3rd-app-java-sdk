@@ -16,8 +16,8 @@ publish {
     repoName = 'paxstore'
     groupId = 'com.pax.market'
     artifactId = 'paxstore-3rd-app-java-sdk'
-    publishVersion = '5.02.02'
-    desc = 'This is the 3rd app java SDK of PAXSTORE'
+    publishVersion = '5.02.04'
+    desc = 'Basic java APIs for third party developers to integrate their apps on PAXSTORE.'
     website = 'https://github.com/PAXSTORE/paxstore-3rd-app-java-sdk'
     licences = ["Apache-2.0"]
 }
