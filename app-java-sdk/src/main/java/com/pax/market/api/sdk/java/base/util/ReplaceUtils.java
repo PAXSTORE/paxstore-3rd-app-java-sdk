@@ -43,8 +43,15 @@ public class ReplaceUtils {
                                 String fullFile = FileUtils.readFileToString(file);
                                 String replaceResult = fullFile;
                                 for (ParamsVariableObject paramsVariableObject : paramList) {
-                                    replaceResult = replaceResult.replaceAll("(?i)" + escapeExprSpecialWord(paramsVariableObject.getKey()),
-                                            escapeXml(paramsVariableObject.getValue()));
+                                    String key = escapeExprSpecialWord(paramsVariableObject.getKey());
+                                    String value = escapeXml(paramsVariableObject.getValue());
+                                    if(key.matches("#\\{([A-Za-z0-9-_.]+)}")) {
+                                        replaceResult = replaceResult.replaceAll(String.format("(?i)%s", key), value);
+                                    } else {
+                                        replaceResult = replaceResult.replaceAll(
+                                                String.format("(?i)<%s>.*</%s>", key, key),
+                                                String.format("<%s>%s</%s>", key, value, key));
+                                    }
                                 }
                                 //rewrite file
                                 if (!replaceResult.equals(fullFile)) {
