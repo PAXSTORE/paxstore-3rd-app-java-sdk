@@ -30,7 +30,24 @@ Gradle:
     terminalSyncInfoList.add(terminalSyncInfo);
     SyncApi syncApi = new SyncApi(apiUrl, appKey, appSecret, terminalSerialNo);
     String result = syncApi.syncTerminalInfo(terminalSyncInfoList);
-    
+
+### Upload trade record information
+    List<Map> recordList = new ArrayList<>();
+    Map record = new HashMap();
+    record.put("serialNo", "SN002");
+    record.put("appId", "com.paxitalia.demo");
+    record.put("terminalId", 67870002L);
+    record.put("operationType", "Cash Advance");
+    record.put("brand", "Alipay");
+    record.put("dateTime", 1515391080L);
+    record.put("currencyCode", "USD");
+    record.put("amount", 6777L);
+    record.put("result", "Approved");
+    record.put("jsonTicket", "{ \"name\": \"cxh\", \"sex\": \"man\" }");
+    record.put("merchantCode", 123456789012L);
+    recordList.add(record);
+    SdkObject sdkObject = syncApi.syncTradeRecord(recordList);
+
 ## License
 
 See the [Apache 2.0 license](https://github.com/PAXSTORE/paxstore-3rd-app-android-sdk/blob/master/LICENSE) file for details.
