@@ -46,6 +46,7 @@ Gradle:
     record.put("jsonTicket", "{ \"name\": \"cxh\", \"sex\": \"man\" }");
     record.put("merchantCode", 123456789012L);
     recordList.add(record);
+    SyncApi syncApi = new SyncApi(apiUrl, appKey, appSecret, terminalSerialNo);
     SdkObject sdkObject = syncApi.syncTradeRecord(recordList);
 
 ## License
