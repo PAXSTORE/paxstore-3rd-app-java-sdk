@@ -13,6 +13,8 @@
 package com.pax.market.api.sdk.java.api.sync;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.pax.market.api.sdk.java.api.sync.dto.TerminalPurchaseInfo;
 import com.pax.market.api.sdk.java.api.sync.dto.TerminalSyncInfo;
 import com.pax.market.api.sdk.java.base.api.BaseApi;
 import com.pax.market.api.sdk.java.base.client.DefaultClient;
@@ -23,6 +25,7 @@ import com.pax.market.api.sdk.java.base.util.JsonUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by fanjun on 2017/12/15.
@@ -33,6 +36,7 @@ public class SyncApi extends BaseApi {
      * The constant downloadParamUrl.
      */
     protected static String syncTerminalInfoUrl = "/3rdApps/info";
+    protected static String syncPurchaseRecordUrl = "/3rdApps/trade/record";
 
     public SyncApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
         super(baseUrl, appKey, appSecret, terminalSN);
@@ -75,4 +79,27 @@ public class SyncApi extends BaseApi {
         return JsonUtils.fromJson(client.execute(request), SdkObject.class);
     }
 
+    /**
+     * 同步交易信息
+     *
+     * @param recordList
+     * @return
+     */
+    public SdkObject syncTradeRecord(List<Map> recordList){
+        DefaultClient client = new DefaultClient(getBaseUrl(), getAppKey(), getAppSecret());
+        SdkRequest request = new SdkRequest(syncPurchaseRecordUrl);
+        request.setRequestMethod(SdkRequest.RequestMethod.POST);
+        request.addHeader(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_JSON);
+        request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
+        if(recordList != null && !recordList.isEmpty()){
+            List<TerminalPurchaseInfo> purchaseInfoList = new ArrayList<>(recordList.size());
+            Gson gson = new GsonBuilder().create();
+            for(Map record: recordList){
+                purchaseInfoList.add(new TerminalPurchaseInfo(gson.toJson(record)));
+
+            }
+            request.setRequestBody(new Gson().toJson(purchaseInfoList, ArrayList.class));
+        }
+        return JsonUtils.fromJson(client.execute(request), SdkObject.class);
+    }
 }
