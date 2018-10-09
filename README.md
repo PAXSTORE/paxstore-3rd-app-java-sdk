@@ -31,23 +31,29 @@ Gradle:
     SyncApi syncApi = new SyncApi(apiUrl, appKey, appSecret, terminalSerialNo);
     String result = syncApi.syncTerminalInfo(terminalSyncInfoList);
 
-### Upload trade record information
-    List<Map> recordList = new ArrayList<>();
+### Upload business data information
+    List recordList = new ArrayList<>();
+    //add data to your list, the data can be stored as a entity or a map or any other data struct your like.
+    //e.g.
+    //store data as a entity then add to list
+    YourEntity record = new YourEntity();
+    record.setSerialNo("SN002");
+    record.setAppId("com.paxitalia.demo");
+    record.setTerminalId(67870002L);
+    record.setOperationType("Cash Advance");
+    ...
+    recordList.add(record);
+    //or store data as a map then add to list
     Map record = new HashMap();
     record.put("serialNo", "SN002");
     record.put("appId", "com.paxitalia.demo");
     record.put("terminalId", 67870002L);
     record.put("operationType", "Cash Advance");
-    record.put("brand", "Alipay");
-    record.put("dateTime", 1515391080L);
-    record.put("currencyCode", "USD");
-    record.put("amount", 6777L);
-    record.put("result", "Approved");
-    record.put("jsonTicket", "{ \"name\": \"cxh\", \"sex\": \"man\" }");
-    record.put("merchantCode", 123456789012L);
+    ..
     recordList.add(record);
+    //call syncTerminalBizData(List bizDataList) to upload
     SyncApi syncApi = new SyncApi(apiUrl, appKey, appSecret, terminalSerialNo);
-    SdkObject sdkObject = syncApi.syncTradeRecord(recordList);
+    SdkObject sdkObject = syncApi.syncTerminalBizData(recordList);
 
 ## License
 
