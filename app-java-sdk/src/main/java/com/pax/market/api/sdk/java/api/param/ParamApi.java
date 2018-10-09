@@ -293,6 +293,7 @@ public class ParamApi extends BaseApi {
 
     /**
      * parse the downloaded parameter xml file, convert the xml elements to HashMap<String,String>
+     * this method will not keep the xml fields order. HashMap will have a better performance.
      *
      * @param file the downloaded xml
      * @return HashMap with key/value of xml elements
