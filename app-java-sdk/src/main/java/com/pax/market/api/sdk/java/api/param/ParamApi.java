@@ -29,7 +29,6 @@ import com.pax.market.api.sdk.java.base.util.ReplaceUtils;
 import com.pax.market.api.sdk.java.base.util.ZipUtil;
 
 import org.dom4j.Document;
-import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
@@ -39,6 +38,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 
@@ -313,6 +313,34 @@ public class ParamApi extends BaseApi {
             }
         }else{
             logger.info("parseDownloadParamXml: file is null, please make sure the file is correct.");
+        }
+        return resultMap;
+    }
+
+
+    /**
+     * parse the downloaded parameter xml file, convert the xml elements to LinkedHashMap<String,String>
+     * this method will keep the xml fields order. LinkedHashMap performance is slower than HashMap
+     *
+     * @param file the downloaded xml
+     * @return LinkedHashMap with key/value of xml elements
+     */
+    public LinkedHashMap<String,String> parseDownloadParamXmlWithOrder(File file) throws ParseXMLException {
+        LinkedHashMap<String,String> resultMap = new LinkedHashMap<>();
+        if(file!=null){
+            try {
+                SAXReader saxReader = new SAXReader();
+                Document document = saxReader.read(file);
+                Element root = document.getRootElement();
+                for (Iterator it = root.elementIterator(); it.hasNext(); ) {
+                    Element element = (Element) it.next();
+                    resultMap.put(element.getName(),element.getText());
+                }
+            }catch (Exception e){
+                throw new ParseXMLException(e);
+            }
+        }else{
+            logger.info("parseDownloadParamXmlWithOrder: file is null, please make sure the file is correct.");
         }
         return resultMap;
     }
