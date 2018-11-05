@@ -3,7 +3,7 @@ package com.pax.market.api.sdk.java.api.terminal.dto;
 import com.pax.market.api.sdk.java.base.dto.SdkObject;
 
 public class TerminalInfo extends SdkObject {
-    private String TID;
+    private String tid;
     private String name;
     private String serialNo;
     private String modelName;
@@ -11,12 +11,12 @@ public class TerminalInfo extends SdkObject {
     private String merchantName;
     private String status;
 
-    public String getTID() {
-        return TID;
+    public String getTid() {
+        return tid;
     }
 
-    public void setTID(String TID) {
-        this.TID = TID;
+    public void setTid(String tid) {
+        this.tid = tid;
     }
 
     public String getName() {
@@ -70,7 +70,7 @@ public class TerminalInfo extends SdkObject {
     @Override
     public String toString() {
         return "TerminalInfo{" +
-                "TID='" + TID + '\'' +
+                "tid='" + tid + '\'' +
                 ", name='" + name + '\'' +
                 ", serialNo='" + serialNo + '\'' +
                 ", modelName='" + modelName + '\'' +
