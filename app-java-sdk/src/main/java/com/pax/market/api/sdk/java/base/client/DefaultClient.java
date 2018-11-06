@@ -122,13 +122,13 @@ public class DefaultClient {
 		String response;
 
 		if(appKey != null) {
-			request.addRequestParam(Constants.APP_KEY, appKey);
+			request.addHeader(Constants.REQ_HEADER_APP_KEY, appKey);
 		}
-		Long timestamp = request.getTimestamp();
-		if(timestamp == null){
-			timestamp = System.currentTimeMillis();
-		}
-		request.addRequestParam(Constants.TIMESTAMP, Long.toString(timestamp));
+//		Long timestamp = request.getTimestamp();
+//		if(timestamp == null){
+//			timestamp = System.currentTimeMillis();
+//		}
+//		request.addRequestParam(Constants.TIMESTAMP, Long.toString(timestamp));
 
 		String query = HttpUtils.buildQuery(request.getRequestParams(), Constants.CHARSET_UTF8);
 		if(appSecret != null) {

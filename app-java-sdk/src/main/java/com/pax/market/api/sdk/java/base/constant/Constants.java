@@ -97,6 +97,10 @@ public class Constants {
      */
     public static final String REQ_HEADER_SN = "X-Terminal-SN";
     /**
+     * The constant REQ_HEADER_APP_KEY.
+     */
+    public static final String REQ_HEADER_APP_KEY = "X-3rdApp-Key";
+    /**
      * The constant XML_FILE_PREFIX.
      */
     public static final String XML_FILE_PREFIX = "<?xml";
