@@ -12,6 +12,7 @@
 package com.pax.market.api.sdk.java.base.client;
 
 
+import com.pax.market.api.sdk.java.Version;
 import com.pax.market.api.sdk.java.base.constant.Constants;
 import com.pax.market.api.sdk.java.base.constant.ResultCode;
 import com.pax.market.api.sdk.java.base.request.SdkRequest;
@@ -124,6 +125,7 @@ public class DefaultClient {
 		if(appKey != null) {
 			request.addHeader(Constants.REQ_HEADER_APP_KEY, appKey);
 		}
+		request.addHeader(Constants.REQ_HEADER_SDK_VERSION, Version.getVersion());
 //		Long timestamp = request.getTimestamp();
 //		if(timestamp == null){
 //			timestamp = System.currentTimeMillis();
