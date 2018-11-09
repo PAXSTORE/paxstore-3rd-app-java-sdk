@@ -31,30 +31,6 @@ Gradle:
     SyncApi syncApi = new SyncApi(apiUrl, appKey, appSecret, terminalSerialNo);
     String result = syncApi.syncTerminalInfo(terminalSyncInfoList);
 
-### Upload business data information
-    List recordList = new ArrayList<>();
-    //add data to your list, the data can be stored as a entity or a map or any other data struct your like.
-    //e.g.
-    //store data as a entity then add to list
-    YourEntity record = new YourEntity();
-    record.setSerialNo("SN002");
-    record.setAppId("com.paxitalia.demo");
-    record.setTerminalId(67870002L);
-    record.setOperationType("Cash Advance");
-    ...
-    recordList.add(record);
-    //or store data as a map then add to list
-    Map record = new HashMap();
-    record.put("serialNo", "SN002");
-    record.put("appId", "com.paxitalia.demo");
-    record.put("terminalId", 67870002L);
-    record.put("operationType", "Cash Advance");
-    ..
-    recordList.add(record);
-    //call syncTerminalBizData(List bizDataList) to upload
-    SyncApi syncApi = new SyncApi(apiUrl, appKey, appSecret, terminalSerialNo);
-    SdkObject sdkObject = syncApi.syncTerminalBizData(recordList);
-
 ## License
 
 See the [Apache 2.0 license](https://github.com/PAXSTORE/paxstore-3rd-app-android-sdk/blob/master/LICENSE) file for details.
