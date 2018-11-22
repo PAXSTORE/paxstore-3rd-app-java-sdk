@@ -27,7 +27,7 @@ import java.util.regex.Matcher;
 public class ReplaceUtils {
 
 
-    private static final Logger logger = LoggerFactory.getLogger(ReplaceUtils.class);
+    private static final Logger logger = LoggerFactory.getLogger(ReplaceUtils.class.getSimpleName());
 
     public static boolean replaceParams(String filePath, String paramVariables) {
         List<ParamsVariableObject> paramList = exchangeValues(paramVariables);
@@ -45,10 +45,10 @@ public class ReplaceUtils {
                                 for (ParamsVariableObject paramsVariableObject : paramList) {
                                     String key = escapeExprSpecialWord(paramsVariableObject.getKey());
                                     String value = escapeXml(paramsVariableObject.getValue());
-                                    if(key.matches("#\\{([A-Za-z0-9-_.]+)}")) {
+                                    if(paramsVariableObject.getKey().matches("#\\{([A-Za-z0-9-_.]+)\\}")) {
                                         replaceResult = replaceResult.replaceAll(String.format("(?i)%s", key), value);
                                     } else {
-                                        replaceResult = replaceResult.replaceAll(
+                                         replaceResult = replaceResult.replaceAll(
                                                 String.format("(?i)<%s>.*</%s>", key, key),
                                                 String.format("<%s>%s</%s>", key, value, key));
                                     }
