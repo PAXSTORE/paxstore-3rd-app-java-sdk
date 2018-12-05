@@ -12,6 +12,7 @@
 package com.pax.market.api.sdk.java.base.util;
 
 
+import com.google.gson.JsonParseException;
 import com.pax.market.api.sdk.java.base.constant.Constants;
 import com.pax.market.api.sdk.java.base.constant.ResultCode;
 import com.pax.market.api.sdk.java.base.dto.SdkObject;
@@ -209,28 +210,24 @@ public abstract class HttpUtils {
 					}
 				}
 			}
+            if (urlConnection.getResponseCode() == 200) {
+                if(saveFilePath != null) {
+                    filePath = saveFilePath + File.separator + FileUtils.generateMixString(16) ;
 
-			if(saveFilePath != null) {
-				filePath = saveFilePath + File.separator + FileUtils.generateMixString(16) ;
+                    File fileDir = new File(saveFilePath);
+                    if(!fileDir.exists()) {
+                        fileDir.mkdirs();
+                    }
+                    fileOutputStream = new FileOutputStream(filePath);
 
-				File fileDir = new File(saveFilePath);
-				if(!fileDir.exists()) {
-					fileDir.mkdirs();
-				}
-				fileOutputStream = new FileOutputStream(filePath);
+                    int bytesRead;
+                    byte[] buffer = new byte[BUFFER_SIZE];
+                    while ((bytesRead = urlConnection.getInputStream().read(buffer)) != -1) {
+                        fileOutputStream.write(buffer, 0, bytesRead);
+                    }
+                    return JsonUtils.getSdkJson(ResultCode.SUCCESS, filePath);
+                }
 
-				int bytesRead;
-				byte[] buffer = new byte[BUFFER_SIZE];
-				while ((bytesRead = urlConnection.getInputStream().read(buffer)) != -1) {
-					fileOutputStream.write(buffer, 0, bytesRead);
-				}
-
-
-
-				return JsonUtils.getSdkJson(ResultCode.SUCCESS, filePath);
-			}
-
-			if (urlConnection.getResponseCode() == 200) {
 				bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "utf-8"));
 			} else {
 				if(urlConnection.getErrorStream() != null) {
@@ -253,6 +250,9 @@ public abstract class HttpUtils {
                 }
             } catch (IllegalStateException e ) {
                 logger.error("IllegalStateException Occurred. Details: {}", e.toString());
+                return JsonUtils.getSdkJson(urlConnection.getResponseCode(), stringBuilder.toString());
+            } catch (JsonParseException e1) {
+                logger.error("JsonParseException Occurred. Details: {}", e1.toString());
                 return JsonUtils.getSdkJson(urlConnection.getResponseCode(), stringBuilder.toString());
             }
 			return stringBuilder.toString();

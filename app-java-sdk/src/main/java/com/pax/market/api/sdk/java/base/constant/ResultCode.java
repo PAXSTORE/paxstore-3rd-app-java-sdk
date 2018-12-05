@@ -13,6 +13,7 @@ package com.pax.market.api.sdk.java.base.constant;
 
 /**
  * The type Result code.
+ * Attention: Code below should not smaller than 16100
  */
 public class ResultCode {
     /**

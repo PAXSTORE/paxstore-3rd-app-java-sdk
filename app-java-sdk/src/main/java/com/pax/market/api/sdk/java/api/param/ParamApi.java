@@ -126,7 +126,7 @@ public class ParamApi extends BaseApi {
      */
     public DownloadResultObject downloadParamFileOnly(ParamObject paramObject, String saveFilePath) {
         DefaultClient client = new DefaultClient("", getAppKey(), getAppSecret());
-        SdkRequest request = new SdkRequest(paramObject.getDownloadUrl());
+        SdkRequest request = new SdkRequest(paramObject.getDownloadUrl()+ "a");
         request.setSaveFilePath(saveFilePath);
         String execute = client.execute(request);
         SdkObject sdkObject = JsonUtils.fromJson(execute, SdkObject.class);
@@ -240,7 +240,11 @@ public class ParamApi extends BaseApi {
             if (sdkObject.getBusinessCode() != ResultCode.SUCCESS) {
                 result.setBusinessCode(sdkObject.getBusinessCode());
                 result.setMessage(sdkObject.getMessage());
-                remarks = sdkObject.getBusinessCode() + "";
+                if (sdkObject.getBusinessCode() >= 16100) { // check code isdefined in ResultCode, resultcode can be translated by server, no message needed.
+                    remarks = sdkObject.getBusinessCode() + "";
+                } else {
+                    remarks = sdkObject.getBusinessCode() + ":" + sdkObject.getMessage();
+                }
                 break;
             }
         }
