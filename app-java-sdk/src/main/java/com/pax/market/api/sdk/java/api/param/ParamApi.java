@@ -126,7 +126,7 @@ public class ParamApi extends BaseApi {
      */
     public DownloadResultObject downloadParamFileOnly(ParamObject paramObject, String saveFilePath) {
         DefaultClient client = new DefaultClient("", getAppKey(), getAppSecret());
-        SdkRequest request = new SdkRequest(paramObject.getDownloadUrl()+ "a");
+        SdkRequest request = new SdkRequest(paramObject.getDownloadUrl());
         request.setSaveFilePath(saveFilePath);
         String execute = client.execute(request);
         SdkObject sdkObject = JsonUtils.fromJson(execute, SdkObject.class);
