@@ -112,10 +112,10 @@ public class DefaultClient {
 			return _execute(request);
 		} catch (IOException e) {
 			logger.error("IOException occurred when execute request. Details: {}", e.toString());
-			return JsonUtils.getSdkJson(ResultCode.SDK_RQUEST_EXCEPTION, e.getMessage());
+			return JsonUtils.getSdkJson(ResultCode.SDK_RQUEST_EXCEPTION.getCode(), e.getMessage());
 		} catch (GeneralSecurityException e) {
 			logger.error("GeneralSecurityException occurred when execute request. Details: {}", e.toString());
-			return JsonUtils.getSdkJson(ResultCode.SDK_RQUEST_EXCEPTION, e.getMessage());
+			return JsonUtils.getSdkJson(ResultCode.SDK_RQUEST_EXCEPTION.getCode(), e.getMessage());
 		}
 	}
 

@@ -131,8 +131,8 @@ public class ParamApi extends BaseApi {
         String execute = client.execute(request);
         SdkObject sdkObject = JsonUtils.fromJson(execute, SdkObject.class);
 
-        if (sdkObject.getBusinessCode() == ResultCode.SUCCESS) {
-            //compare md， if md is null, pass
+        if (sdkObject.getBusinessCode() == ResultCode.SUCCESS.getCode()) {
+            //compare md，if md is null, pass
             if (paramObject.getMd() == null || paramObject.getMd().equals("")
                     || paramObject.getMd().equals(Md5Utils.getFileMD5(new File(sdkObject.getMessage())))) {
                 logger.debug("download file md5 is correct");
@@ -140,20 +140,20 @@ public class ParamApi extends BaseApi {
                 boolean unzipResult = ZipUtil.unzip(sdkObject.getMessage());
                 boolean deleteResult = FileUtils.deleteFile(sdkObject.getMessage());
                 if (!unzipResult || !deleteResult) {
-                    sdkObject.setBusinessCode(ResultCode.SDK_UNZIP_FAILED);
+                    sdkObject.setBusinessCode(ResultCode.SDK_UNZIP_FAILED.getCode());
                     sdkObject.setMessage(ERROR_UNZIP_FAILED);
                 } else {
                     //replace file
                     boolean ifReplaceSuccess = ReplaceUtils.replaceParams(saveFilePath, paramObject.getParamVariables());
                     if (!ifReplaceSuccess) {
                         logger.info("replace paramVariables failed");
-                        sdkObject.setBusinessCode(ResultCode.SDK_REPLACE_VARIABLES_FAILED);
+                        sdkObject.setBusinessCode(ResultCode.SDK_REPLACE_VARIABLES_FAILED.getCode());
                         sdkObject.setMessage(ERROR_REMARKS_REPLACE_VARIABLES);
                     }
                 }
             } else {
                 logger.debug("download file md5 is wrong");
-                sdkObject.setBusinessCode(ResultCode.SDK_MD_FAILED);
+                sdkObject.setBusinessCode(ResultCode.SDK_MD_FAILED.getCode());
                 sdkObject.setMessage(ERROR_REMARKS_VARIFY_MD_FAILED);
             }
         }
@@ -218,7 +218,7 @@ public class ParamApi extends BaseApi {
         result.setParamSavePath(saveFilePath);
         //get paramList
         ParamListObject paramListObject = getParamDownloadList(packageName, versionCode);
-        if (paramListObject.getBusinessCode() != ResultCode.SUCCESS) {
+        if (paramListObject.getBusinessCode() != ResultCode.SUCCESS.getCode()) {
             result.setBusinessCode(paramListObject.getBusinessCode());
             result.setMessage(paramListObject.getMessage());
             return result;
@@ -237,10 +237,10 @@ public class ParamApi extends BaseApi {
         String remarks = null;
         for (ParamObject paramObject : paramListObject.getList()) {
             SdkObject sdkObject = downloadParamFileOnly(paramObject, saveFilePath);
-            if (sdkObject.getBusinessCode() != ResultCode.SUCCESS) {
+            if (sdkObject.getBusinessCode() != ResultCode.SUCCESS.getCode()) {
                 result.setBusinessCode(sdkObject.getBusinessCode());
                 result.setMessage(sdkObject.getMessage());
-                if (sdkObject.getBusinessCode() >= 16100) { // check code isdefined in ResultCode, resultcode can be translated by server, no message needed.
+                if (ResultCode.toResultCode(sdkObject.getBusinessCode()) != ResultCode.UN_CODE) { // check code isdefined in ResultCode, resultcode can be translated by server, no message needed.
                     remarks = sdkObject.getBusinessCode() + "";
                 } else {
                     remarks = sdkObject.getBusinessCode() + ":" + sdkObject.getMessage();
@@ -255,13 +255,13 @@ public class ParamApi extends BaseApi {
             updateActionListByRemarks(paramListObject, remarks);
         } else {
             SdkObject updateResultObj = updateActionListByRemarks(paramListObject, remarks);
-            if (updateResultObj.getBusinessCode() != ResultCode.SUCCESS) {
+            if (updateResultObj.getBusinessCode() != ResultCode.SUCCESS.getCode()) {
                 FileUtils.delFolder(saveFilePath);
                 result.setBusinessCode(updateResultObj.getBusinessCode());
                 result.setMessage(updateResultObj.getMessage());
             } else {
                 FileUtils.moveToFatherFolder(saveFilePath);
-                result.setBusinessCode(ResultCode.SUCCESS);
+                result.setBusinessCode(ResultCode.SUCCESS.getCode());
                 result.setMessage(DOWNLOAD_SUCCESS);
             }
         }

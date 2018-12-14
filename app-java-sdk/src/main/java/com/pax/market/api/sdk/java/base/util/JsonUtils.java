@@ -68,41 +68,41 @@ public class JsonUtils {
      */
     public static String getSdkJson(int resultCode) {
         String message = "";
-        switch (resultCode) {
-            case ResultCode.SDK_PARAM_ERROR:
+        switch (ResultCode.toResultCode(resultCode)) {
+            case SDK_PARAM_ERROR:
                 message = "Sdk param error";
                 break;
-            case ResultCode.SDK_UNINIT:
+            case SDK_UNINIT:
                 message = "Sdk uninit";
                 break;
-            case ResultCode.SDK_DEC_ERROR:
+            case SDK_DEC_ERROR:
                 message = "Sdk decrypt error";
                 break;
-            case ResultCode.SDK_JSON_ERROR:
+            case SDK_JSON_ERROR:
                 message = "Sdk json error";
                 break;
-            case ResultCode.SDK_CONNECT_TIMEOUT:
+            case SDK_CONNECT_TIMEOUT:
                 message = "Sdk connect timeout";
                 break;
-            case ResultCode.SDK_UN_CONNECT:
+            case SDK_UN_CONNECT:
                 message = "Sdk unconnect";
                 break;
-            case ResultCode.SDK_RQUEST_EXCEPTION:
+            case SDK_RQUEST_EXCEPTION:
                 message = "Sdk rquest exception";
                 break;
-            case ResultCode.SDK_UNZIP_FAILED:
+            case SDK_UNZIP_FAILED:
                 message = "Sdk unzip failed";
                 break;
-            case ResultCode.SDK_MD_FAILED:
+            case SDK_MD_FAILED:
                 message = "Sdk md failed";
                 break;
-            case ResultCode.SDK_REPLACE_VARIABLES_FAILED:
+            case SDK_REPLACE_VARIABLES_FAILED:
                 message = "Sdk replace variables failed";
                 break;
-            case ResultCode.SDK_INIT_FAILED:
+            case SDK_INIT_FAILED:
                 message = "Sdk init failed";
                 break;
-            case ResultCode.SDK_FILE_NOT_FOUND:
+            case SDK_FILE_NOT_FOUND:
                 message = "Sdk file not found";
                 break;
 

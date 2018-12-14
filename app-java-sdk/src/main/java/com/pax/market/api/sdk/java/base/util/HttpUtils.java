@@ -163,7 +163,7 @@ public abstract class HttpUtils {
 			return finalRequest(urlConnection, requestMethod, userData, compressData, headerMap, saveFilePath);
 		} catch (IOException e) {
 			logger.error("IOException Occurred. Details: {}", e.toString());
-			return JsonUtils.getSdkJson(ResultCode.SDK_RQUEST_EXCEPTION, e.getMessage());
+			return JsonUtils.getSdkJson(ResultCode.SDK_RQUEST_EXCEPTION.getCode(), e.getMessage());
 		} finally {
 			if(urlConnection != null) {
 				urlConnection.disconnect();
@@ -225,7 +225,7 @@ public abstract class HttpUtils {
                     while ((bytesRead = urlConnection.getInputStream().read(buffer)) != -1) {
                         fileOutputStream.write(buffer, 0, bytesRead);
                     }
-                    return JsonUtils.getSdkJson(ResultCode.SUCCESS, filePath);
+                    return JsonUtils.getSdkJson(ResultCode.SUCCESS.getCode(), filePath);
                 }
 
 				bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "utf-8"));
@@ -260,19 +260,19 @@ public abstract class HttpUtils {
 		} catch (SocketTimeoutException localSocketTimeoutException) {
 			FileUtils.deleteFile(filePath);
 			logger.error("SocketTimeoutException Occurred. Details: {}", localSocketTimeoutException.toString());
-			return JsonUtils.getSdkJson(ResultCode.SDK_CONNECT_TIMEOUT);
+			return JsonUtils.getSdkJson(ResultCode.SDK_CONNECT_TIMEOUT.getCode());
 		} catch (ConnectException localConnectException) {
 			FileUtils.deleteFile(filePath);
 			logger.error("ConnectException Occurred. Details: {}", localConnectException.toString());
-			return JsonUtils.getSdkJson(ResultCode.SDK_UN_CONNECT);
+			return JsonUtils.getSdkJson(ResultCode.SDK_UN_CONNECT.getCode());
 		} catch (FileNotFoundException fileNotFoundException) {
 			FileUtils.deleteFile(filePath);
 			logger.error("FileNotFoundException Occurred. Details: {}", fileNotFoundException.toString());
-			return JsonUtils.getSdkJson(ResultCode.SDK_FILE_NOT_FOUND);
+			return JsonUtils.getSdkJson(ResultCode.SDK_FILE_NOT_FOUND.getCode());
 		} catch (Exception ignored) {
 			FileUtils.deleteFile(filePath);
 			logger.error("Exception Occurred. Details: {}", ignored.toString());
-			return JsonUtils.getSdkJson(ResultCode.SDK_RQUEST_EXCEPTION, ignored.getMessage());
+			return JsonUtils.getSdkJson(ResultCode.SDK_RQUEST_EXCEPTION.getCode(), ignored.getMessage());
 		} finally {
 			if(bufferedReader != null) {
 				try {

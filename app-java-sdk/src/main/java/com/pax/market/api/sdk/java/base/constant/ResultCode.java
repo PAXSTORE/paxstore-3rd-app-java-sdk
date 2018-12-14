@@ -15,60 +15,43 @@ package com.pax.market.api.sdk.java.base.constant;
  * The type Result code.
  * Attention: Code below should not smaller than 16100
  */
-public class ResultCode {
-    /**
-     * The constant SUCCESS.
-     */
-    public static final int SUCCESS = 0;
-    /**
-     * The constant SDK_PARAM_ERROR.
-     */
-    public static final int SDK_PARAM_ERROR = 16100;
-    /**
-     * The constant SDK_UNINIT.
-     */
-    public static final int SDK_UNINIT = 16101;
-    /**
-     * The constant SDK_DEC_ERROR.
-     */
-    public static final int SDK_DEC_ERROR = 16102;
-    /**
-     * The constant SDK_JSON_ERROR.
-     */
-    public static final int SDK_JSON_ERROR = 16103;
-    /**
-     * The constant SDK_CONNECT_TIMEOUT.
-     */
-    public static final int SDK_CONNECT_TIMEOUT = 16104;
-    /**
-     * The constant SDK_UN_CONNECT.
-     */
-    public static final int SDK_UN_CONNECT = 16105;
-    /**
-     * The constant SDK_RQUEST_EXCEPTION.
-     */
-    public static final int SDK_RQUEST_EXCEPTION = 16106;
+public enum ResultCode {
 
-    /**
-     * The constant SDK_UNZIP_FAILED.
-     */
-    public static final int SDK_UNZIP_FAILED = 16107;
-    /**
-     * The constant SDK_MD_FAILED.
-     */
-    public static final int SDK_MD_FAILED = 16108;
-    /**
-     * The constant SDK_REPLACE_VARIABLES_FAILED.
-     */
-    public static final int SDK_REPLACE_VARIABLES_FAILED = 16109;
-    /**
-     * The constant SDK_INIT_FAILED.
-     */
-    public static final int SDK_INIT_FAILED = 16110;
-    /**
-     * The constant FILE_NOT_FOUND.
-     */
-    public static final int SDK_FILE_NOT_FOUND = 16111;
+    SUCCESS(0),
+    SDK_PARAM_ERROR(16100),
+    SDK_UNINIT(16101),
+    SDK_DEC_ERROR(16102),
+    SDK_JSON_ERROR(16103),
+    SDK_CONNECT_TIMEOUT(16104),
+    SDK_UN_CONNECT(16105),
+    SDK_RQUEST_EXCEPTION(16106),
+    SDK_UNZIP_FAILED(16107),
+    SDK_MD_FAILED(16108),
+    SDK_REPLACE_VARIABLES_FAILED(16109),
+    SDK_INIT_FAILED(16110),
+    SDK_FILE_NOT_FOUND(16111),
+
+    UN_CODE(-1);
+
+    private int code;
+
+    ResultCode(int code) {
+        this.code = code;
+    }
+
+    public int getCode() {
+        return code;
+    }
+
+    public static ResultCode toResultCode(int code) {
+        for (ResultCode resultCode : values()) {
+            if (resultCode.getCode() == code) {
+                return resultCode;
+            }
+        }
+        return UN_CODE;
+    }
+
 
 
 }
