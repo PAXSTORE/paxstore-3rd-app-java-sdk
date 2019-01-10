@@ -109,12 +109,11 @@ public class ParamApi extends BaseApi {
      * @return
      */
     public ParamListObject getParamDownloadList(String packageName, int versionCode){
-        DefaultClient client = new DefaultClient(getBaseUrl(), getAppKey(), getAppSecret());
         SdkRequest request = new SdkRequest(downloadParamUrl);
         request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
         request.addRequestParam(REQ_PARAM_PACKAGE_NAME, packageName);
         request.addRequestParam(REQ_PARAM_VERSION_CODE, Integer.toString(versionCode));
-        return JsonUtils.fromJson(client.execute(request), ParamListObject.class);
+        return JsonUtils.fromJson(call(request), ParamListObject.class);
     }
 
     /**
@@ -125,10 +124,9 @@ public class ParamApi extends BaseApi {
      * @return
      */
     public DownloadResultObject downloadParamFileOnly(ParamObject paramObject, String saveFilePath) {
-        DefaultClient client = new DefaultClient("", getAppKey(), getAppSecret());
         SdkRequest request = new SdkRequest(paramObject.getDownloadUrl());
         request.setSaveFilePath(saveFilePath);
-        String execute = client.execute(request);
+        String execute = download(request);
         SdkObject sdkObject = JsonUtils.fromJson(execute, SdkObject.class);
 
         if (sdkObject.getBusinessCode() == ResultCode.SUCCESS.getCode()) {
@@ -175,7 +173,6 @@ public class ParamApi extends BaseApi {
      * @return
      */
     public SdkObject updateDownloadStatus(String actionId, int status, int errorCode, String remarks){
-        DefaultClient client = new DefaultClient(getBaseUrl(), getAppKey(), getAppSecret());
         String requestUrl = updateStatusUrl.replace("{actionId}", actionId);
         SdkRequest request = new SdkRequest(requestUrl);
         request.setRequestMethod(SdkRequest.RequestMethod.PUT);
@@ -183,7 +180,7 @@ public class ParamApi extends BaseApi {
         request.addRequestParam(REQ_PARAM_STATUS, Integer.toString(status));
         request.addRequestParam(REQ_PARAM_ERROR_CODE, Integer.toString(errorCode));
         request.addRequestParam(REQ_PARAM_REMARKS, remarks);
-        return JsonUtils.fromJson(client.execute(request), SdkObject.class);
+        return JsonUtils.fromJson(call(request), SdkObject.class);
     }
 
     /**
@@ -194,13 +191,12 @@ public class ParamApi extends BaseApi {
      */
     public SdkObject updateDownloadStatusBatch(List<UpdateActionObject> updateActionObjectList){
         String requestBody = JsonUtils.toJson(updateActionObjectList);
-        DefaultClient client = new DefaultClient(getBaseUrl(), getAppKey(), getAppSecret());
         SdkRequest request = new SdkRequest(updateStatusBatchUrl);
         request.setRequestMethod(SdkRequest.RequestMethod.POST);
         request.addHeader(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_JSON);
         request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
         request.setRequestBody(requestBody);
-        return JsonUtils.fromJson(client.execute(request), SdkObject.class);
+        return JsonUtils.fromJson(call(request), SdkObject.class);
     }
 
 

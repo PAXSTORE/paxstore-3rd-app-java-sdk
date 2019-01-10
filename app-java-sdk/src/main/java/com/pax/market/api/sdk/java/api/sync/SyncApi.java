@@ -16,7 +16,6 @@ import com.google.gson.Gson;
 import com.pax.market.api.sdk.java.api.sync.dto.TerminalSyncBizData;
 import com.pax.market.api.sdk.java.api.sync.dto.TerminalSyncInfo;
 import com.pax.market.api.sdk.java.base.api.BaseApi;
-import com.pax.market.api.sdk.java.base.client.DefaultClient;
 import com.pax.market.api.sdk.java.base.constant.Constants;
 import com.pax.market.api.sdk.java.base.dto.SdkObject;
 import com.pax.market.api.sdk.java.base.request.SdkRequest;
@@ -78,13 +77,12 @@ public class SyncApi extends BaseApi {
      * @return Json result string
      */
     public SdkObject syncTerminalInfo(List<TerminalSyncInfo> infoList){
-        DefaultClient client = new DefaultClient(getBaseUrl(), getAppKey(), getAppSecret());
         SdkRequest request = new SdkRequest(syncTerminalInfoUrl);
         request.setRequestMethod(SdkRequest.RequestMethod.POST);
         request.addHeader(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_JSON);
         request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
         request.setRequestBody(new Gson().toJson(infoList, ArrayList.class));
-        return JsonUtils.fromJson(client.execute(request), SdkObject.class);
+        return JsonUtils.fromJson(call(request), SdkObject.class);
     }
 
     /**
@@ -103,7 +101,6 @@ public class SyncApi extends BaseApi {
             return sdkObject;
         }
 
-        DefaultClient client = new DefaultClient(getBaseUrl(), getAppKey(), getAppSecret());
         SdkRequest request = new SdkRequest(syncBusinessDataUrl);
         request.setRequestMethod(SdkRequest.RequestMethod.POST);
         request.addHeader(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_JSON);
@@ -129,7 +126,7 @@ public class SyncApi extends BaseApi {
             return sdkObject;
         }
         request.setRequestBody(bizDataString);
-        return JsonUtils.fromJson(client.execute(request), SdkObject.class);
+        return JsonUtils.fromJson(call(request), SdkObject.class);
     }
 
 }

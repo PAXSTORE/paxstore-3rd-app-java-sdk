@@ -105,6 +105,10 @@ public class Constants {
      */
     public static final String REQ_HEADER_SDK_VERSION = "X-SDK-Version";
     /**
+     * The constant REQ_HEADER_PROXY_AUTHORIZATION.
+     */
+    public static final String REQ_HEADER_PROXY_AUTHORIZATION = "Proxy-Authorization";
+    /**
      * The constant XML_FILE_PREFIX.
      */
     public static final String XML_FILE_PREFIX = "<?xml";
