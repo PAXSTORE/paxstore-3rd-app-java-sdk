@@ -32,6 +32,7 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
+import java.net.Proxy;
 import java.net.SocketTimeoutException;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -102,41 +103,11 @@ public abstract class HttpUtils {
      * @param readTimeout    the read timeout
      * @param userData       the user data
      * @param headerMap      the header map
-     * @return the string
-     */
-    public static String request(String requestUrl, String requestMethod, int connectTimeout, int readTimeout, String userData, Map<String, String> headerMap){
-		return request(requestUrl, requestMethod, connectTimeout, readTimeout, userData, false, headerMap, null);
-	}
-
-    /**
-     * Compress request string.
-     *
-     * @param requestUrl     the request url
-     * @param requestMethod  the request method
-     * @param connectTimeout the connect timeout
-     * @param readTimeout    the read timeout
-     * @param userData       the user data
-     * @param headerMap      the header map
-     * @return the string
-     */
-    public static String compressRequest(String requestUrl, String requestMethod, int connectTimeout, int readTimeout, String userData, Map<String, String> headerMap){
-		return request(requestUrl, requestMethod, connectTimeout, readTimeout, userData, true, headerMap, null);
-	}
-
-    /**
-     * Request string.
-     *
-     * @param requestUrl     the request url
-     * @param requestMethod  the request method
-     * @param connectTimeout the connect timeout
-     * @param readTimeout    the read timeout
-     * @param userData       the user data
-     * @param headerMap      the header map
      * @param saveFilePath   the save file path
      * @return the string
      */
-    public static String request(String requestUrl, String requestMethod, int connectTimeout, int readTimeout, String userData, Map<String, String> headerMap, String saveFilePath){
-		return request(requestUrl, requestMethod, connectTimeout, readTimeout, userData, false, headerMap, saveFilePath);
+    public static String request(String requestUrl, String requestMethod, int connectTimeout, int readTimeout, String userData, Map<String, String> headerMap, String saveFilePath, Proxy proxy){
+		return request(requestUrl, requestMethod, connectTimeout, readTimeout, userData, false, headerMap, saveFilePath, proxy);
 	}
 
     /**
@@ -151,15 +122,15 @@ public abstract class HttpUtils {
      * @param saveFilePath   the save file path
      * @return the string
      */
-    public static String compressRequest(String requestUrl, String requestMethod, int connectTimeout, int readTimeout, String userData, Map<String, String> headerMap, String saveFilePath){
-		return request(requestUrl, requestMethod, connectTimeout, readTimeout, userData, true, headerMap, saveFilePath);
+    public static String compressRequest(String requestUrl, String requestMethod, int connectTimeout, int readTimeout, String userData, Map<String, String> headerMap, String saveFilePath, Proxy proxy){
+		return request(requestUrl, requestMethod, connectTimeout, readTimeout, userData, true, headerMap, saveFilePath, proxy);
 	}
 
 	private static String request(String requestUrl, String requestMethod, int connectTimeout, int readTimeout, String userData, boolean compressData,
-								  Map<String, String> headerMap, String saveFilePath) {
+								  Map<String, String> headerMap, String saveFilePath, Proxy proxy) {
 		HttpURLConnection urlConnection = null;
 		try {
-			urlConnection = getConnection(requestUrl, connectTimeout, readTimeout);
+			urlConnection = getConnection(requestUrl, connectTimeout, readTimeout, proxy);
 			return finalRequest(urlConnection, requestMethod, userData, compressData, headerMap, saveFilePath);
 		} catch (IOException e) {
 			logger.error("IOException Occurred. Details: {}", e.toString());
@@ -294,9 +265,14 @@ public abstract class HttpUtils {
 		}
 	}
 
-	private static HttpURLConnection getConnection(String requestUrl, int connectTimeout, int readTimeout) throws IOException {
+	private static HttpURLConnection getConnection(String requestUrl, int connectTimeout, int readTimeout, Proxy proxy) throws IOException {
 		URL url = new URL(requestUrl);
-		HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+		HttpURLConnection conn;
+		if (proxy == null || proxy.type() == Proxy.Type.DIRECT) {
+			 conn = (HttpURLConnection) url.openConnection();
+		} else {
+			conn = (HttpURLConnection) url.openConnection(proxy);
+		}
 		if (conn instanceof HttpsURLConnection) {
 			HttpsURLConnection connHttps = (HttpsURLConnection) conn;
 			try {

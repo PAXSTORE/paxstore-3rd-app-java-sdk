@@ -12,6 +12,10 @@
 
 package com.pax.market.api.sdk.java.base.api;
 
+import com.pax.market.api.sdk.java.base.client.DefaultClient;
+import com.pax.market.api.sdk.java.base.client.ProxyDelegate;
+import com.pax.market.api.sdk.java.base.request.SdkRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,42 +26,43 @@ public class BaseApi {
     private final Logger logger = LoggerFactory.getLogger(BaseApi.class.getSimpleName());
 
     /**
-     * The constant baseUrl.
-     */
-    private String baseUrl;
-    /**
-     * The constant appKey.
-     */
-    private String appKey;
-    /**
-     * The constant appSecret.
-     */
-    private String appSecret;
-    /**
      * The constant terminal SN.
      */
     private String terminalSN;
+    private DefaultClient client;
 
     public BaseApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
-        this.baseUrl = baseUrl;
-        this.appKey = appKey;
-        this.appSecret = appSecret;
         this.terminalSN = terminalSN;
-    }
-
-    public String getBaseUrl() {
-        return baseUrl;
-    }
-
-    public String getAppKey() {
-        return appKey;
-    }
-
-    public String getAppSecret() {
-        return appSecret;
+        this.client = new DefaultClient(baseUrl,appKey, appSecret);
     }
 
     public String getTerminalSN() {
         return terminalSN;
+    }
+
+    public <T extends BaseApi> T setProxyDelegate(ProxyDelegate proxyDelegate) {
+        if(proxyDelegate != null){
+            this.client.setProxy(proxyDelegate.retrieveProxy());
+            this.client.setProxyAuthorization(proxyDelegate.retrieveProxyAuthorization());
+        } else {
+            logger.warn("Proxy delegate is NULL, please set it before using proxy!");
+        }
+        return (T) this;
+    }
+
+    protected DefaultClient getDefaultClient(){
+        return client;
+    }
+
+    protected DefaultClient getDefaultDownloadClient(){
+        return this.client.newBuilder().baseUrl("").build();
+    }
+
+    public String call(SdkRequest request){
+        return getDefaultClient().execute(request);
+    }
+
+    public String download(SdkRequest request){
+        return getDefaultDownloadClient().execute(request);
     }
 }

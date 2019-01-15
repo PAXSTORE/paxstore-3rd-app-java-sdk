@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.Proxy;
 import java.security.GeneralSecurityException;
 
 /**
@@ -57,6 +58,14 @@ public class DefaultClient {
      * The Read timeout.
      */
     protected int readTimeout = 30000; 				// 默认响应超时时间为30秒
+	/**
+	 * The proxy setting
+	 */
+	private Proxy proxy;
+	/**
+	 * The proxy authorization
+	 */
+	private String proxyAuthorization;
 
     /**
      * Instantiates a new Default client.
@@ -71,34 +80,15 @@ public class DefaultClient {
 		this.baseUrl = baseUrl;
 	}
 
-    /**
-     * Instantiates a new Default client.
-     *
-     * @param baseUrl        the base url
-     * @param appKey         the app key
-     * @param appSecret      the app secret
-     * @param connectTimeout the connect timeout
-     * @param readTimeout    the read timeout
-     */
-    public DefaultClient(String baseUrl, String appKey, String appSecret, int connectTimeout, int readTimeout) {
-		this(baseUrl, appKey, appSecret);
-		this.connectTimeout = connectTimeout;
-		this.readTimeout = readTimeout;
-	}
-
-    /**
-     * Instantiates a new Default client.
-     *
-     * @param baseUrl        the base url
-     * @param appKey         the app key
-     * @param appSecret      the app secret
-     * @param connectTimeout the connect timeout
-     * @param readTimeout    the read timeout
-     * @param signMethod     the sign method
-     */
-    public DefaultClient(String baseUrl, String appKey, String appSecret, int connectTimeout, int readTimeout, String signMethod) {
-		this(baseUrl, appKey, appSecret, connectTimeout, readTimeout);
-		this.signMethod = signMethod;
+	public DefaultClient(DefaultClient.Builder builder){
+		this.baseUrl = builder.baseUrl;
+		this.appKey = builder.appKey;
+		this.appSecret = builder.appSecret;
+		this.signMethod = builder.signMethod;
+		this.connectTimeout = builder.connectTimeout;
+		this.readTimeout = builder.readTimeout;
+		this.proxy = builder.proxy;
+		this.proxyAuthorization = builder.proxyAuthorization;
 	}
 
     /**
@@ -126,6 +116,10 @@ public class DefaultClient {
 			request.addHeader(Constants.REQ_HEADER_APP_KEY, appKey);
 		}
 		request.addHeader(Constants.REQ_HEADER_SDK_VERSION, Version.getVersion());
+		if(proxy != null && proxy.type() != Proxy.Type.DIRECT && proxyAuthorization != null){
+			request.addHeader(Constants.REQ_HEADER_PROXY_AUTHORIZATION, proxyAuthorization);
+		}
+
 //		Long timestamp = request.getTimestamp();
 //		if(timestamp == null){
 //			timestamp = System.currentTimeMillis();
@@ -141,9 +135,9 @@ public class DefaultClient {
 		logger.info(" --> {} {}", request.getRequestMethod().getValue(), requestUrl);
 
 		if(!request.isCompressData()){
-			response = HttpUtils.request(requestUrl, request.getRequestMethod().getValue(), connectTimeout, readTimeout, request.getRequestBody(), request.getHeaderMap(), request.getSaveFilePath());
+			response = HttpUtils.request(requestUrl, request.getRequestMethod().getValue(), connectTimeout, readTimeout, request.getRequestBody(), request.getHeaderMap(), request.getSaveFilePath(), proxy);
 		} else {
-			response = HttpUtils.compressRequest(requestUrl, request.getRequestMethod().getValue(), connectTimeout, readTimeout, request.getRequestBody(), request.getHeaderMap(), request.getSaveFilePath());
+			response = HttpUtils.compressRequest(requestUrl, request.getRequestMethod().getValue(), connectTimeout, readTimeout, request.getRequestBody(), request.getHeaderMap(), request.getSaveFilePath(), proxy);
 		}
 		return response;
 	}
@@ -164,6 +158,90 @@ public class DefaultClient {
      */
     public void setReadTimeout(int readTimeout) {
 		this.readTimeout = readTimeout;
+	}
+
+	public void setProxy(Proxy proxy) {
+		this.proxy = proxy;
+	}
+
+	public void setProxyAuthorization(String proxyAuthorization) {
+		this.proxyAuthorization = proxyAuthorization;
+	}
+
+	public DefaultClient.Builder newBuilder() {
+		return new DefaultClient.Builder(this);
+	}
+
+	public static final class Builder{
+		String baseUrl;
+		String appKey;
+		String appSecret;
+		String signMethod;
+		int connectTimeout;
+		int readTimeout;
+		Proxy proxy;
+		String proxyAuthorization;
+
+		public Builder(){
+			this.signMethod =  Constants.SIGN_METHOD_HMAC;
+			this.connectTimeout = 3000;
+			this.readTimeout = 3000;
+		}
+
+		Builder(DefaultClient client) {
+			this.baseUrl = client.baseUrl;
+			this.appKey = client.appKey;
+			this.appSecret = client.appSecret;
+			this.signMethod = client.signMethod;
+			this.connectTimeout = client.connectTimeout;
+			this.readTimeout = client.readTimeout;
+			this.proxy = client.proxy;
+			this.proxyAuthorization = client.proxyAuthorization;
+		}
+
+		public DefaultClient.Builder baseUrl(String baseUrl) {
+			this.baseUrl = baseUrl;
+			return this;
+		}
+
+		public DefaultClient.Builder appKey(String appKey) {
+			this.appKey = appKey;
+			return this;
+		}
+
+		public DefaultClient.Builder appSecret(String appSecret) {
+			this.appSecret = appSecret;
+			return this;
+		}
+
+		public DefaultClient.Builder signMethod(String signMethod) {
+			this.signMethod = signMethod;
+			return this;
+		}
+
+		public DefaultClient.Builder connectTimeout(int timeout) {
+			this.connectTimeout = timeout;
+			return this;
+		}
+
+		public DefaultClient.Builder readTimeout(int timeout) {
+			this.readTimeout = timeout;
+			return this;
+		}
+
+		public DefaultClient.Builder proxy(Proxy proxy) {
+			this.proxy = proxy;
+			return this;
+		}
+
+		public DefaultClient.Builder proxyAuthorization(String proxyAuthorization) {
+			this.proxyAuthorization = proxyAuthorization;
+			return this;
+		}
+
+		public DefaultClient build() {
+			return new DefaultClient(this);
+		}
 	}
 
 }
