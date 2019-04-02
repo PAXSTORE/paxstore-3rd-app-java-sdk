@@ -29,6 +29,8 @@ public class TerminalSyncInfo implements Serializable {
     private Long fileSize;
     private String fileType;
     private String source;
+    private String hostModel;
+    private String hostSN;
 
     public int getType() {
         return type;
@@ -108,5 +110,21 @@ public class TerminalSyncInfo implements Serializable {
 
     public void setSource(String source) {
         this.source = source;
+    }
+
+    public String getHostModel() {
+        return hostModel;
+    }
+
+    public void setHostModel(String hostModel) {
+        this.hostModel = hostModel;
+    }
+
+    public String getHostSN() {
+        return hostSN;
+    }
+
+    public void setHostSN(String hostSN) {
+        this.hostSN = hostSN;
     }
 }
