@@ -41,6 +41,7 @@ import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -279,25 +280,31 @@ public abstract class HttpUtils {
 				SSLContext ctx = SSLContext.getInstance("TLS");
 				ctx.init(null, new TrustManager[] { new TrustAllTrustManager() }, new SecureRandom());
 				connHttps.setSSLSocketFactory(ctx.getSocketFactory());
-				connHttps.setHostnameVerifier(new HostnameVerifier() {
-					public boolean verify(String hostname, SSLSession session) {
-						return true;
-					}
-				});
+				connHttps.setHostnameVerifier(createInsecureHostnameVerifier());
 			} catch (GeneralSecurityException e){
 				logger.error("GeneralSecurityException Occurred. Details: {}", e.toString());
 			}
-			connHttps.setHostnameVerifier(new HostnameVerifier() {
-				public boolean verify(String hostname, SSLSession session) {
-					return true;
-				}
-			});
+			connHttps.setHostnameVerifier(createInsecureHostnameVerifier());
 			conn = connHttps;
 		}
 
 		conn.setConnectTimeout(connectTimeout);
 		conn.setReadTimeout(readTimeout);
 		return conn;
+	}
+
+	private static String[] VERIFY_HOST_NAME_ARRAY = new String[]{};
+
+	public static final HostnameVerifier createInsecureHostnameVerifier() {
+		return new HostnameVerifier() {
+			@Override
+			public boolean verify(String hostname, SSLSession session) {
+				if (hostname == null || hostname.isEmpty()) {
+					return false;
+				}
+				return !Arrays.asList(VERIFY_HOST_NAME_ARRAY).contains(hostname);
+			}
+		};
 	}
 
 	private static URL buildGetUrl(String url, String query) throws IOException {
