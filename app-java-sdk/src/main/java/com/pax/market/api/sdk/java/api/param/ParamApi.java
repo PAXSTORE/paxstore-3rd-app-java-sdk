@@ -12,7 +12,6 @@
 package com.pax.market.api.sdk.java.api.param;
 
 import com.pax.market.api.sdk.java.base.api.BaseApi;
-import com.pax.market.api.sdk.java.base.client.DefaultClient;
 import com.pax.market.api.sdk.java.base.constant.Constants;
 import com.pax.market.api.sdk.java.base.constant.ResultCode;
 import com.pax.market.api.sdk.java.base.dto.DownloadResultObject;
