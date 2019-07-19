@@ -67,6 +67,7 @@ public class ParamApi extends BaseApi {
     private static final String REQ_PARAM_ERROR_CODE = "errorCode";
     private static final String REQ_PARAM_REMARKS = "remarks";
     private static final String ERROR_REMARKS_REPLACE_VARIABLES = "Replace paramVariables failed";
+    private static final String ERROR_REMARKS_NOT_GOOD_JSON = "Bad json : ";
     private static final String ERROR_REMARKS_VARIFY_MD_FAILED = "MD5 Validation Error";
     private static final String ERROR_UNZIP_FAILED = "Unzip file failed";
     private static final String DOWNLOAD_SUCCESS = "Success";
@@ -141,11 +142,16 @@ public class ParamApi extends BaseApi {
                     sdkObject.setMessage(ERROR_UNZIP_FAILED);
                 } else {
                     //replace file
-                    boolean ifReplaceSuccess = ReplaceUtils.replaceParams(saveFilePath, paramObject.getParamVariables());
-                    if (!ifReplaceSuccess) {
-                        logger.info("replace paramVariables failed");
+                    if (!ReplaceUtils.isGoodJson(paramObject.getParamVariables())) {
                         sdkObject.setBusinessCode(ResultCode.SDK_REPLACE_VARIABLES_FAILED.getCode());
-                        sdkObject.setMessage(ERROR_REMARKS_REPLACE_VARIABLES);
+                        sdkObject.setMessage(ERROR_REMARKS_NOT_GOOD_JSON + paramObject.getParamVariables());
+                    } else {
+                        boolean ifReplaceSuccess = ReplaceUtils.replaceParams(saveFilePath, paramObject.getParamVariables());
+                        if (!ifReplaceSuccess) {
+                            logger.info("replace paramVariables failed");
+                            sdkObject.setBusinessCode(ResultCode.SDK_REPLACE_VARIABLES_FAILED.getCode());
+                            sdkObject.setMessage(ERROR_REMARKS_REPLACE_VARIABLES);
+                        }
                     }
                 }
             } else {
@@ -210,6 +216,12 @@ public class ParamApi extends BaseApi {
     public DownloadResultObject downloadParamToPath(String packageName, int versionCode, String saveFilePath) {
         logger.debug("downloadParamToPath: start");
         DownloadResultObject result = new DownloadResultObject();
+        if (saveFilePath == null || "".equals(saveFilePath.trim())) {
+            result.setBusinessCode(ResultCode.SDK_FILE_NOT_FOUND.getCode());
+            result.setMessage(JsonUtils.getSdkJson(ResultCode.SDK_FILE_NOT_FOUND.getCode()));
+            return result;
+        }
+
         result.setParamSavePath(saveFilePath);
         //get paramList
         ParamListObject paramListObject = getParamDownloadList(packageName, versionCode);

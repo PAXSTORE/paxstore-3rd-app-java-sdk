@@ -76,6 +76,20 @@ public class ReplaceUtils {
         return true;
     }
 
+    public static boolean isGoodJson(String json) {
+        if (json == null || json.length() < 1) { //
+            return true;
+        }
+        Gson gson = new Gson();
+        try {
+            HashMap object = gson.fromJson(json, HashMap.class);
+            return true;
+        } catch (Exception e) {
+            logger.error("ReplaceUtils error: >> "+ "paramVariables json:" + json + " > " , e);
+        }
+        return false;
+    }
+
     private static List<ParamsVariableObject> exchangeValues(String json) {
         if (json != null) {
             List<ParamsVariableObject> list = new ArrayList<ParamsVariableObject>();
