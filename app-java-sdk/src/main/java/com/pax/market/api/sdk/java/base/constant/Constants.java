@@ -113,4 +113,6 @@ public class Constants {
      */
     public static final String XML_FILE_PREFIX = "<?xml";
 
+    public static final String JSON_FILE_PREFIX = "{";
+    public static final String JSON_FILE_SUFFIX = "}";
 }

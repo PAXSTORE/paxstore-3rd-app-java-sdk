@@ -1,10 +1,13 @@
 package com.pax.market.api.sdk.java.base.util;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import com.pax.market.api.sdk.java.base.constant.Constants;
 import com.pax.market.api.sdk.java.base.dto.ParamsVariableObject;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.input.ReversedLinesFileReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +51,7 @@ public class ReplaceUtils {
                                     if(paramsVariableObject.getKey().matches("#\\{([A-Za-z0-9-_.]+)\\}")) {
                                         replaceResult = replaceResult.replaceAll(String.format("(?i)%s", key), value);
                                     } else {
-                                         replaceResult = replaceResult.replaceAll(
+                                        replaceResult = replaceResult.replaceAll(
                                                 String.format("(?i)<%s>.*</%s>", key, key),
                                                 String.format("<%s>%s</%s>", key, value, key));
                                     }
@@ -61,6 +64,39 @@ public class ReplaceUtils {
                             } catch (IOException e) {
                                 logger.error(" replaceParams failed ", e);
                                 return false;
+                            }
+                        }
+
+                        else if (s.startsWith(Constants.JSON_FILE_PREFIX)) {
+                            String lastLine = readLastLine(file);
+                            if (lastLine != null) {
+                                if (lastLine.endsWith(Constants.JSON_FILE_SUFFIX)) {
+                                    try {
+                                        String fullFile = FileUtils.readFileToString(file);
+                                        String replaceResult = fullFile;
+                                        if (jsonValidate(fullFile)) {
+                                            for (ParamsVariableObject paramsVariableObject : paramList) {
+                                                String key = escapeExprSpecialWord(paramsVariableObject.getKey());
+                                                String value = escapeJson(paramsVariableObject.getValue());
+                                                if(paramsVariableObject.getKey().matches("#\\{([A-Za-z0-9-_.]+)\\}")) {
+                                                    replaceResult = replaceResult.replaceAll(String.format("(?i)%s", key), value);
+                                                } else {
+                                                    replaceResult = replaceResult.replaceAll(
+                                                            String.format("(?i)\"%s\": \".*\"", key),
+                                                            String.format("\"%s\": \"%s\"", key, value));
+                                                }
+                                            }
+                                            //rewrite file
+                                            if (!replaceResult.equals(fullFile)) {
+                                                logger.debug(file.getName() + " replaced");
+                                                FileUtils.writeStringToFile(file, replaceResult);
+                                            }
+                                        }
+                                    } catch (IOException e) {
+                                        logger.error(" replaceParams failed ", e);
+                                        return false;
+                                    }
+                                }
                             }
                         }
                     } else {
@@ -138,6 +174,37 @@ public class ReplaceUtils {
         return null;
     }
 
+    public static boolean jsonValidate(String jsonStr) {
+        JsonElement jsonElement;
+        try {
+            jsonElement = new JsonParser().parse(jsonStr);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+
+    private static String readLastLine(File fin) {
+
+        ReversedLinesFileReader fileReader = null;
+        String lastLine = null;
+        try {
+            fileReader = new ReversedLinesFileReader(fin);
+            while((lastLine = fileReader.readLine()) != null) {
+                return lastLine;
+            }
+            fileReader.close();
+        }  catch (FileNotFoundException e) {
+            logger.error("read file first line failed, file is null", e);
+        } catch (IOException e) {
+            logger.error("read file first line failed, IOException", e);
+        }
+        return null;
+    }
+
+
+
     /**
      * ignore regex in string
      * @param keyword
@@ -155,6 +222,17 @@ public class ReplaceUtils {
         return keyword;
     }
 
+    private static String escapeJson(String input) {
+        if (!StringUtils.isEmpty(input)) {
+            String[] fbsArr = { "\\", "\"", "\\/" };
+            for (String key : fbsArr) {
+                if (input.contains(key)) {
+                    input = input.replace(key, "\\\\\\" + key);
+                }
+            }
+        }
+        return input;
+    }
 
 
     private static String getEscape(char c) {
@@ -174,6 +252,8 @@ public class ReplaceUtils {
         return String.valueOf(c);
     }
 
+
+
     public static String escapeXml(String src) {
         if(src == null || src.length() == 0) {
             return src;
@@ -185,6 +265,8 @@ public class ReplaceUtils {
         }
         return Matcher.quoteReplacement(buf.toString());
     }
+
+
 
 
 
