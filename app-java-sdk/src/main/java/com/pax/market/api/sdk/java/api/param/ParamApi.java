@@ -11,6 +11,9 @@
  */
 package com.pax.market.api.sdk.java.api.param;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
+import com.google.gson.reflect.TypeToken;
 import com.pax.market.api.sdk.java.base.api.BaseApi;
 import com.pax.market.api.sdk.java.base.constant.Constants;
 import com.pax.market.api.sdk.java.base.constant.ResultCode;
@@ -45,39 +48,7 @@ import java.util.List;
  * Created by fanjun on 2016/12/5.
  */
 public class ParamApi extends BaseApi {
-    private final Logger logger = LoggerFactory.getLogger(ParamApi.class.getSimpleName());
-
-
-    /**
-     * The constant downloadParamUrl.
-     */
-    protected static String downloadParamUrl = "/3rdApps/param";
-    /**
-     * The constant updateStatusUrl.
-     */
-    protected static String updateStatusUrl = "/3rdApps/actions/{actionId}/status";
-    /**
-     * The constant updateStatusBatchUrl.
-     */
-    protected static String updateStatusBatchUrl = "/3rdApps/actions";
-
-    private static final String REQ_PARAM_PACKAGE_NAME = "packageName";
-    private static final String REQ_PARAM_VERSION_CODE = "versionCode";
-    private static final String REQ_PARAM_STATUS = "status";
-    private static final String REQ_PARAM_ERROR_CODE = "errorCode";
-    private static final String REQ_PARAM_REMARKS = "remarks";
-    private static final String ERROR_REMARKS_REPLACE_VARIABLES = "Replace paramVariables failed";
-    private static final String ERROR_REMARKS_NOT_GOOD_JSON = "Bad json : ";
-    private static final String ERROR_REMARKS_VARIFY_MD_FAILED = "MD5 Validation Error";
-    private static final String ERROR_UNZIP_FAILED = "Unzip file failed";
-    private static final String DOWNLOAD_SUCCESS = "Success";
     public static final String REMARKS_PARAM_DOWNLOADING = "15206";         //Param is downloading
-
-
-    public ParamApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
-        super(baseUrl, appKey, appSecret, terminalSN);
-    }
-
     /**
      * The constant ACT_STATUS_PENDING.
      */
@@ -90,7 +61,6 @@ public class ParamApi extends BaseApi {
      * The constant ACT_STATUS_FAILED.
      */
     public static final int ACT_STATUS_FAILED = 3;
-
     /**
      * The constant CODE_NONE_ERROR.
      */
@@ -99,7 +69,32 @@ public class ParamApi extends BaseApi {
      * The constant CODE_DOWNLOAD_ERROR.
      */
     public static final int CODE_DOWNLOAD_ERROR = 1;
-
+    private static final String REQ_PARAM_PACKAGE_NAME = "packageName";
+    private static final String REQ_PARAM_VERSION_CODE = "versionCode";
+    private static final String REQ_PARAM_STATUS = "status";
+    private static final String REQ_PARAM_ERROR_CODE = "errorCode";
+    private static final String REQ_PARAM_REMARKS = "remarks";
+    private static final String ERROR_REMARKS_REPLACE_VARIABLES = "Replace paramVariables failed";
+    private static final String ERROR_REMARKS_NOT_GOOD_JSON = "Bad json : ";
+    private static final String ERROR_REMARKS_VARIFY_MD_FAILED = "MD5 Validation Error";
+    private static final String ERROR_UNZIP_FAILED = "Unzip file failed";
+    private static final String DOWNLOAD_SUCCESS = "Success";
+    /**
+     * The constant downloadParamUrl.
+     */
+    protected static String downloadParamUrl = "/3rdApps/param";
+    /**
+     * The constant updateStatusUrl.
+     */
+    protected static String updateStatusUrl = "/3rdApps/actions/{actionId}/status";
+    /**
+     * The constant updateStatusBatchUrl.
+     */
+    protected static String updateStatusBatchUrl = "/3rdApps/actions";
+    private final Logger logger = LoggerFactory.getLogger(ParamApi.class.getSimpleName());
+    public ParamApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
+        super(baseUrl, appKey, appSecret, terminalSN);
+    }
 
     /**
      * Get terminal params to download
@@ -108,7 +103,7 @@ public class ParamApi extends BaseApi {
      * @param versionCode
      * @return
      */
-    public ParamListObject getParamDownloadList(String packageName, int versionCode){
+    public ParamListObject getParamDownloadList(String packageName, int versionCode) {
         SdkRequest request = new SdkRequest(downloadParamUrl);
         request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
         request.addRequestParam(REQ_PARAM_PACKAGE_NAME, packageName);
@@ -142,7 +137,7 @@ public class ParamApi extends BaseApi {
                     sdkObject.setMessage(ERROR_UNZIP_FAILED);
                 } else {
                     //replace file
-                    if (!ReplaceUtils.isGoodJson(paramObject.getParamVariables())) {
+                    if (!ReplaceUtils.isHashMapJson(paramObject.getParamVariables())) {
                         sdkObject.setBusinessCode(ResultCode.SDK_REPLACE_VARIABLES_FAILED.getCode());
                         sdkObject.setMessage(ERROR_REMARKS_NOT_GOOD_JSON + paramObject.getParamVariables());
                     } else {
@@ -177,7 +172,7 @@ public class ParamApi extends BaseApi {
      * @param errorCode error code { None error code:0 }
      * @return
      */
-    public SdkObject updateDownloadStatus(String actionId, int status, int errorCode, String remarks){
+    public SdkObject updateDownloadStatus(String actionId, int status, int errorCode, String remarks) {
         String requestUrl = updateStatusUrl.replace("{actionId}", actionId);
         SdkRequest request = new SdkRequest(requestUrl);
         request.setRequestMethod(SdkRequest.RequestMethod.PUT);
@@ -194,7 +189,7 @@ public class ParamApi extends BaseApi {
      * @param updateActionObjectList
      * @return
      */
-    public SdkObject updateDownloadStatusBatch(List<UpdateActionObject> updateActionObjectList){
+    public SdkObject updateDownloadStatusBatch(List<UpdateActionObject> updateActionObjectList) {
         String requestBody = JsonUtils.toJson(updateActionObjectList);
         SdkRequest request = new SdkRequest(updateStatusBatchUrl);
         request.setRequestMethod(SdkRequest.RequestMethod.POST);
@@ -309,26 +304,50 @@ public class ParamApi extends BaseApi {
      * @param file the downloaded xml
      * @return HashMap with key/value of xml elements
      */
-    public HashMap<String,String> parseDownloadParamXml(File file) throws ParseXMLException {
-        HashMap<String,String> resultMap = new HashMap<>();
-        if(file!=null){
+    public HashMap<String, String> parseDownloadParamXml(File file) throws ParseXMLException {
+        HashMap<String, String> resultMap = new HashMap<>();
+        if (file != null) {
             try {
                 SAXReader saxReader = new SAXReader();
                 Document document = saxReader.read(file);
                 Element root = document.getRootElement();
                 for (Iterator it = root.elementIterator(); it.hasNext(); ) {
                     Element element = (Element) it.next();
-                    resultMap.put(element.getName(),element.getText());
+                    resultMap.put(element.getName(), element.getText());
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 throw new ParseXMLException(e);
             }
-        }else{
+        } else {
             logger.info("parseDownloadParamXml: file is null, please make sure the file is correct.");
         }
         return resultMap;
     }
 
+    /**
+     *
+     * @param file
+     * @return
+     * @throws JsonParseException
+     */
+    public LinkedHashMap<String, String> parseDownloadParamJsonWithOrder(File file) throws JsonParseException {
+        if (file != null) {
+            String fileString = null;
+            try {
+                fileString = org.apache.commons.io.FileUtils.readFileToString(file);
+
+                if (fileString != null) {
+                    Gson gson = new Gson();
+                    java.lang.reflect.Type type = new TypeToken<LinkedHashMap<String, String>>() {}.getType();
+                    return gson.fromJson(fileString, type);
+                }
+            } catch (Exception e) {
+                logger.error("Read file error", e);
+                throw new JsonParseException(e.getMessage());
+            }
+        }
+        return null;
+    }
 
     /**
      * parse the downloaded parameter xml file, convert the xml elements to LinkedHashMap<String,String>
@@ -337,21 +356,21 @@ public class ParamApi extends BaseApi {
      * @param file the downloaded xml
      * @return LinkedHashMap with key/value of xml elements
      */
-    public LinkedHashMap<String,String> parseDownloadParamXmlWithOrder(File file) throws ParseXMLException {
-        LinkedHashMap<String,String> resultMap = new LinkedHashMap<>();
-        if(file!=null){
+    public LinkedHashMap<String, String> parseDownloadParamXmlWithOrder(File file) throws ParseXMLException {
+        LinkedHashMap<String, String> resultMap = new LinkedHashMap<>();
+        if (file != null) {
             try {
                 SAXReader saxReader = new SAXReader();
                 Document document = saxReader.read(file);
                 Element root = document.getRootElement();
                 for (Iterator it = root.elementIterator(); it.hasNext(); ) {
                     Element element = (Element) it.next();
-                    resultMap.put(element.getName(),element.getText());
+                    resultMap.put(element.getName(), element.getText());
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 throw new ParseXMLException(e);
             }
-        }else{
+        } else {
             logger.info("parseDownloadParamXmlWithOrder: file is null, please make sure the file is correct.");
         }
         return resultMap;
