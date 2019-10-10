@@ -1,7 +1,10 @@
 package com.pax.market.api.sdk.java.base.util;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import com.pax.market.api.sdk.java.base.constant.Constants;
@@ -67,6 +70,7 @@ public class ReplaceUtils {
                                 return false;
                             }
                         } else if (s.startsWith(Constants.JSON_FILE_PREFIX)) {
+
                             try {
                                 String fullFile = FileUtils.readFileToString(file);
                                 String replaceResult = fullFile;
@@ -76,12 +80,11 @@ public class ReplaceUtils {
                                         String value = escapeJson(paramsVariableObject.getValue());
                                         if (paramsVariableObject.getKey().matches("#\\{([A-Za-z0-9-_.]+)\\}")) {
                                             replaceResult = replaceResult.replaceAll(String.format("(?i)%s", key), value);
-                                        } else {
-                                            replaceResult = replaceResult.replaceAll(
-                                                    String.format("(?i)\"%s\": \".*\"", key),
-                                                    String.format("\"%s\": \"%s\"", key, value));
                                         }
                                     }
+                                    Gson gson = new GsonBuilder().create();
+                                    replaceResult = processJsonReplacement(gson, replaceResult, paramList);
+
                                     //rewrite file
                                     if (!replaceResult.equals(fullFile)) {
                                         logger.debug(file.getName() + " replaced");
@@ -105,6 +108,64 @@ public class ReplaceUtils {
 
         return true;
     }
+
+    private static String processJsonReplacement(Gson gson, String oriJsonStr, List<ParamsVariableObject> paramList) {
+        JsonObject jsonObject;
+        try {
+            jsonObject = new JsonParser().parse(oriJsonStr).getAsJsonObject();
+        } catch (Exception e) {
+            logger.warn("Invalid json parameter string: %s", oriJsonStr);
+            return oriJsonStr;
+        }
+
+        doJsonReplacement(jsonObject, paramList);
+        return jsonObject.toString();
+    }
+
+    private static void doJsonReplacement(JsonObject jsonObject, List<ParamsVariableObject> paramList) {
+        if (jsonObject == null || jsonObject.isJsonNull()) {
+            return;
+        }
+
+        Iterator<String> keyIter = jsonObject.keySet().iterator();
+        String key;
+        JsonElement jsonElement;
+        List<ParamsVariableObject> toBeUpdatedParamList = new ArrayList<>();
+        while (keyIter.hasNext()) {
+            key = keyIter.next();
+            jsonElement = jsonObject.get(key);
+
+            if (jsonElement.isJsonPrimitive()) {
+                for (ParamsVariableObject paramsVariableDto : paramList) {
+                    boolean isVarKey = paramsVariableDto.getKey().matches("#\\{([A-Za-z0-9-_.]+)\\}")
+                            && jsonElement.getAsString().equals(paramsVariableDto.getKey());
+                    if (isVarKey || key.equals(paramsVariableDto.getKey())) {
+                        ParamsVariableObject paramsVariableObject = new ParamsVariableObject();
+                        paramsVariableObject.setKey(key);
+                        paramsVariableObject.setValue(paramsVariableDto.getValue());
+                        toBeUpdatedParamList.add(paramsVariableObject);
+                    }
+                }
+            } else if (jsonElement.isJsonObject()) {
+                doJsonReplacement(jsonElement.getAsJsonObject(), paramList);
+            } else if (jsonElement.isJsonArray()) {
+                JsonArray jsonArray = jsonElement.getAsJsonArray();
+                for (JsonElement jsonArrElem : jsonArray) {
+                    if (jsonArrElem.isJsonObject()) {
+                        doJsonReplacement(jsonArrElem.getAsJsonObject(), paramList);
+                    }
+                }
+            }
+        }
+
+        if (!toBeUpdatedParamList.isEmpty()) {
+            for (ParamsVariableObject paramsVariableInfo : toBeUpdatedParamList) {
+                jsonObject.remove(paramsVariableInfo.getKey());
+                jsonObject.addProperty(paramsVariableInfo.getKey(), paramsVariableInfo.getValue());
+            }
+        }
+    }
+
 
     public static boolean isHashMapJson(String json) {
         if (json == null || json.length() < 1) { //
