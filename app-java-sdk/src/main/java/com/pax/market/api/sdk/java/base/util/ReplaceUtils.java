@@ -9,13 +9,18 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import com.pax.market.api.sdk.java.base.constant.Constants;
 import com.pax.market.api.sdk.java.base.dto.ParamsVariableObject;
+import com.pax.market.api.sdk.java.base.exception.ParseXMLException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.ReversedLinesFileReader;
+import org.dom4j.Document;
+import org.dom4j.Element;
+import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -137,22 +142,11 @@ public class ReplaceUtils {
 
             if (jsonElement.isJsonPrimitive()) {
                 for (ParamsVariableObject paramsVariableDto : paramList) {
-                    boolean isVarKey = paramsVariableDto.getKey().matches("#\\{([A-Za-z0-9-_.]+)\\}")
-                            && jsonElement.getAsString().equals(paramsVariableDto.getKey());
-                    if (isVarKey || key.equals(paramsVariableDto.getKey())) {
+                    if (key.equals(paramsVariableDto.getKey())) {
                         ParamsVariableObject paramsVariableObject = new ParamsVariableObject();
                         paramsVariableObject.setKey(key);
                         paramsVariableObject.setValue(paramsVariableDto.getValue());
                         toBeUpdatedParamList.add(paramsVariableObject);
-                    }
-                }
-            } else if (jsonElement.isJsonObject()) {
-                doJsonReplacement(jsonElement.getAsJsonObject(), paramList);
-            } else if (jsonElement.isJsonArray()) {
-                JsonArray jsonArray = jsonElement.getAsJsonArray();
-                for (JsonElement jsonArrElem : jsonArray) {
-                    if (jsonArrElem.isJsonObject()) {
-                        doJsonReplacement(jsonArrElem.getAsJsonObject(), paramList);
                     }
                 }
             }
@@ -165,7 +159,6 @@ public class ReplaceUtils {
             }
         }
     }
-
 
     public static boolean isHashMapJson(String json) {
         if (json == null || json.length() < 1) { //
@@ -254,7 +247,6 @@ public class ReplaceUtils {
         }
     }
 
-
     private static String readLastLine(File fin) {
 
         ReversedLinesFileReader fileReader = null;
@@ -272,7 +264,6 @@ public class ReplaceUtils {
         }
         return null;
     }
-
 
     /**
      * ignore regex in string
@@ -304,7 +295,6 @@ public class ReplaceUtils {
         return input;
     }
 
-
     private static String getEscape(char c) {
         switch (c) {
             case '&':
@@ -322,7 +312,6 @@ public class ReplaceUtils {
         return String.valueOf(c);
     }
 
-
     public static String escapeXml(String src) {
         if (src == null || src.length() == 0) {
             return src;
@@ -333,6 +322,33 @@ public class ReplaceUtils {
             buf.append(getEscape(src.charAt(i)));
         }
         return Matcher.quoteReplacement(buf.toString());
+    }
+
+    /**
+     * parse the downloaded parameter xml file, convert the xml elements to HashMap<String,String>
+     * this method will not keep the xml fields order. HashMap will have a better performance.
+     *
+     * @param transMessage
+     * @return HashMap with key/value of xml elements
+     */
+    public HashMap<String, String> parseDownloadParamXml(String transMessage) throws ParseXMLException {
+        HashMap<String, String> resultMap = new HashMap<>();
+        if (transMessage != null && !transMessage.isEmpty()) {
+            try {
+                SAXReader saxReader = new SAXReader();
+                Document document = saxReader.read(new ByteArrayInputStream(transMessage.getBytes("UTF-8")));
+                Element root = document.getRootElement();
+                for (Iterator it = root.elementIterator(); it.hasNext(); ) {
+                    Element element = (Element) it.next();
+                    resultMap.put(element.getName(), element.getText());
+                }
+            } catch (Exception e) {
+                throw new ParseXMLException(e);
+            }
+        } else {
+            logger.info("parseDownloadParamXml: file is null, please make sure the file is correct.");
+        }
+        return resultMap;
     }
 
 
