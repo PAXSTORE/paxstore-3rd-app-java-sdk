@@ -79,6 +79,8 @@ public class ParamApi extends BaseApi {
     private static final String ERROR_REMARKS_VARIFY_MD_FAILED = "MD5 Validation Error";
     private static final String ERROR_UNZIP_FAILED = "Unzip file failed";
     private static final String DOWNLOAD_SUCCESS = "Success";
+    private static final String SAVEPATH_CANNOT_BE_NULL = "Save path can not be empty";
+
     /**
      * The constant downloadParamUrl.
      */
@@ -213,7 +215,7 @@ public class ParamApi extends BaseApi {
         DownloadResultObject result = new DownloadResultObject();
         if (saveFilePath == null || "".equals(saveFilePath.trim())) {
             result.setBusinessCode(ResultCode.SDK_FILE_NOT_FOUND.getCode());
-            result.setMessage(JsonUtils.getSdkJson(ResultCode.SDK_FILE_NOT_FOUND.getCode()));
+            result.setMessage(JsonUtils.getSdkJson(ResultCode.SDK_FILE_NOT_FOUND.getCode(), SAVEPATH_CANNOT_BE_NULL));
             return result;
         }
 
@@ -242,11 +244,8 @@ public class ParamApi extends BaseApi {
             if (sdkObject.getBusinessCode() != ResultCode.SUCCESS.getCode()) {
                 result.setBusinessCode(sdkObject.getBusinessCode());
                 result.setMessage(sdkObject.getMessage());
-                if (ResultCode.toResultCode(sdkObject.getBusinessCode()) != ResultCode.UN_CODE) { // check code isdefined in ResultCode, resultcode can be translated by server, no message needed.
-                    remarks = sdkObject.getBusinessCode() + "";
-                } else {
-                    remarks = sdkObject.getBusinessCode() + ":" + sdkObject.getMessage();
-                }
+                remarks = sdkObject.getMessage();
+                logger.debug("download error remarks: " + remarks);
                 break;
             }
         }

@@ -135,7 +135,7 @@ public abstract class HttpUtils {
 			return finalRequest(urlConnection, requestMethod, userData, compressData, headerMap, saveFilePath);
 		} catch (IOException e) {
 			logger.error("IOException Occurred. Details: {}", e.toString());
-			return JsonUtils.getSdkJson(ResultCode.SDK_RQUEST_EXCEPTION.getCode(), e.getMessage());
+			return JsonUtils.getSdkJsonStr(ResultCode.SDK_RQUEST_EXCEPTION.getCode(), e.getMessage());
 		} finally {
 			if(urlConnection != null) {
 				urlConnection.disconnect();
@@ -197,7 +197,7 @@ public abstract class HttpUtils {
                     while ((bytesRead = urlConnection.getInputStream().read(buffer)) != -1) {
                         fileOutputStream.write(buffer, 0, bytesRead);
                     }
-                    return JsonUtils.getSdkJson(ResultCode.SUCCESS.getCode(), filePath);
+                    return JsonUtils.getSdkJsonStr(ResultCode.SUCCESS.getCode(), filePath);
                 }
 
 				bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "utf-8"));
@@ -218,33 +218,33 @@ public abstract class HttpUtils {
 			try {
                 SdkObject sdkObject = JsonUtils.fromJson(stringBuilder.toString(), SdkObject.class);
                 if (sdkObject == null) {
-                    return JsonUtils.getSdkJson(urlConnection.getResponseCode(), stringBuilder.toString());
+                    return JsonUtils.getSdkJsonStr(urlConnection.getResponseCode(), stringBuilder.toString());
                 }
             } catch (IllegalStateException e ) {
                 logger.error("IllegalStateException Occurred. Details: {}", e.toString());
-                return JsonUtils.getSdkJson(urlConnection.getResponseCode(), stringBuilder.toString());
+                return JsonUtils.getSdkJsonStr(urlConnection.getResponseCode(), stringBuilder.toString());
             } catch (JsonParseException e1) {
                 logger.error("JsonParseException Occurred. Details: {}", e1.toString());
-                return JsonUtils.getSdkJson(urlConnection.getResponseCode(), stringBuilder.toString());
+                return JsonUtils.getSdkJsonStr(urlConnection.getResponseCode(), stringBuilder.toString());
             }
 			return stringBuilder.toString();
 
 		} catch (SocketTimeoutException localSocketTimeoutException) {
 			FileUtils.deleteFile(filePath);
 			logger.error("SocketTimeoutException Occurred. Details: {}", localSocketTimeoutException.toString());
-			return JsonUtils.getSdkJson(ResultCode.SDK_CONNECT_TIMEOUT.getCode());
+			return JsonUtils.getSdkJson(ResultCode.SDK_CONNECT_TIMEOUT.getCode(), localSocketTimeoutException.getMessage());
 		} catch (ConnectException localConnectException) {
 			FileUtils.deleteFile(filePath);
 			logger.error("ConnectException Occurred. Details: {}", localConnectException.toString());
-			return JsonUtils.getSdkJson(ResultCode.SDK_UN_CONNECT.getCode());
+			return JsonUtils.getSdkJson(ResultCode.SDK_UN_CONNECT.getCode(), localConnectException.getMessage());
 		} catch (FileNotFoundException fileNotFoundException) {
 			FileUtils.deleteFile(filePath);
 			logger.error("FileNotFoundException Occurred. Details: {}", fileNotFoundException.toString());
-			return JsonUtils.getSdkJson(ResultCode.SDK_FILE_NOT_FOUND.getCode());
+			return JsonUtils.getSdkJson(ResultCode.SDK_FILE_NOT_FOUND.getCode(), fileNotFoundException.getMessage());
 		} catch (Exception ignored) {
 			FileUtils.deleteFile(filePath);
 			logger.error("Exception Occurred. Details: {}", ignored.toString());
-			return JsonUtils.getSdkJson(ResultCode.SDK_RQUEST_EXCEPTION.getCode(), ignored.getMessage());
+			return JsonUtils.getSdkJsonStr(ResultCode.SDK_RQUEST_EXCEPTION.getCode(), ignored.getMessage());
 		} finally {
 			if(bufferedReader != null) {
 				try {
