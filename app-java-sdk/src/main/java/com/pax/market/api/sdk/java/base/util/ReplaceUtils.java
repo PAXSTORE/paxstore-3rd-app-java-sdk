@@ -42,75 +42,95 @@ public class ReplaceUtils {
 
     public static boolean replaceParams(String filePath, String paramVariables) {
         List<ParamsVariableObject> paramList = exchangeValues(paramVariables);
+        if (paramList == null || paramList.isEmpty()) {
+            return true;
+        }
+        File dic = new File(filePath);
+        if (dic == null || !dic.isDirectory()) {
+            logger.error("Cannot find file folder " + filePath + ">>>> replace paramVariables failed");
+            return false;
+        }
 
-        if (paramList != null && !paramList.isEmpty()) {
-            File dic = new File(filePath);
-            if (dic != null && dic.isDirectory()) {
-                for (File file : dic.listFiles()) {
-                    String s = readFile(file);
-                    if (s != null) {
-                        if (s.startsWith(Constants.XML_FILE_PREFIX)) {
-                            try {
-                                String fullFile = FileUtils.readFileToString(file);
-                                String replaceResult = fullFile;
-                                for (ParamsVariableObject paramsVariableObject : paramList) {
-                                    String key = escapeExprSpecialWord(paramsVariableObject.getKey());
-                                    String value = escapeXml(paramsVariableObject.getValue());
-                                    if (paramsVariableObject.getKey().matches("#\\{([A-Za-z0-9-_.]+)\\}")) {
-                                        replaceResult = replaceResult.replaceAll(String.format("(?i)%s", key), value);
-                                    } else {
-                                        replaceResult = replaceResult.replaceAll(
-                                                String.format("(?i)<%s>.*</%s>", key, key),
-                                                String.format("<%s>%s</%s>", key, value, key));
-                                    }
-                                }
-                                //rewrite file
-                                if (!replaceResult.equals(fullFile)) {
-                                    logger.debug(file.getName() + " replaced");
-                                    FileUtils.writeStringToFile(file, replaceResult);
-                                }
-                            } catch (IOException e) {
-                                logger.error(" replaceParams failed ", e);
-                                return false;
-                            }
-                        } else if (s.startsWith(Constants.JSON_FILE_PREFIX)) {
+        if (dic.listFiles() == null) {
+            logger.error("There is no file under downloadFolder");
+            return false;
+        }
 
-                            try {
-                                String fullFile = FileUtils.readFileToString(file);
-                                String replaceResult = fullFile;
-                                if (isJsonValidate(fullFile)) {
-                                    for (ParamsVariableObject paramsVariableObject : paramList) {
-                                        String key = escapeExprSpecialWord(paramsVariableObject.getKey());
-                                        String value = escapeJson(paramsVariableObject.getValue());
-                                        if (paramsVariableObject.getKey().matches("#\\{([A-Za-z0-9-_.]+)\\}")) {
-                                            replaceResult = replaceResult.replaceAll(String.format("(?i)%s", key), value);
-                                        }
-                                    }
-                                    Gson gson = new GsonBuilder().create();
-                                    replaceResult = processJsonReplacement(gson, replaceResult, paramList);
+        for (File file : dic.listFiles()) {
+            String s = readFile(file);
+            if (s == null) {
+                logger.warn(file.getName() + " is empty, skipped");
+                continue;
+            }
 
-                                    //rewrite file
-                                    if (!replaceResult.equals(fullFile)) {
-                                        logger.debug(file.getName() + " replaced");
-                                        FileUtils.writeStringToFile(file, replaceResult);
-                                    }
-                                }
-                            } catch (IOException e) {
-                                logger.error(" replaceParams failed ", e);
-                                return false;
-                            }
-                        }
-                    } else {
-                        logger.warn(file.getName() + " is empty, skipped");
-                    }
+            if (s.startsWith(Constants.XML_FILE_PREFIX)) {
+                if (doXmlReplacementFailed(paramList, file))  { //If replace failed, stop the replacement
+                    return false;
                 }
-            } else {
-                logger.error("Cannot find file folder " + filePath + ">>>> replace paramVariables failed");
-                return false;
+            } else if (s.startsWith(Constants.JSON_FILE_PREFIX)) {
+                if (doJsonReplacementFailed(paramList, file)) { //If replace failed, stop the replacement
+                    return false;
+                }
             }
         }
 
         return true;
+    }
+
+    private static boolean doJsonReplacementFailed(List<ParamsVariableObject> paramList, File file) {
+        try {
+            String fullFile = FileUtils.readFileToString(file);
+            String replaceResult = fullFile;
+            if (isJsonValidate(fullFile)) {
+                for (ParamsVariableObject paramsVariableObject : paramList) {
+                    String key = escapeExprSpecialWord(paramsVariableObject.getKey());
+                    String value = escapeJson(paramsVariableObject.getValue());
+                    if (paramsVariableObject.getKey().matches("#\\{([A-Za-z0-9-_.]+)\\}")) {
+                        replaceResult = replaceResult.replaceAll(String.format("(?i)%s", key), value);
+                    }
+                }
+
+                Gson gson = new GsonBuilder().create();
+                replaceResult = processJsonReplacement(gson, replaceResult, paramList);
+
+                //rewrite file
+                if (!replaceResult.equals(fullFile)) {
+                    logger.debug(file.getName() + " replaced");
+                    FileUtils.writeStringToFile(file, replaceResult);
+                }
+            }
+        } catch (IOException e) {
+            logger.error(" replaceParams failed ", e);
+            return true;
+        }
+        return false;
+    }
+
+    private static boolean doXmlReplacementFailed(List<ParamsVariableObject> paramList, File file) {
+        try {
+            String fullFile = FileUtils.readFileToString(file);
+            String replaceResult = fullFile;
+            for (ParamsVariableObject paramsVariableObject : paramList) {
+                String key = escapeExprSpecialWord(paramsVariableObject.getKey());
+                String value = escapeXml(paramsVariableObject.getValue());
+                if (paramsVariableObject.getKey().matches("#\\{([A-Za-z0-9-_.]+)\\}")) {
+                    replaceResult = replaceResult.replaceAll(String.format("(?i)%s", key), value);
+                } else {
+                    replaceResult = replaceResult.replaceAll(
+                            String.format("(?i)<%s>.*</%s>", key, key),
+                            String.format("<%s>%s</%s>", key, value, key));
+                }
+            }
+            //rewrite file
+            if (!replaceResult.equals(fullFile)) {
+                logger.debug(file.getName() + " replaced");
+                FileUtils.writeStringToFile(file, replaceResult);
+            }
+        } catch (IOException e) {
+            logger.error(" replaceParams failed ", e);
+            return true;
+        }
+        return false;
     }
 
     private static String processJsonReplacement(Gson gson, String oriJsonStr, List<ParamsVariableObject> paramList) {
@@ -121,16 +141,9 @@ public class ReplaceUtils {
             logger.warn("Invalid json parameter string: %s", oriJsonStr);
             return oriJsonStr;
         }
-
-        doJsonReplacement(jsonObject, paramList);
-        return jsonObject.toString();
-    }
-
-    private static void doJsonReplacement(JsonObject jsonObject, List<ParamsVariableObject> paramList) {
         if (jsonObject == null || jsonObject.isJsonNull()) {
-            return;
+            return oriJsonStr;
         }
-
         Iterator<String> keyIter = jsonObject.keySet().iterator();
         String key;
         JsonElement jsonElement;
@@ -157,6 +170,7 @@ public class ReplaceUtils {
                 jsonObject.addProperty(paramsVariableInfo.getKey(), paramsVariableInfo.getValue());
             }
         }
+        return jsonObject.toString();
     }
 
     public static boolean isHashMapJson(String json) {
