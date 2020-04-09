@@ -22,7 +22,7 @@ public class DataQueryResultObject extends SdkObject {
     private int limit;
 
     public static class Column {
-        @SerializedName("limit")
+        @SerializedName("colName")
         String colName;
         @SerializedName("displayName")
         String displayName;
