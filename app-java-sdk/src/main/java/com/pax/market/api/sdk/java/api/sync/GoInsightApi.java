@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.pax.market.api.sdk.java.api.sync.dto.TerminalSyncBizData;
 import com.pax.market.api.sdk.java.base.api.BaseApi;
 import com.pax.market.api.sdk.java.base.constant.Constants;
+import com.pax.market.api.sdk.java.base.dto.DataQueryResultObject;
 import com.pax.market.api.sdk.java.base.dto.SdkObject;
 import com.pax.market.api.sdk.java.base.request.SdkRequest;
 import com.pax.market.api.sdk.java.base.util.JsonUtils;
@@ -13,19 +14,24 @@ import org.slf4j.LoggerFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.util.List;
+import java.util.TimeZone;
 
 public class GoInsightApi extends BaseApi {
 
     private final Logger logger = LoggerFactory.getLogger(SyncApi.class.getSimpleName());
-    protected static String syncBusinessDataUrl = "/3rdApps/bizData";
+    protected static String sendBusinessDataUrl = "/3rdApps/goInsight/data/send";
+    protected static String getBusinessDataUrl = "/3rdApps/goInsight/data/querying/{queryCode}";
+    private final int QUERY_CODE_LENGTH = 8;
+    private TimeZone timeZone;
 
     protected static int MAX_MB = 2;
     protected static int ERROR_CODE_PARAMETER_MANDATORY = 1000;
     protected static int ERROR_CODE_GETBYTES_FAILED = 1001;
     protected static int ERROR_CODE_EXCEED_MAX_SIZE = 1002;
 
-    public GoInsightApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
+    public GoInsightApi(String baseUrl, String appKey, String appSecret, String terminalSN, TimeZone timeZone) {
         super(baseUrl, appKey, appSecret, terminalSN);
+        this.timeZone = timeZone;
     }
 
 
@@ -55,7 +61,7 @@ public class GoInsightApi extends BaseApi {
             return sdkObject;
         }
 
-        SdkRequest request = new SdkRequest(syncBusinessDataUrl);
+        SdkRequest request = new SdkRequest(sendBusinessDataUrl);
         request.setRequestMethod(SdkRequest.RequestMethod.POST);
         request.addHeader(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_JSON);
         request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
@@ -83,4 +89,126 @@ public class GoInsightApi extends BaseApi {
         return JsonUtils.fromJson(call(request), SdkObject.class);
     }
 
+
+    public DataQueryResultObject findTemrinalData(String queryCode){
+        return findDataFromInsight(queryCode, null,null, null, false);
+    }
+
+    public DataQueryResultObject findTemrinalData(String queryCode, TimestampRangeType rangeType){
+        return findDataFromInsight(queryCode, rangeType,null, null, false);
+    }
+
+    public DataQueryResultObject findTemrinalData(String queryCode,  Integer pageNo, Integer pageSize){
+        return findDataFromInsight(queryCode, null,pageNo, pageSize, false);
+    }
+
+    public DataQueryResultObject findMerchantData(String queryCode){
+        return findDataFromInsight(queryCode, null,null, null, true);
+    }
+
+    public DataQueryResultObject findMerchantData(String queryCode, TimestampRangeType rangeType){
+        return findDataFromInsight(queryCode, rangeType,null, null, true);
+    }
+
+    public DataQueryResultObject findMerchantData(String queryCode,  Integer pageNo, Integer pageSize){
+        return findDataFromInsight(queryCode, null,pageNo, pageSize, false);
+    }
+
+    /**
+     *  获取终端同步的业务数据 Get bizData from server
+     */
+    public DataQueryResultObject findDataFromInsight(String queryCode, TimestampRangeType rangeType, Integer pageNo, Integer pageSize, boolean isAllMerchant) {
+        if (queryCode != null && queryCode.length() != QUERY_CODE_LENGTH) {
+            DataQueryResultObject resultObject = getErrorResult("QueryCode length must be 8", -1);
+            return resultObject;
+        }
+        if (pageSize != null && (pageSize <=0 || pageSize > 1000)) {
+            DataQueryResultObject resultObject = getErrorResult("PageSize should between (0-1000]", -2);
+            return resultObject;
+        }
+        String replacedUrl = getBusinessDataUrl.replace("{queryCode}", queryCode);
+        SdkRequest request = new SdkRequest(replacedUrl);
+        request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
+        request.addHeader(Constants.REQ_HEADER_TIMEZONE, timeZone.getID());
+        request.addRequestParam("isAllMerchant", String.valueOf(isAllMerchant));
+        if (pageNo != null && pageNo > 0 && pageSize != null && pageSize > 0) {
+            request.addRequestParam("pageSize", pageSize+"");
+            request.addRequestParam("pageNo", pageNo+"");
+        }
+        if (rangeType != null) {
+            request.addRequestParam("timeRangeType", rangeType.val+"");
+        }
+        return JsonUtils.fromJson(call(request), DataQueryResultObject.class);
+    }
+
+    private DataQueryResultObject getErrorResult(String message, int code) {
+        DataQueryResultObject resultObject = new DataQueryResultObject();
+        resultObject.setBusinessCode(code);
+        resultObject.setMessage(message);
+        return resultObject;
+    }
+
+
+    /**
+     * search GoInsight data，Timestamp RangeType
+     */
+    public enum TimestampRangeType {
+
+        /**
+         * pass 1 day.
+         */
+        P1D("p1d"),
+        /**
+         * pass 1 week.
+         */
+        P1W("p1w"),
+        /**
+         * pass 1 month.
+         */
+        P1M("p1m"),
+        /**
+         * pass 1 year.
+         */
+        P1Y("p1y"),
+        /**
+         * recent 1 day.
+         */
+        R1D("r1d"),
+        /**
+         * recent 1 week.
+         */
+        R1W("r1w"),
+        /**
+         * recent 1 month.
+         */
+        R1M("r1m"),
+        /**
+         * recent 1 year.
+         */
+        R1Y("r1y"),
+        /**
+         * this day.
+         */
+        T1D("t1d"),
+        /**
+         * this week.
+         */
+        T1W("t1w"),
+        /**
+         * this month.
+         */
+        T1M("t1m"),
+        /**
+         * this year.
+         */
+        T1Y("t1y");
+
+        TimestampRangeType(String val) {
+            this.val = val;
+        }
+        private final String val;
+        public String val() {
+            return this.val;
+        }
+    }
 }

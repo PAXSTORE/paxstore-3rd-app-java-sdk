@@ -108,6 +108,12 @@ public class Constants {
      * The constant REQ_HEADER_PROXY_AUTHORIZATION.
      */
     public static final String REQ_HEADER_PROXY_AUTHORIZATION = "Proxy-Authorization";
+
+    /**
+     * The constant REQ_HEADER_TIMEZONE
+     */
+    public static final String REQ_HEADER_TIMEZONE = "Time-Zone";
+
     /**
      * The constant XML_FILE_PREFIX.
      */
