@@ -5,6 +5,7 @@ import com.pax.market.api.sdk.java.api.sync.dto.TerminalSyncBizData;
 import com.pax.market.api.sdk.java.base.api.BaseApi;
 import com.pax.market.api.sdk.java.base.constant.Constants;
 import com.pax.market.api.sdk.java.base.dto.DataQueryResultObject;
+import com.pax.market.api.sdk.java.base.dto.DataWrapperObject;
 import com.pax.market.api.sdk.java.base.dto.SdkObject;
 import com.pax.market.api.sdk.java.base.request.SdkRequest;
 import com.pax.market.api.sdk.java.base.util.JsonUtils;
@@ -138,7 +139,11 @@ public class GoInsightApi extends BaseApi {
         if (rangeType != null) {
             request.addRequestParam("timeRangeType", rangeType.val+"");
         }
-        return JsonUtils.fromJson(call(request), DataQueryResultObject.class);
+        DataWrapperObject dataWrapperObject = JsonUtils.fromJson(call(request), DataWrapperObject.class);
+        DataQueryResultObject resultObject = dataWrapperObject.getData();
+        resultObject.setBusinessCode(dataWrapperObject.getBusinessCode());
+        resultObject.setMessage(dataWrapperObject.getMessage());
+        return resultObject;
     }
 
     private DataQueryResultObject getErrorResult(String message, int code) {

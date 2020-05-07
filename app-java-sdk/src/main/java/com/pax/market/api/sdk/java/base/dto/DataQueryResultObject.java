@@ -2,7 +2,6 @@ package com.pax.market.api.sdk.java.base.dto;
 
 import com.google.gson.annotations.SerializedName;
 
-import java.io.Serializable;
 import java.util.List;
 
 
