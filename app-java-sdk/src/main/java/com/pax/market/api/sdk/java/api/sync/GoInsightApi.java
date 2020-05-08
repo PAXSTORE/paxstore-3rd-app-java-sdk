@@ -141,6 +141,9 @@ public class GoInsightApi extends BaseApi {
         }
         DataWrapperObject dataWrapperObject = JsonUtils.fromJson(call(request), DataWrapperObject.class);
         DataQueryResultObject resultObject = dataWrapperObject.getData();
+        if (resultObject == null) {
+            resultObject = new DataQueryResultObject();
+        }
         resultObject.setBusinessCode(dataWrapperObject.getBusinessCode());
         resultObject.setMessage(dataWrapperObject.getMessage());
         return resultObject;
