@@ -25,6 +25,8 @@ public class DataQueryResultObject extends SdkObject {
         String colName;
         @SerializedName("displayName")
         String displayName;
+        @SerializedName("type")
+        String type;
 
         public String getColName() {
             return colName;
@@ -42,11 +44,20 @@ public class DataQueryResultObject extends SdkObject {
             this.displayName = displayName;
         }
 
+        public String getType() {
+            return type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
+
         @Override
         public String toString() {
             return "Column{" +
                     "colName='" + colName + '\'' +
                     ", displayName='" + displayName + '\'' +
+                    ", type='" + type + '\'' +
                     '}';
         }
     }
