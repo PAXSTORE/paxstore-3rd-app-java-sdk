@@ -67,8 +67,9 @@ public abstract class HttpUtils {
 	private static final int BUFFER_SIZE = 4096;
 	private static final String DEFAULT_CHARSET = Constants.CHARSET_UTF8;
 	private static Locale locale = Locale.CHINA;
+	public static final String IOEXCTION_FLAG = "IOException-";
 
-    /**
+	/**
      * Sets local.
      *
      * @param locale the locale
@@ -135,7 +136,7 @@ public abstract class HttpUtils {
 			return finalRequest(urlConnection, requestMethod, userData, compressData, headerMap, saveFilePath);
 		} catch (IOException e) {
 			logger.error("IOException Occurred. Details: {}", e.toString());
-			return JsonUtils.getSdkJsonStr(ResultCode.SDK_RQUEST_EXCEPTION.getCode(), e.toString());
+			return JsonUtils.getSdkJsonStr(ResultCode.SDK_DOWNLOAD_IOEXCEPTION.getCode(), IOEXCTION_FLAG + e.toString());
 		} finally {
 			if(urlConnection != null) {
 				urlConnection.disconnect();
@@ -232,11 +233,11 @@ public abstract class HttpUtils {
 		} catch (SocketTimeoutException localSocketTimeoutException) {
 			FileUtils.deleteFile(filePath);
 			logger.error("SocketTimeoutException Occurred. Details: {}", localSocketTimeoutException.toString());
-			return JsonUtils.getSdkJson(ResultCode.SDK_CONNECT_TIMEOUT.getCode(), localSocketTimeoutException.toString());
+			return JsonUtils.getSdkJson(ResultCode.SDK_CONNECT_TIMEOUT.getCode(), IOEXCTION_FLAG + localSocketTimeoutException.toString());
 		} catch (ConnectException localConnectException) {
 			FileUtils.deleteFile(filePath);
 			logger.error("ConnectException Occurred. Details: {}", localConnectException.toString());
-			return JsonUtils.getSdkJson(ResultCode.SDK_UN_CONNECT.getCode(), localConnectException.toString());
+			return JsonUtils.getSdkJson(ResultCode.SDK_UN_CONNECT.getCode(), IOEXCTION_FLAG + localConnectException.toString());
 		} catch (FileNotFoundException fileNotFoundException) {
 			FileUtils.deleteFile(filePath);
 			logger.error("FileNotFoundException Occurred. Details: {}", fileNotFoundException.toString());
@@ -244,7 +245,11 @@ public abstract class HttpUtils {
 		} catch (Exception ignored) {
 			FileUtils.deleteFile(filePath);
 			logger.error("Exception Occurred. Details: {}", ignored.toString());
-			return JsonUtils.getSdkJsonStr(ResultCode.SDK_RQUEST_EXCEPTION.getCode(), ignored.toString());
+			String errMsg = ignored.toString();
+			if (ignored instanceof IOException) {
+				errMsg = IOEXCTION_FLAG +ignored.toString();
+			}
+			return JsonUtils.getSdkJsonStr(ResultCode.SDK_RQUEST_EXCEPTION.getCode(), errMsg);
 		} finally {
 			if(bufferedReader != null) {
 				try {

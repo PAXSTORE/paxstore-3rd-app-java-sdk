@@ -18,6 +18,8 @@ import com.pax.market.api.sdk.java.base.api.BaseApi;
 import com.pax.market.api.sdk.java.base.constant.Constants;
 import com.pax.market.api.sdk.java.base.constant.ResultCode;
 import com.pax.market.api.sdk.java.base.dto.DownloadResultObject;
+import com.pax.market.api.sdk.java.base.dto.InnerDownloadResultObject;
+import com.pax.market.api.sdk.java.base.dto.LastFailObject;
 import com.pax.market.api.sdk.java.base.dto.ParamListObject;
 import com.pax.market.api.sdk.java.base.dto.ParamObject;
 import com.pax.market.api.sdk.java.base.dto.SdkObject;
@@ -42,6 +44,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+
+import static com.pax.market.api.sdk.java.base.util.HttpUtils.IOEXCTION_FLAG;
 
 
 /**
@@ -69,6 +73,18 @@ public class ParamApi extends BaseApi {
      * The constant CODE_DOWNLOAD_ERROR.
      */
     public static final int CODE_DOWNLOAD_ERROR = 1;
+
+    /**
+     * The constant RETRY_COUNT.
+     */
+    public static final int RETRY_COUNT = 20;
+
+
+    /**
+     * The constant RETRY_TIME_LIMIT.
+     */
+    public static final long RETRY_TIME_LIMIT = 10 * 24 * 3600_000L;
+
     private static final String REQ_PARAM_PACKAGE_NAME = "packageName";
     private static final String REQ_PARAM_VERSION_CODE = "versionCode";
     private static final String REQ_PARAM_STATUS = "status";
@@ -94,6 +110,7 @@ public class ParamApi extends BaseApi {
      */
     protected static String updateStatusBatchUrl = "/3rdApps/actions";
     private final Logger logger = LoggerFactory.getLogger(ParamApi.class.getSimpleName());
+
     public ParamApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
         super(baseUrl, appKey, appSecret, terminalSN);
     }
@@ -208,11 +225,12 @@ public class ParamApi extends BaseApi {
      * @param packageName
      * @param versionCode
      * @param saveFilePath
+     * @param lastFailObject
      * @return
      */
-    public DownloadResultObject downloadParamToPath(String packageName, int versionCode, String saveFilePath) {
+    public InnerDownloadResultObject downloadParamToPath(String packageName, int versionCode, String saveFilePath, LastFailObject lastFailObject) {
         logger.debug("downloadParamToPath: start");
-        DownloadResultObject result = new DownloadResultObject();
+        InnerDownloadResultObject result = new InnerDownloadResultObject();
         if (saveFilePath == null || "".equals(saveFilePath.trim())) {
             result.setBusinessCode(ResultCode.SDK_FILE_NOT_FOUND.getCode());
             result.setMessage(JsonUtils.getSdkJson(ResultCode.SDK_FILE_NOT_FOUND.getCode(), SAVEPATH_CANNOT_BE_NULL));
@@ -239,9 +257,12 @@ public class ParamApi extends BaseApi {
 
         saveFilePath = saveFilePath + File.separator + paramListObject.getList().get(0).getActionId(); // use first actionId as temp folder name
         String remarks = null;
+
+
         for (ParamObject paramObject : paramListObject.getList()) {
             SdkObject sdkObject = downloadParamFileOnly(paramObject, saveFilePath);
             if (sdkObject.getBusinessCode() != ResultCode.SUCCESS.getCode()) {
+                setIOExceptionResult(lastFailObject, result, paramObject, sdkObject);
                 result.setBusinessCode(sdkObject.getBusinessCode());
                 result.setMessage(sdkObject.getMessage());
                 remarks = sdkObject.getMessage();
@@ -253,9 +274,9 @@ public class ParamApi extends BaseApi {
         if (remarks != null) {
             // Since download failed, result of updating action is not concerned, just return the result of download failed reason
             FileUtils.delFolder(saveFilePath);
-            updateActionListByRemarks(paramListObject, remarks);
+            updateActionListByRemarks(paramListObject, result, remarks);
         } else {
-            SdkObject updateResultObj = updateActionListByRemarks(paramListObject, remarks);
+            SdkObject updateResultObj = updateActionListByRemarks(paramListObject, result, remarks);
             if (updateResultObj.getBusinessCode() != ResultCode.SUCCESS.getCode()) {
                 FileUtils.delFolder(saveFilePath);
                 result.setBusinessCode(updateResultObj.getBusinessCode());
@@ -270,11 +291,47 @@ public class ParamApi extends BaseApi {
         return result;
     }
 
+    /**
+     * @param lastFailObject
+     * @param result
+     * @param paramObject
+     * @param sdkObject
+     */
+    private void setIOExceptionResult(LastFailObject lastFailObject, InnerDownloadResultObject result, ParamObject paramObject, SdkObject sdkObject) {
+        if (sdkObject.getMessage() != null && sdkObject.getMessage().contains(IOEXCTION_FLAG)) {
+            if (lastFailObject == null) {
+                lastFailObject = new LastFailObject();
+            }
+            // if it is a new task, update the fail time
+            if (lastFailObject.getActionId() != paramObject.getActionId()) {
+                lastFailObject.setFirstTryTime(System.currentTimeMillis());
+                lastFailObject.setRetryCount(0);
+            }
+            lastFailObject.setActionId(paramObject.getActionId());
+            lastFailObject.setRetryCount(lastFailObject.getRetryCount() + 1);
+            result.setLastFailObject(lastFailObject);
+        }
+    }
 
-    private SdkObject updateActionListByRemarks(ParamListObject paramListObject, String remarks) {
 
+    private SdkObject updateActionListByRemarks(ParamListObject paramListObject, InnerDownloadResultObject result, String remarks) {
         List<UpdateActionObject> updateBatchList;
-        if (remarks != null) {
+        if (result.getMessage() != null && result.getMessage().contains(IOEXCTION_FLAG)
+                && result.getLastFailObject() != null) {
+            if (result.getLastFailObject().getRetryCount() > RETRY_COUNT) {
+                updateBatchList = getUpdateBatchBody(paramListObject,
+                        String.format(" Bad network connection, exceeded max retry times: %d . %s", RETRY_COUNT, remarks),
+                        ACT_STATUS_FAILED, CODE_DOWNLOAD_ERROR);
+            } else if (result.getLastFailObject().getFirstTryTime() + RETRY_TIME_LIMIT < System.currentTimeMillis()) {
+                updateBatchList = getUpdateBatchBody(paramListObject,
+                        String.format(" Bad network connection, exceeded max retry time 10 days. %s", remarks),
+                        ACT_STATUS_FAILED, CODE_DOWNLOAD_ERROR);
+            } else {
+                remarks = String.format(" Bad network connection, %d time(s) tried. %s", result.getLastFailObject().getRetryCount(), remarks);
+                result.setBusinessCode(ResultCode.SDK_DOWNLOAD_IOEXCEPTION.getCode());
+                updateBatchList = getUpdateBatchBody(paramListObject, remarks, CODE_NONE_ERROR, CODE_NONE_ERROR);
+            }
+        } else if (remarks != null) {
             updateBatchList = getUpdateBatchBody(paramListObject, remarks, ACT_STATUS_FAILED, CODE_DOWNLOAD_ERROR);
         } else {
             updateBatchList = getUpdateBatchBody(paramListObject, remarks, ACT_STATUS_SUCCESS, CODE_NONE_ERROR);
@@ -324,7 +381,6 @@ public class ParamApi extends BaseApi {
     }
 
     /**
-     *
      * @param file
      * @return
      * @throws JsonParseException
@@ -337,7 +393,8 @@ public class ParamApi extends BaseApi {
 
                 if (fileString != null) {
                     Gson gson = new Gson();
-                    java.lang.reflect.Type type = new TypeToken<LinkedHashMap<String, String>>() {}.getType();
+                    java.lang.reflect.Type type = new TypeToken<LinkedHashMap<String, String>>() {
+                    }.getType();
                     return gson.fromJson(fileString, type);
                 }
             } catch (Exception e) {
