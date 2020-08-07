@@ -2,6 +2,7 @@ package com.pax.market.api.sdk.java.api.activate;
 
 import com.pax.market.api.sdk.java.base.api.BaseApi;
 import com.pax.market.api.sdk.java.base.constant.Constants;
+import com.pax.market.api.sdk.java.base.dto.ActivateObject;
 import com.pax.market.api.sdk.java.base.dto.SdkObject;
 import com.pax.market.api.sdk.java.base.request.SdkRequest;
 import com.pax.market.api.sdk.java.base.util.JsonUtils;
@@ -17,7 +18,7 @@ public class ActivateApi extends BaseApi {
     /**
      * The constant downloadParamUrl.
      */
-    protected static String checkUpdateUrl = "/3rdApps/active/terminal";
+    protected static String checkUpdateUrl = "/3rdApps/init";
 
 
     /**
@@ -27,9 +28,12 @@ public class ActivateApi extends BaseApi {
      */
     public SdkObject initByTID(String tid) {
         SdkRequest request = new SdkRequest(checkUpdateUrl);
+        ActivateObject activateObject = new ActivateObject();
+        activateObject.setTid(tid);
+        String requestBody = JsonUtils.toJson(activateObject);
         request.setRequestMethod(SdkRequest.RequestMethod.PUT);
         request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
-        request.addHeader(REQ_TID, tid);
+        request.setRequestBody(requestBody);
         return JsonUtils.fromJson(call(request), SdkObject.class);
     }
 }
