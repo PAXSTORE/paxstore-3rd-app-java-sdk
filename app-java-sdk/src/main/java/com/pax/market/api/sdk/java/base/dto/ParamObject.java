@@ -34,6 +34,8 @@ public class ParamObject extends SdkObject {
     private String paramVariables;
     @SerializedName("md")
     private String md;
+    @SerializedName("wifiOnly")
+    private boolean wifiOnly;
 
     public long getActionId() {
         return actionId;
@@ -83,6 +85,14 @@ public class ParamObject extends SdkObject {
         this.md = md;
     }
 
+    public boolean isWifiOnly() {
+        return wifiOnly;
+    }
+
+    public void setWifiOnly(boolean wifiOnly) {
+        this.wifiOnly = wifiOnly;
+    }
+
     @Override
     public String toString() {
         return "ParamObject{" +
@@ -92,6 +102,7 @@ public class ParamObject extends SdkObject {
                 ", downloadUrl='" + downloadUrl + '\'' +
                 ", paramVariables='" + paramVariables + '\'' +
                 ", md='" + md + '\'' +
+                ", wifiOnly=" + wifiOnly +
                 '}';
     }
 }

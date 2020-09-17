@@ -95,6 +95,7 @@ public class ParamApi extends BaseApi {
     private static final String ERROR_REMARKS_VARIFY_MD_FAILED = "MD5 Validation Error";
     private static final String ERROR_UNZIP_FAILED = "Unzip file failed";
     private static final String DOWNLOAD_SUCCESS = "Success";
+    public static final String ERROR_CELLULAR_NOT_ALLOWED = "Cellular download not allowed";
     private static final String SAVEPATH_CANNOT_BE_NULL = "Save path can not be empty";
 
     /**
@@ -228,7 +229,8 @@ public class ParamApi extends BaseApi {
      * @param lastFailObject
      * @return
      */
-    public InnerDownloadResultObject downloadParamToPath(String packageName, int versionCode, String saveFilePath, LastFailObject lastFailObject) {
+    public InnerDownloadResultObject downloadParamToPath(String packageName, int versionCode, String saveFilePath,
+                                                         LastFailObject lastFailObject, boolean mobileNetAvailable) {
         logger.debug("downloadParamToPath: start");
         InnerDownloadResultObject result = new InnerDownloadResultObject();
         if (saveFilePath == null || "".equals(saveFilePath.trim())) {
@@ -258,8 +260,16 @@ public class ParamApi extends BaseApi {
         saveFilePath = saveFilePath + File.separator + paramListObject.getList().get(0).getActionId(); // use first actionId as temp folder name
         String remarks = null;
 
-
         for (ParamObject paramObject : paramListObject.getList()) {
+            if (paramObject.isWifiOnly() && mobileNetAvailable) { // If this task not allowed, stop downloading params.
+                ParamListObject cellularForbidList = new ParamListObject();
+                updateDownloadStatus(String.valueOf(paramObject.getActionId()),
+                        CODE_NONE_ERROR, CODE_NONE_ERROR, ERROR_CELLULAR_NOT_ALLOWED);
+                result.setBusinessCode(ResultCode.SDK_DOWNLOAD_WITH_CELLULAR_NOT_ALLOWED.getCode());
+                result.setMessage(ERROR_CELLULAR_NOT_ALLOWED);
+                return result;
+            }
+            logger.debug("ParamApi", "ttt if go here 0");
             SdkObject sdkObject = downloadParamFileOnly(paramObject, saveFilePath);
             if (sdkObject.getBusinessCode() != ResultCode.SUCCESS.getCode()) {
                 setIOExceptionResult(lastFailObject, result, paramObject, sdkObject);
@@ -270,7 +280,7 @@ public class ParamApi extends BaseApi {
                 break;
             }
         }
-
+        logger.debug("ParamApi", "ttt if go here 1");
         if (remarks != null) {
             // Since download failed, result of updating action is not concerned, just return the result of download failed reason
             FileUtils.delFolder(saveFilePath);
