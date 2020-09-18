@@ -116,6 +116,10 @@ public class ParamApi extends BaseApi {
         super(baseUrl, appKey, appSecret, terminalSN);
     }
 
+    public void setBaseUrl(String baseUrl) {
+        super.getDefaultClient().setBaseUrl(baseUrl);
+    }
+
     /**
      * Get terminal params to download
      *

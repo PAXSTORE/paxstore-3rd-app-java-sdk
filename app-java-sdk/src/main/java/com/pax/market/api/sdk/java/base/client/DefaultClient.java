@@ -170,6 +170,10 @@ public class DefaultClient {
 		this.proxyAuthorization = proxyAuthorization;
 	}
 
+	public void setBaseUrl(String baseUrl) {
+    	this.baseUrl = baseUrl;
+	}
+
 	public DefaultClient.Builder newBuilder() {
 		return new DefaultClient.Builder(this);
 	}

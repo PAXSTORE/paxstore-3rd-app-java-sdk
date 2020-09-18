@@ -24,6 +24,10 @@ public class UpdateApi extends BaseApi {
         super(baseUrl, appKey, appSecret, terminalSN);
     }
 
+    public void setBaseUrl(String baseUrl) {
+        super.getDefaultClient().setBaseUrl(baseUrl);
+    }
+
     /**
      * check if this app has update on PAXSTORE
      *
