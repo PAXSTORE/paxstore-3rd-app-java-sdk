@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.security.GeneralSecurityException;
 
@@ -63,9 +64,13 @@ public class DefaultClient {
 	 */
 	private Proxy proxy;
 	/**
-	 * The proxy authorization
+	 * The proxy basic authorization
 	 */
-	private String proxyAuthorization;
+	private String basicAuthorization;
+	/**
+	 * The proxy password authorization
+	 */
+	private PasswordAuthentication passwordAuthentication;
 
     /**
      * Instantiates a new Default client.
@@ -88,7 +93,7 @@ public class DefaultClient {
 		this.connectTimeout = builder.connectTimeout;
 		this.readTimeout = builder.readTimeout;
 		this.proxy = builder.proxy;
-		this.proxyAuthorization = builder.proxyAuthorization;
+		this.basicAuthorization = builder.basicAuthorization;
 	}
 
     /**
@@ -116,8 +121,8 @@ public class DefaultClient {
 			request.addHeader(Constants.REQ_HEADER_APP_KEY, appKey);
 		}
 		request.addHeader(Constants.REQ_HEADER_SDK_VERSION, Version.getVersion());
-		if(proxy != null && proxy.type() != Proxy.Type.DIRECT && proxyAuthorization != null){
-			request.addHeader(Constants.REQ_HEADER_PROXY_AUTHORIZATION, proxyAuthorization);
+		if(proxy != null && proxy.type() == Proxy.Type.HTTP && basicAuthorization != null) {
+			request.addHeader(Constants.REQ_HEADER_PROXY_AUTHORIZATION, basicAuthorization);
 		}
 
 //		Long timestamp = request.getTimestamp();
@@ -134,10 +139,22 @@ public class DefaultClient {
 		String requestUrl = HttpUtils.buildRequestUrl(baseUrl + request.getRequestMappingUrl(), query);
 		logger.info(" --> {} {}", request.getRequestMethod().getValue(), requestUrl);
 
-		if(!request.isCompressData()){
-			response = HttpUtils.request(requestUrl, request.getRequestMethod().getValue(), connectTimeout, readTimeout, request.getRequestBody(), request.getHeaderMap(), request.getSaveFilePath(), proxy);
-		} else {
-			response = HttpUtils.compressRequest(requestUrl, request.getRequestMethod().getValue(), connectTimeout, readTimeout, request.getRequestBody(), request.getHeaderMap(), request.getSaveFilePath(), proxy);
+		boolean clearSocksCredentials = false;
+		if (proxy != null && proxy.type() == Proxy.Type.SOCKS && passwordAuthentication != null) {
+			ThreadLocalProxyAuthenticator.getInstance().setCredentials(passwordAuthentication);
+			clearSocksCredentials = true;
+		}
+
+		try {
+			if (!request.isCompressData()) {
+				response = HttpUtils.request(requestUrl, request.getRequestMethod().getValue(), connectTimeout, readTimeout, request.getRequestBody(), request.getHeaderMap(), request.getSaveFilePath(), proxy);
+			} else {
+				response = HttpUtils.compressRequest(requestUrl, request.getRequestMethod().getValue(), connectTimeout, readTimeout, request.getRequestBody(), request.getHeaderMap(), request.getSaveFilePath(), proxy);
+			}
+		} finally {
+			if (clearSocksCredentials) {
+				ThreadLocalProxyAuthenticator.clearCredentials();
+			}
 		}
 		return response;
 	}
@@ -164,8 +181,12 @@ public class DefaultClient {
 		this.proxy = proxy;
 	}
 
-	public void setProxyAuthorization(String proxyAuthorization) {
-		this.proxyAuthorization = proxyAuthorization;
+	public void setBasicAuthorization(String basicAuthorization) {
+		this.basicAuthorization = basicAuthorization;
+	}
+
+	public void setPasswordAuthentication(PasswordAuthentication passwordAuthentication) {
+		this.passwordAuthentication = passwordAuthentication;
 	}
 
 	public DefaultClient.Builder newBuilder() {
@@ -180,7 +201,8 @@ public class DefaultClient {
 		int connectTimeout;
 		int readTimeout;
 		Proxy proxy;
-		String proxyAuthorization;
+		String basicAuthorization;
+		PasswordAuthentication passwordAuthentication;
 
 		public Builder(){
 			this.signMethod =  Constants.SIGN_METHOD_HMAC;
@@ -196,7 +218,8 @@ public class DefaultClient {
 			this.connectTimeout = client.connectTimeout;
 			this.readTimeout = client.readTimeout;
 			this.proxy = client.proxy;
-			this.proxyAuthorization = client.proxyAuthorization;
+			this.basicAuthorization = client.basicAuthorization;
+			this.passwordAuthentication = client.passwordAuthentication;
 		}
 
 		public DefaultClient.Builder baseUrl(String baseUrl) {
@@ -234,8 +257,13 @@ public class DefaultClient {
 			return this;
 		}
 
-		public DefaultClient.Builder proxyAuthorization(String proxyAuthorization) {
-			this.proxyAuthorization = proxyAuthorization;
+		public DefaultClient.Builder basicAuthorization(String basicAuthorization) {
+			this.basicAuthorization = basicAuthorization;
+			return this;
+		}
+
+		public DefaultClient.Builder passwordAuthentication(PasswordAuthentication passwordAuthentication) {
+			this.passwordAuthentication = passwordAuthentication;
 			return this;
 		}
 
