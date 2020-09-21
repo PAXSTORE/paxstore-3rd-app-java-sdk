@@ -66,7 +66,7 @@ public class JsonUtils {
      * @param resultCode the result code
      * @return the sdk json
      */
-    public static String getSdkJson(int resultCode) {
+    public static String getSdkJson(int resultCode, String errorMsg) {
         String message = "";
         switch (ResultCode.toResultCode(resultCode)) {
             case SDK_PARAM_ERROR:
@@ -107,7 +107,8 @@ public class JsonUtils {
                 break;
 
         }
-        return getSdkJson(resultCode, message);
+        message = message + ":" +errorMsg;
+        return getSdkJsonStr(resultCode, message);
     }
 
     /**
@@ -117,7 +118,7 @@ public class JsonUtils {
      * @param message    the message
      * @return the sdk json
      */
-    public static String getSdkJson(int resultCode, String message) {
+    public static String getSdkJsonStr(int resultCode, String message) {
         SdkObject sdkObject = new SdkObject();
         sdkObject.setBusinessCode(resultCode);
         sdkObject.setMessage(message);

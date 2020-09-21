@@ -11,11 +11,15 @@
  */
 package com.pax.market.api.sdk.java.api.param;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonParseException;
+import com.google.gson.reflect.TypeToken;
 import com.pax.market.api.sdk.java.base.api.BaseApi;
-import com.pax.market.api.sdk.java.base.client.DefaultClient;
 import com.pax.market.api.sdk.java.base.constant.Constants;
 import com.pax.market.api.sdk.java.base.constant.ResultCode;
 import com.pax.market.api.sdk.java.base.dto.DownloadResultObject;
+import com.pax.market.api.sdk.java.base.dto.InnerDownloadResultObject;
+import com.pax.market.api.sdk.java.base.dto.LastFailObject;
 import com.pax.market.api.sdk.java.base.dto.ParamListObject;
 import com.pax.market.api.sdk.java.base.dto.ParamObject;
 import com.pax.market.api.sdk.java.base.dto.SdkObject;
@@ -41,13 +45,58 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import static com.pax.market.api.sdk.java.base.util.HttpUtils.IOEXCTION_FLAG;
+
 
 /**
  * Created by fanjun on 2016/12/5.
  */
 public class ParamApi extends BaseApi {
-    private final Logger logger = LoggerFactory.getLogger(ParamApi.class.getSimpleName());
+    public static final String REMARKS_PARAM_DOWNLOADING = "15206";         //Param is downloading
+    /**
+     * The constant ACT_STATUS_PENDING.
+     */
+    public static final int ACT_STATUS_PENDING = 1;
+    /**
+     * The constant ACT_STATUS_SUCCESS.
+     */
+    public static final int ACT_STATUS_SUCCESS = 2;
+    /**
+     * The constant ACT_STATUS_FAILED.
+     */
+    public static final int ACT_STATUS_FAILED = 3;
+    /**
+     * The constant CODE_NONE_ERROR.
+     */
+    public static final int CODE_NONE_ERROR = 0;
+    /**
+     * The constant CODE_DOWNLOAD_ERROR.
+     */
+    public static final int CODE_DOWNLOAD_ERROR = 1;
 
+    /**
+     * The constant RETRY_COUNT.
+     */
+    public static final int RETRY_COUNT = 20;
+
+
+    /**
+     * The constant RETRY_TIME_LIMIT.
+     */
+    public static final long RETRY_TIME_LIMIT = 10 * 24 * 3600_000L;
+
+    private static final String REQ_PARAM_PACKAGE_NAME = "packageName";
+    private static final String REQ_PARAM_VERSION_CODE = "versionCode";
+    private static final String REQ_PARAM_STATUS = "status";
+    private static final String REQ_PARAM_ERROR_CODE = "errorCode";
+    private static final String REQ_PARAM_REMARKS = "remarks";
+    private static final String ERROR_REMARKS_REPLACE_VARIABLES = "Replace paramVariables failed";
+    private static final String ERROR_REMARKS_NOT_GOOD_JSON = "Bad json : ";
+    private static final String ERROR_REMARKS_VARIFY_MD_FAILED = "MD5 Validation Error";
+    private static final String ERROR_UNZIP_FAILED = "Unzip file failed";
+    private static final String DOWNLOAD_SUCCESS = "Success";
+    public static final String ERROR_CELLULAR_NOT_ALLOWED = "Cellular download not allowed";
+    private static final String SAVEPATH_CANNOT_BE_NULL = "Save path can not be empty";
 
     /**
      * The constant downloadParamUrl.
@@ -61,45 +110,11 @@ public class ParamApi extends BaseApi {
      * The constant updateStatusBatchUrl.
      */
     protected static String updateStatusBatchUrl = "/3rdApps/actions";
-
-    private static final String REQ_PARAM_PACKAGE_NAME = "packageName";
-    private static final String REQ_PARAM_VERSION_CODE = "versionCode";
-    private static final String REQ_PARAM_STATUS = "status";
-    private static final String REQ_PARAM_ERROR_CODE = "errorCode";
-    private static final String REQ_PARAM_REMARKS = "remarks";
-    private static final String ERROR_REMARKS_REPLACE_VARIABLES = "Replace paramVariables failed";
-    private static final String ERROR_REMARKS_VARIFY_MD_FAILED = "MD5 Validation Error";
-    private static final String ERROR_UNZIP_FAILED = "Unzip file failed";
-    private static final String DOWNLOAD_SUCCESS = "Success";
-    public static final String REMARKS_PARAM_DOWNLOADING = "15206";         //Param is downloading
-
+    private final Logger logger = LoggerFactory.getLogger(ParamApi.class.getSimpleName());
 
     public ParamApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
         super(baseUrl, appKey, appSecret, terminalSN);
     }
-
-    /**
-     * The constant ACT_STATUS_PENDING.
-     */
-    public static final int ACT_STATUS_PENDING = 1;
-    /**
-     * The constant ACT_STATUS_SUCCESS.
-     */
-    public static final int ACT_STATUS_SUCCESS = 2;
-    /**
-     * The constant ACT_STATUS_FAILED.
-     */
-    public static final int ACT_STATUS_FAILED = 3;
-
-    /**
-     * The constant CODE_NONE_ERROR.
-     */
-    public static final int CODE_NONE_ERROR = 0;
-    /**
-     * The constant CODE_DOWNLOAD_ERROR.
-     */
-    public static final int CODE_DOWNLOAD_ERROR = 1;
-
 
     /**
      * Get terminal params to download
@@ -108,7 +123,7 @@ public class ParamApi extends BaseApi {
      * @param versionCode
      * @return
      */
-    public ParamListObject getParamDownloadList(String packageName, int versionCode){
+    public ParamListObject getParamDownloadList(String packageName, int versionCode) {
         SdkRequest request = new SdkRequest(downloadParamUrl);
         request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
         request.addRequestParam(REQ_PARAM_PACKAGE_NAME, packageName);
@@ -142,11 +157,16 @@ public class ParamApi extends BaseApi {
                     sdkObject.setMessage(ERROR_UNZIP_FAILED);
                 } else {
                     //replace file
-                    boolean ifReplaceSuccess = ReplaceUtils.replaceParams(saveFilePath, paramObject.getParamVariables());
-                    if (!ifReplaceSuccess) {
-                        logger.info("replace paramVariables failed");
+                    if (!ReplaceUtils.isHashMapJson(paramObject.getParamVariables())) {
                         sdkObject.setBusinessCode(ResultCode.SDK_REPLACE_VARIABLES_FAILED.getCode());
-                        sdkObject.setMessage(ERROR_REMARKS_REPLACE_VARIABLES);
+                        sdkObject.setMessage(ERROR_REMARKS_NOT_GOOD_JSON + paramObject.getParamVariables());
+                    } else {
+                        boolean ifReplaceSuccess = ReplaceUtils.replaceParams(saveFilePath, paramObject.getParamVariables());
+                        if (!ifReplaceSuccess) {
+                            logger.info("replace paramVariables failed");
+                            sdkObject.setBusinessCode(ResultCode.SDK_REPLACE_VARIABLES_FAILED.getCode());
+                            sdkObject.setMessage(ERROR_REMARKS_REPLACE_VARIABLES);
+                        }
                     }
                 }
             } else {
@@ -172,7 +192,7 @@ public class ParamApi extends BaseApi {
      * @param errorCode error code { None error code:0 }
      * @return
      */
-    public SdkObject updateDownloadStatus(String actionId, int status, int errorCode, String remarks){
+    public SdkObject updateDownloadStatus(String actionId, int status, int errorCode, String remarks) {
         String requestUrl = updateStatusUrl.replace("{actionId}", actionId);
         SdkRequest request = new SdkRequest(requestUrl);
         request.setRequestMethod(SdkRequest.RequestMethod.PUT);
@@ -189,7 +209,7 @@ public class ParamApi extends BaseApi {
      * @param updateActionObjectList
      * @return
      */
-    public SdkObject updateDownloadStatusBatch(List<UpdateActionObject> updateActionObjectList){
+    public SdkObject updateDownloadStatusBatch(List<UpdateActionObject> updateActionObjectList) {
         String requestBody = JsonUtils.toJson(updateActionObjectList);
         SdkRequest request = new SdkRequest(updateStatusBatchUrl);
         request.setRequestMethod(SdkRequest.RequestMethod.POST);
@@ -206,11 +226,19 @@ public class ParamApi extends BaseApi {
      * @param packageName
      * @param versionCode
      * @param saveFilePath
+     * @param lastFailObject
      * @return
      */
-    public DownloadResultObject downloadParamToPath(String packageName, int versionCode, String saveFilePath) {
+    public InnerDownloadResultObject downloadParamToPath(String packageName, int versionCode, String saveFilePath,
+                                                         LastFailObject lastFailObject, boolean mobileNetAvailable) {
         logger.debug("downloadParamToPath: start");
-        DownloadResultObject result = new DownloadResultObject();
+        InnerDownloadResultObject result = new InnerDownloadResultObject();
+        if (saveFilePath == null || "".equals(saveFilePath.trim())) {
+            result.setBusinessCode(ResultCode.SDK_FILE_NOT_FOUND.getCode());
+            result.setMessage(JsonUtils.getSdkJson(ResultCode.SDK_FILE_NOT_FOUND.getCode(), SAVEPATH_CANNOT_BE_NULL));
+            return result;
+        }
+
         result.setParamSavePath(saveFilePath);
         //get paramList
         ParamListObject paramListObject = getParamDownloadList(packageName, versionCode);
@@ -231,26 +259,34 @@ public class ParamApi extends BaseApi {
 
         saveFilePath = saveFilePath + File.separator + paramListObject.getList().get(0).getActionId(); // use first actionId as temp folder name
         String remarks = null;
+
         for (ParamObject paramObject : paramListObject.getList()) {
+            if (paramObject.isWifiOnly() && mobileNetAvailable) { // If this task not allowed, stop downloading params.
+                ParamListObject cellularForbidList = new ParamListObject();
+                updateDownloadStatus(String.valueOf(paramObject.getActionId()),
+                        CODE_NONE_ERROR, CODE_NONE_ERROR, ERROR_CELLULAR_NOT_ALLOWED);
+                result.setBusinessCode(ResultCode.SDK_DOWNLOAD_WITH_CELLULAR_NOT_ALLOWED.getCode());
+                result.setMessage(ERROR_CELLULAR_NOT_ALLOWED);
+                return result;
+            }
+            logger.debug("ParamApi", "ttt if go here 0");
             SdkObject sdkObject = downloadParamFileOnly(paramObject, saveFilePath);
             if (sdkObject.getBusinessCode() != ResultCode.SUCCESS.getCode()) {
+                setIOExceptionResult(lastFailObject, result, paramObject, sdkObject);
                 result.setBusinessCode(sdkObject.getBusinessCode());
                 result.setMessage(sdkObject.getMessage());
-                if (ResultCode.toResultCode(sdkObject.getBusinessCode()) != ResultCode.UN_CODE) { // check code isdefined in ResultCode, resultcode can be translated by server, no message needed.
-                    remarks = sdkObject.getBusinessCode() + "";
-                } else {
-                    remarks = sdkObject.getBusinessCode() + ":" + sdkObject.getMessage();
-                }
+                remarks = sdkObject.getMessage();
+                logger.debug("download error remarks: " + remarks);
                 break;
             }
         }
-
+        logger.debug("ParamApi", "ttt if go here 1");
         if (remarks != null) {
             // Since download failed, result of updating action is not concerned, just return the result of download failed reason
             FileUtils.delFolder(saveFilePath);
-            updateActionListByRemarks(paramListObject, remarks);
+            updateActionListByRemarks(paramListObject, result, remarks);
         } else {
-            SdkObject updateResultObj = updateActionListByRemarks(paramListObject, remarks);
+            SdkObject updateResultObj = updateActionListByRemarks(paramListObject, result, remarks);
             if (updateResultObj.getBusinessCode() != ResultCode.SUCCESS.getCode()) {
                 FileUtils.delFolder(saveFilePath);
                 result.setBusinessCode(updateResultObj.getBusinessCode());
@@ -265,11 +301,47 @@ public class ParamApi extends BaseApi {
         return result;
     }
 
+    /**
+     * @param lastFailObject
+     * @param result
+     * @param paramObject
+     * @param sdkObject
+     */
+    private void setIOExceptionResult(LastFailObject lastFailObject, InnerDownloadResultObject result, ParamObject paramObject, SdkObject sdkObject) {
+        if (sdkObject.getMessage() != null && sdkObject.getMessage().contains(IOEXCTION_FLAG)) {
+            if (lastFailObject == null) {
+                lastFailObject = new LastFailObject();
+            }
+            // if it is a new task, update the fail time
+            if (lastFailObject.getActionId() != paramObject.getActionId()) {
+                lastFailObject.setFirstTryTime(System.currentTimeMillis());
+                lastFailObject.setRetryCount(0);
+            }
+            lastFailObject.setActionId(paramObject.getActionId());
+            lastFailObject.setRetryCount(lastFailObject.getRetryCount() + 1);
+            result.setLastFailObject(lastFailObject);
+        }
+    }
 
-    private SdkObject updateActionListByRemarks(ParamListObject paramListObject, String remarks) {
 
+    private SdkObject updateActionListByRemarks(ParamListObject paramListObject, InnerDownloadResultObject result, String remarks) {
         List<UpdateActionObject> updateBatchList;
-        if (remarks != null) {
+        if (result.getMessage() != null && result.getMessage().contains(IOEXCTION_FLAG)
+                && result.getLastFailObject() != null) {
+            if (result.getLastFailObject().getRetryCount() > RETRY_COUNT) {
+                updateBatchList = getUpdateBatchBody(paramListObject,
+                        String.format(" Bad network connection, exceeded max retry times: %d . %s", RETRY_COUNT, remarks),
+                        ACT_STATUS_FAILED, CODE_DOWNLOAD_ERROR);
+            } else if (result.getLastFailObject().getFirstTryTime() + RETRY_TIME_LIMIT < System.currentTimeMillis()) {
+                updateBatchList = getUpdateBatchBody(paramListObject,
+                        String.format(" Bad network connection, exceeded max retry time 10 days. %s", remarks),
+                        ACT_STATUS_FAILED, CODE_DOWNLOAD_ERROR);
+            } else {
+                remarks = String.format(" Bad network connection, %d time(s) tried. %s", result.getLastFailObject().getRetryCount(), remarks);
+                result.setBusinessCode(ResultCode.SDK_DOWNLOAD_IOEXCEPTION.getCode());
+                updateBatchList = getUpdateBatchBody(paramListObject, remarks, CODE_NONE_ERROR, CODE_NONE_ERROR);
+            }
+        } else if (remarks != null) {
             updateBatchList = getUpdateBatchBody(paramListObject, remarks, ACT_STATUS_FAILED, CODE_DOWNLOAD_ERROR);
         } else {
             updateBatchList = getUpdateBatchBody(paramListObject, remarks, ACT_STATUS_SUCCESS, CODE_NONE_ERROR);
@@ -298,26 +370,50 @@ public class ParamApi extends BaseApi {
      * @param file the downloaded xml
      * @return HashMap with key/value of xml elements
      */
-    public HashMap<String,String> parseDownloadParamXml(File file) throws ParseXMLException {
-        HashMap<String,String> resultMap = new HashMap<>();
-        if(file!=null){
+    public HashMap<String, String> parseDownloadParamXml(File file) throws ParseXMLException {
+        HashMap<String, String> resultMap = new HashMap<>();
+        if (file != null) {
             try {
                 SAXReader saxReader = new SAXReader();
                 Document document = saxReader.read(file);
                 Element root = document.getRootElement();
                 for (Iterator it = root.elementIterator(); it.hasNext(); ) {
                     Element element = (Element) it.next();
-                    resultMap.put(element.getName(),element.getText());
+                    resultMap.put(element.getName(), element.getText());
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 throw new ParseXMLException(e);
             }
-        }else{
+        } else {
             logger.info("parseDownloadParamXml: file is null, please make sure the file is correct.");
         }
         return resultMap;
     }
 
+    /**
+     * @param file
+     * @return
+     * @throws JsonParseException
+     */
+    public LinkedHashMap<String, String> parseDownloadParamJsonWithOrder(File file) throws JsonParseException {
+        if (file != null) {
+            String fileString = null;
+            try {
+                fileString = org.apache.commons.io.FileUtils.readFileToString(file);
+
+                if (fileString != null) {
+                    Gson gson = new Gson();
+                    java.lang.reflect.Type type = new TypeToken<LinkedHashMap<String, String>>() {
+                    }.getType();
+                    return gson.fromJson(fileString, type);
+                }
+            } catch (Exception e) {
+                logger.error("Read file error", e);
+                throw new JsonParseException(e.getMessage());
+            }
+        }
+        return null;
+    }
 
     /**
      * parse the downloaded parameter xml file, convert the xml elements to LinkedHashMap<String,String>
@@ -326,21 +422,21 @@ public class ParamApi extends BaseApi {
      * @param file the downloaded xml
      * @return LinkedHashMap with key/value of xml elements
      */
-    public LinkedHashMap<String,String> parseDownloadParamXmlWithOrder(File file) throws ParseXMLException {
-        LinkedHashMap<String,String> resultMap = new LinkedHashMap<>();
-        if(file!=null){
+    public LinkedHashMap<String, String> parseDownloadParamXmlWithOrder(File file) throws ParseXMLException {
+        LinkedHashMap<String, String> resultMap = new LinkedHashMap<>();
+        if (file != null) {
             try {
                 SAXReader saxReader = new SAXReader();
                 Document document = saxReader.read(file);
                 Element root = document.getRootElement();
                 for (Iterator it = root.elementIterator(); it.hasNext(); ) {
                     Element element = (Element) it.next();
-                    resultMap.put(element.getName(),element.getText());
+                    resultMap.put(element.getName(), element.getText());
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 throw new ParseXMLException(e);
             }
-        }else{
+        } else {
             logger.info("parseDownloadParamXmlWithOrder: file is null, please make sure the file is correct.");
         }
         return resultMap;

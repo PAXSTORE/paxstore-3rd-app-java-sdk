@@ -27,6 +27,8 @@ import java.io.IOException;
 import java.net.Proxy;
 import java.security.GeneralSecurityException;
 
+import static com.pax.market.api.sdk.java.base.util.HttpUtils.IOEXCTION_FLAG;
+
 /**
  * 客户端
  */
@@ -102,10 +104,10 @@ public class DefaultClient {
 			return _execute(request);
 		} catch (IOException e) {
 			logger.error("IOException occurred when execute request. Details: {}", e.toString());
-			return JsonUtils.getSdkJson(ResultCode.SDK_RQUEST_EXCEPTION.getCode(), e.getMessage());
+			return JsonUtils.getSdkJsonStr(ResultCode.SDK_DOWNLOAD_IOEXCEPTION.getCode(), IOEXCTION_FLAG + e.toString());
 		} catch (GeneralSecurityException e) {
 			logger.error("GeneralSecurityException occurred when execute request. Details: {}", e.toString());
-			return JsonUtils.getSdkJson(ResultCode.SDK_RQUEST_EXCEPTION.getCode(), e.getMessage());
+			return JsonUtils.getSdkJsonStr(ResultCode.SDK_RQUEST_EXCEPTION.getCode(), e.toString());
 		}
 	}
 
