@@ -41,6 +41,7 @@ import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -66,8 +67,9 @@ public abstract class HttpUtils {
 	private static final int BUFFER_SIZE = 4096;
 	private static final String DEFAULT_CHARSET = Constants.CHARSET_UTF8;
 	private static Locale locale = Locale.CHINA;
+	public static final String IOEXCTION_FLAG = "IOException-";
 
-    /**
+	/**
      * Sets local.
      *
      * @param locale the locale
@@ -134,7 +136,7 @@ public abstract class HttpUtils {
 			return finalRequest(urlConnection, requestMethod, userData, compressData, headerMap, saveFilePath);
 		} catch (IOException e) {
 			logger.error("IOException Occurred. Details: {}", e.toString());
-			return JsonUtils.getSdkJson(ResultCode.SDK_RQUEST_EXCEPTION.getCode(), e.getMessage());
+			return JsonUtils.getSdkJsonStr(ResultCode.SDK_DOWNLOAD_IOEXCEPTION.getCode(), IOEXCTION_FLAG + e.toString());
 		} finally {
 			if(urlConnection != null) {
 				urlConnection.disconnect();
@@ -196,7 +198,7 @@ public abstract class HttpUtils {
                     while ((bytesRead = urlConnection.getInputStream().read(buffer)) != -1) {
                         fileOutputStream.write(buffer, 0, bytesRead);
                     }
-                    return JsonUtils.getSdkJson(ResultCode.SUCCESS.getCode(), filePath);
+                    return JsonUtils.getSdkJsonStr(ResultCode.SUCCESS.getCode(), filePath);
                 }
 
 				bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "utf-8"));
@@ -217,33 +219,37 @@ public abstract class HttpUtils {
 			try {
                 SdkObject sdkObject = JsonUtils.fromJson(stringBuilder.toString(), SdkObject.class);
                 if (sdkObject == null) {
-                    return JsonUtils.getSdkJson(urlConnection.getResponseCode(), stringBuilder.toString());
+                    return JsonUtils.getSdkJsonStr(urlConnection.getResponseCode(), stringBuilder.toString());
                 }
             } catch (IllegalStateException e ) {
                 logger.error("IllegalStateException Occurred. Details: {}", e.toString());
-                return JsonUtils.getSdkJson(urlConnection.getResponseCode(), stringBuilder.toString());
+                return JsonUtils.getSdkJsonStr(urlConnection.getResponseCode(), stringBuilder.toString());
             } catch (JsonParseException e1) {
                 logger.error("JsonParseException Occurred. Details: {}", e1.toString());
-                return JsonUtils.getSdkJson(urlConnection.getResponseCode(), stringBuilder.toString());
+                return JsonUtils.getSdkJsonStr(urlConnection.getResponseCode(), stringBuilder.toString());
             }
 			return stringBuilder.toString();
 
 		} catch (SocketTimeoutException localSocketTimeoutException) {
 			FileUtils.deleteFile(filePath);
 			logger.error("SocketTimeoutException Occurred. Details: {}", localSocketTimeoutException.toString());
-			return JsonUtils.getSdkJson(ResultCode.SDK_CONNECT_TIMEOUT.getCode());
+			return JsonUtils.getSdkJson(ResultCode.SDK_CONNECT_TIMEOUT.getCode(), IOEXCTION_FLAG + localSocketTimeoutException.toString());
 		} catch (ConnectException localConnectException) {
 			FileUtils.deleteFile(filePath);
 			logger.error("ConnectException Occurred. Details: {}", localConnectException.toString());
-			return JsonUtils.getSdkJson(ResultCode.SDK_UN_CONNECT.getCode());
+			return JsonUtils.getSdkJson(ResultCode.SDK_UN_CONNECT.getCode(), IOEXCTION_FLAG + localConnectException.toString());
 		} catch (FileNotFoundException fileNotFoundException) {
 			FileUtils.deleteFile(filePath);
 			logger.error("FileNotFoundException Occurred. Details: {}", fileNotFoundException.toString());
-			return JsonUtils.getSdkJson(ResultCode.SDK_FILE_NOT_FOUND.getCode());
+			return JsonUtils.getSdkJson(ResultCode.SDK_FILE_NOT_FOUND.getCode(), fileNotFoundException.toString());
 		} catch (Exception ignored) {
 			FileUtils.deleteFile(filePath);
 			logger.error("Exception Occurred. Details: {}", ignored.toString());
-			return JsonUtils.getSdkJson(ResultCode.SDK_RQUEST_EXCEPTION.getCode(), ignored.getMessage());
+			String errMsg = ignored.toString();
+			if (ignored instanceof IOException) {
+				errMsg = IOEXCTION_FLAG +ignored.toString();
+			}
+			return JsonUtils.getSdkJsonStr(ResultCode.SDK_RQUEST_EXCEPTION.getCode(), errMsg);
 		} finally {
 			if(bufferedReader != null) {
 				try {
@@ -279,25 +285,31 @@ public abstract class HttpUtils {
 				SSLContext ctx = SSLContext.getInstance("TLS");
 				ctx.init(null, new TrustManager[] { new TrustAllTrustManager() }, new SecureRandom());
 				connHttps.setSSLSocketFactory(ctx.getSocketFactory());
-				connHttps.setHostnameVerifier(new HostnameVerifier() {
-					public boolean verify(String hostname, SSLSession session) {
-						return true;
-					}
-				});
+				connHttps.setHostnameVerifier(createInsecureHostnameVerifier());
 			} catch (GeneralSecurityException e){
 				logger.error("GeneralSecurityException Occurred. Details: {}", e.toString());
 			}
-			connHttps.setHostnameVerifier(new HostnameVerifier() {
-				public boolean verify(String hostname, SSLSession session) {
-					return true;
-				}
-			});
+			connHttps.setHostnameVerifier(createInsecureHostnameVerifier());
 			conn = connHttps;
 		}
 
 		conn.setConnectTimeout(connectTimeout);
 		conn.setReadTimeout(readTimeout);
 		return conn;
+	}
+
+	private static String[] VERIFY_HOST_NAME_ARRAY = new String[]{};
+
+	public static final HostnameVerifier createInsecureHostnameVerifier() {
+		return new HostnameVerifier() {
+			@Override
+			public boolean verify(String hostname, SSLSession session) {
+				if (hostname == null || hostname.isEmpty()) {
+					return false;
+				}
+				return !Arrays.asList(VERIFY_HOST_NAME_ARRAY).contains(hostname);
+			}
+		};
 	}
 
 	private static URL buildGetUrl(String url, String query) throws IOException {
