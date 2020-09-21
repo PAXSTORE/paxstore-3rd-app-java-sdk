@@ -191,6 +191,10 @@ public class DefaultClient {
 		this.passwordAuthentication = passwordAuthentication;
 	}
 
+	public void setBaseUrl(String baseUrl) {
+    	this.baseUrl = baseUrl;
+	}
+
 	public DefaultClient.Builder newBuilder() {
 		return new DefaultClient.Builder(this);
 	}
