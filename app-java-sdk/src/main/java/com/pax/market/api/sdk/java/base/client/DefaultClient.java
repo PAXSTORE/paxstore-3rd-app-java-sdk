@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.security.GeneralSecurityException;
@@ -143,6 +144,7 @@ public class DefaultClient {
 
 		boolean clearSocksCredentials = false;
 		if (proxy != null && proxy.type() == Proxy.Type.SOCKS && passwordAuthentication != null) {
+			Authenticator.setDefault(ThreadLocalProxyAuthenticator.getInstance());
 			ThreadLocalProxyAuthenticator.getInstance().setCredentials(passwordAuthentication);
 			clearSocksCredentials = true;
 		}
