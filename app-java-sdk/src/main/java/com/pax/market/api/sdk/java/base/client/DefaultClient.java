@@ -19,6 +19,7 @@ import com.pax.market.api.sdk.java.base.request.SdkRequest;
 import com.pax.market.api.sdk.java.base.util.CryptoUtils;
 import com.pax.market.api.sdk.java.base.util.HttpUtils;
 import com.pax.market.api.sdk.java.base.util.JsonUtils;
+import com.pax.market.api.sdk.java.base.util.StringUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -144,7 +145,6 @@ public class DefaultClient {
 
 		boolean clearSocksCredentials = false;
 		if (proxy != null && proxy.type() == Proxy.Type.SOCKS && passwordAuthentication != null) {
-			Authenticator.setDefault(ThreadLocalProxyAuthenticator.getInstance());
 			ThreadLocalProxyAuthenticator.getInstance().setCredentials(passwordAuthentication);
 			clearSocksCredentials = true;
 		}
@@ -191,6 +191,10 @@ public class DefaultClient {
 
 	public void setPasswordAuthentication(PasswordAuthentication passwordAuthentication) {
 		this.passwordAuthentication = passwordAuthentication;
+		if (proxy != null && proxy.type() == Proxy.Type.SOCKS
+				&& !StringUtils.isEmpty(passwordAuthentication.getUserName())) {
+			Authenticator.setDefault(ThreadLocalProxyAuthenticator.getInstance());
+		}
 	}
 
 	public void setBaseUrl(String baseUrl) {
