@@ -145,6 +145,7 @@ public class DefaultClient {
 
 		boolean clearSocksCredentials = false;
 		if (proxy != null && proxy.type() == Proxy.Type.SOCKS && passwordAuthentication != null) {
+			Authenticator.setDefault(ThreadLocalProxyAuthenticator.getInstance());
 			ThreadLocalProxyAuthenticator.getInstance().setCredentials(passwordAuthentication);
 			clearSocksCredentials = true;
 		}
@@ -191,10 +192,6 @@ public class DefaultClient {
 
 	public void setPasswordAuthentication(PasswordAuthentication passwordAuthentication) {
 		this.passwordAuthentication = passwordAuthentication;
-		if (proxy != null && proxy.type() == Proxy.Type.SOCKS
-				&& !StringUtils.isEmpty(passwordAuthentication.getUserName())) {
-			Authenticator.setDefault(ThreadLocalProxyAuthenticator.getInstance());
-		}
 	}
 
 	public void setBaseUrl(String baseUrl) {
