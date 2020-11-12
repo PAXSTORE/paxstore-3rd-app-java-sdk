@@ -47,12 +47,12 @@ public class CryptoUtils {
     private CryptoUtils() {}
 
     /**
-     * 给请求签名。
+     * Sign the request
      *
-     * @param params     请求参数
-     * @param secret     签名密钥
-     * @param signMethod signMethod 签名方法
-     * @return 签名 string
+     * @param params     Request parameter
+     * @param secret     Signing key
+     * @param signMethod signMethod
+     * @return signature string
      * @throws IOException              the io exception
      * @throws GeneralSecurityException the general security exception
      */
@@ -61,13 +61,13 @@ public class CryptoUtils {
     }
 
     /**
-     * 给请求签名。
+     * Sign the request
      *
-     * @param params     请求参数
-     * @param body       请求主体内容
-     * @param secret     签名密钥
-     * @param signMethod 签名方法
-     * @return 签名 string
+     * @param params     Request parameter
+     * @param body       Request body content
+     * @param secret     Signing key
+     * @param signMethod signMethod
+     * @return signature string
      * @throws IOException              the io exception
      * @throws GeneralSecurityException the general security exception
      */
@@ -104,13 +104,13 @@ public class CryptoUtils {
     }
 
     /**
-     * 给请求签名。
+     * Sign the request
      *
-     * @param queryString 请求参数
-     * @param body        请求主体内容
-     * @param secret      签名密钥
-     * @param signMethod  签名方法
-     * @return 签名 string
+     * @param queryString Request parameter
+     * @param body        Request body content
+     * @param secret      Signing key
+     * @param signMethod  Signature method
+     * @return signature string
      * @throws IOException              the io exception
      * @throws GeneralSecurityException the general security exception
      */
@@ -150,7 +150,7 @@ public class CryptoUtils {
     }
 
     /**
-     * 对字符串采用UTF-8编码后，用MD5进行摘要。
+     * After the string is encoded in UTF-8, MD5 is used for digest.
      *
      * @param data the data
      * @return the byte [ ]
@@ -162,7 +162,7 @@ public class CryptoUtils {
     }
 
     /**
-     * 对字节流进行MD5摘要。
+     * MD5 digest the byte stream.
      *
      * @param data the data
      * @return the byte [ ]
@@ -177,7 +177,7 @@ public class CryptoUtils {
     }
 
     /**
-     * 把字节流转换为十六进制表示方式。
+     * Convert byte stream to hexadecimal representation.
      *
      * @param bytes the bytes
      * @return the string
@@ -196,10 +196,10 @@ public class CryptoUtils {
 
 
     /**
-     * 使用AES加密原始字符串.
+     * Use AES to encrypt the original string.
      *
-     * @param input 加密内容
-     * @param secret 加密密钥
+     * @param input Encrypted content
+     * @param secret Encryption key
      * @return base64 encoded string
      */
     public static String aesEncrypt(String input, String secret) {
@@ -215,10 +215,10 @@ public class CryptoUtils {
     }
 
     /**
-     * 使用AES加密原始字符串.
+     * Use AES to encrypt the original string.
      *
-     * @param input 原始输入字符数组
-     * @param key   符合AES要求的密钥
+     * @param input Original input character array
+     * @param key   A key that meets AES requirements
      * @return the byte [ ]
      */
     public static byte[] aesEncrypt(byte[] input, byte[] key) {
@@ -226,11 +226,11 @@ public class CryptoUtils {
     }
 
     /**
-     * 使用AES加密原始字符串.
+     * Use AES to encrypt the original string.
      *
-     * @param input 原始输入字符数组
-     * @param key   符合AES要求的密钥
-     * @param iv    初始向量
+     * @param input Original input character array
+     * @param key   A key that meets AES requirements
+     * @param iv    Initial vector
      * @return the byte [ ]
      */
     public static byte[] aesEncrypt(byte[] input, byte[] key, byte[] iv) {
@@ -238,10 +238,10 @@ public class CryptoUtils {
     }
 
     /**
-     * 使用AES解密字符串, 返回原始字符串.
+     * Use AES to decrypt the string and return the original string.
      *
-     * @param input 解密内容
-     * @param secret 解密密钥
+     * @param input Decrypt content
+     * @param secret Decryption key
      * @return base64 encoded string
      */
     public static String aesDecrypt(String input, String secret) {
@@ -258,10 +258,10 @@ public class CryptoUtils {
     }
 
     /**
-     * 使用AES解密字符串, 返回原始字符串.
+     * Use AES to decrypt the string and return the original string.
      *
-     * @param input base64编码的加密字符串
-     * @param key   符合AES要求的密钥
+     * @param input base64 encoded encrypted string
+     * @param key   A key that meets AES requirements
      * @return the byte [ ]
      */
     public static byte[] aesDecrypt(byte[] input, byte[] key) {
@@ -269,11 +269,11 @@ public class CryptoUtils {
     }
 
     /**
-     * 使用AES解密字符串, 返回原始字符串.
+     * Use AES to decrypt the string and return the original string.
      *
-     * @param input base64编码的加密字符串
-     * @param key   符合AES要求的密钥
-     * @param iv    初始向量
+     * @param input base64 encoded encrypted string
+     * @param key   A key that meets AES requirements
+     * @param iv    Initial vector
      * @return the byte [ ]
      */
     public static byte[] aesDecrypt(byte[] input, byte[] key, byte[] iv) {
@@ -281,10 +281,10 @@ public class CryptoUtils {
     }
 
     /**
-     * 使用AES加密或解密无编码的原始字节数组, 返回无编码的字节数组结果.
+     * Use AES to encrypt or decrypt the original byte array without encoding, and return the result of the byte array without encoding.
      *
-     * @param input 原始字节数组
-     * @param key   符合AES要求的密钥
+     * @param input Raw byte array
+     * @param key   A key that meets AES requirements
      * @param mode  Cipher.ENCRYPT_MODE 或 Cipher.DECRYPT_MODE
      */
     private static byte[] aes(byte[] input, byte[] key, int mode) {
@@ -300,11 +300,11 @@ public class CryptoUtils {
     }
 
     /**
-     * 使用AES加密或解密无编码的原始字节数组, 返回无编码的字节数组结果.
+     * Use AES to encrypt or decrypt the original byte array without encoding, and return the result of the byte array without encoding.
      *
-     * @param input 原始字节数组
-     * @param key   符合AES要求的密钥
-     * @param iv    初始向量
+     * @param input Raw byte array
+     * @param key   A key that meets AES requirements
+     * @param iv    Initial vector
      * @param mode  Cipher.ENCRYPT_MODE 或 Cipher.DECRYPT_MODE
      */
     private static byte[] aes(byte[] input, byte[] key, byte[] iv, int mode) {
@@ -322,7 +322,7 @@ public class CryptoUtils {
 
 
     /**
-     * 生成AES密钥,可选长度为128,192,256位.
+     * Generate AES key, optional length is 128, 192, 256 bits.
      *
      * @param keysize the keysize
      * @return the byte [ ]
@@ -340,7 +340,7 @@ public class CryptoUtils {
     }
 
     /**
-     * 生成随机向量,默认大小为cipher.getBlockSize(), 16字节.
+     * Generate a random vector, the default size is cipher.getBlockSize(), 16 bytes.
      *
      * @return the byte [ ]
      */

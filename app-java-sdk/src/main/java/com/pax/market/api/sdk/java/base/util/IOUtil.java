@@ -19,7 +19,7 @@ import java.io.Closeable;
 import java.io.IOException;
 
 /**
- * IO流工具类
+ * IO stream tools
  *
  * @author zcy
  */
@@ -27,9 +27,9 @@ public class IOUtil {
     private static final Logger logger = LoggerFactory.getLogger(IOUtil.class);
 
     /**
-     * 关闭一个或多个流对象
+     * Close one or more stream objects
      *
-     * @param closeables 可关闭的流对象列表
+     * @param closeables List of stream objects that can be closed
      * @throws IOException the io exception
      */
     public static void close(Closeable... closeables) throws IOException {
@@ -43,9 +43,9 @@ public class IOUtil {
     }
 
     /**
-     * 关闭一个或多个流对象
+     * Close one or more stream objects
      *
-     * @param closeables 可关闭的流对象列表
+     * @param closeables List of stream objects that can be closed
      */
     public static void closeQuietly(Closeable... closeables) {
         try {

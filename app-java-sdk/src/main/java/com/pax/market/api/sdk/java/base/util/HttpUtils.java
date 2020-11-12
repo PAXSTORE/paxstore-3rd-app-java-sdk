@@ -59,7 +59,7 @@ import javax.net.ssl.X509TrustManager;
 
 
 /**
- * 网络工具类。
+ * Network tools.
  */
 public abstract class HttpUtils {
 	private static final Logger logger = LoggerFactory.getLogger(HttpUtils.class);
@@ -465,31 +465,31 @@ public abstract class HttpUtils {
 	}
 
     /**
-     * 使用默认的UTF-8字符集反编码请求参数值。
+     * Use the default UTF-8 character set to reverse encode request parameter values.
      *
-     * @param value 参数值
-     * @return 反编码后的参数值 string
+     * @param value Parameter value
+     * @return Parameter value after de-encoding string
      */
     public static String decode(String value) {
 		return decode(value, DEFAULT_CHARSET);
 	}
 
     /**
-     * 使用默认的UTF-8字符集编码请求参数值。
+     * Use the default UTF-8 character set encoding to request parameter values.
      *
-     * @param value 参数值
-     * @return 编码后的参数值 string
+     * @param value Parameter value
+     * @return Parameter value after encoding string
      */
     public static String encode(String value) {
 		return encode(value, DEFAULT_CHARSET);
 	}
 
     /**
-     * 使用指定的字符集反编码请求参数值。
+     * Use the specified character set to reverse encode the request parameter value.
      *
-     * @param value   参数值
-     * @param charset 字符集
-     * @return 反编码后的参数值 string
+     * @param value   Parameter value
+     * @param charset character set
+     * @return Parameter value after de-encoding string
      */
     public static String decode(String value, String charset) {
 		String result = null;
@@ -504,11 +504,11 @@ public abstract class HttpUtils {
 	}
 
     /**
-     * 使用指定的字符集编码请求参数值。
+     * Use the specified character set encoding to request parameter values.
      *
-     * @param value   参数值
-     * @param charset 字符集
-     * @return 编码后的参数值 string
+     * @param value   Parameter value
+     * @param charset character set
+     * @return Parameter value after encoding string
      */
     public static String encode(String value, String charset) {
 		String result = null;
@@ -523,10 +523,10 @@ public abstract class HttpUtils {
 	}
 
     /**
-     * 从URL中提取所有的参数。
+     * Extract all parameters from the URL.
      *
-     * @param query URL地址
-     * @return 参数映射 map
+     * @param query URL address
+     * @return Parameter mapping map
      */
     public static Map<String, String> splitUrlQuery(String query) {
 		Map<String, String> result = new HashMap<String, String>();

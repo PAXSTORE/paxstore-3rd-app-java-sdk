@@ -17,7 +17,7 @@ package com.pax.market.api.sdk.java.base.constant;
 public class Constants {
 
     /**
-     * 协议入参共享参数
+     * Protocol input shared parameters
      */
     public static final String APP_KEY = "appKey";
     /**
@@ -35,17 +35,17 @@ public class Constants {
 
 
     /**
-     * TOP默认时间格式
+     * TOP default time format
      */
     public static final String DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
     /**
-     * UTF-8字符集
+     * UTF-8 character set
      */
     public static final String CHARSET_UTF8 = "UTF-8";
 
     /**
-     * 响应编码
+     * Response code
      */
     public static final String ACCEPT_ENCODING = "Accept-Encoding";
     /**
@@ -62,7 +62,7 @@ public class Constants {
     public static final String PARAM_DATA = "data";
 
     /**
-     * 默认媒体类型
+     * Default media type
      */
     public static final String MIME_TYPE_DEFAULT = "application/octet-stream";
     /**
@@ -71,11 +71,11 @@ public class Constants {
     public static final String ACCESS_LANGUAGE = "Accept-Language";
 
     /**
-     * MD5签名方式
+     * MD5 signature
      */
     public static final String SIGN_METHOD_MD5 = "md5";
     /**
-     * HMAC签名方式
+     * HMAC signature method
      */
     public static final String SIGN_METHOD_HMAC = "hmac";
 

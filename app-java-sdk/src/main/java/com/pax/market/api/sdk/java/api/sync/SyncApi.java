@@ -61,7 +61,7 @@ public class SyncApi extends BaseApi {
     }
 
     /**
-     * 同步终端信息
+     * Synchronize terminal information
      *
      * @return Json result string
      */

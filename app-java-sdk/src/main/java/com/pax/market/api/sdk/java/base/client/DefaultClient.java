@@ -31,7 +31,7 @@ import java.security.GeneralSecurityException;
 import static com.pax.market.api.sdk.java.base.util.HttpUtils.IOEXCTION_FLAG;
 
 /**
- * 客户端
+ * Client
  */
 public class DefaultClient {
 
@@ -162,7 +162,7 @@ public class DefaultClient {
 	}
 
     /**
-     * 设置API请求的连接超时时间
+     * Set the connection timeout period for API requests
      *
      * @param connectTimeout the connect timeout
      */
@@ -171,7 +171,7 @@ public class DefaultClient {
 	}
 
     /**
-     * 设置API请求的读超时时间
+     * Set the read timeout time for API requests
      *
      * @param readTimeout the read timeout
      */
