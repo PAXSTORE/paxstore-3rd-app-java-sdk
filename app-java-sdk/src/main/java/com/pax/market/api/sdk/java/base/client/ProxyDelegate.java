@@ -1,5 +1,6 @@
 package com.pax.market.api.sdk.java.base.client;
 
+import java.net.PasswordAuthentication;
 import java.net.Proxy;
 
 /**
@@ -8,5 +9,7 @@ import java.net.Proxy;
 public interface ProxyDelegate {
     Proxy retrieveProxy();
 
-    String retrieveProxyAuthorization();
+    String retrieveBasicAuthorization();
+
+    PasswordAuthentication retrievePasswordAuthentication();
 }
