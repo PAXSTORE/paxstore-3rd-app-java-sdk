@@ -198,6 +198,10 @@ public class DefaultClient {
     	this.baseUrl = baseUrl;
 	}
 
+	public String getBaseUrl() {
+    	return this.baseUrl;
+	}
+
 	public DefaultClient.Builder newBuilder() {
 		return new DefaultClient.Builder(this);
 	}

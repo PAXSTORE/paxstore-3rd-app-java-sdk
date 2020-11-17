@@ -36,6 +36,10 @@ public class BaseApi {
         this.client = new DefaultClient(baseUrl,appKey, appSecret);
     }
 
+    public String getBaseUrl() {
+        return this.client.getBaseUrl();
+    }
+
     public String getTerminalSN() {
         return terminalSN;
     }
