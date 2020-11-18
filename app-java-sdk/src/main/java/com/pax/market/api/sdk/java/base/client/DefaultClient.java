@@ -19,13 +19,11 @@ import com.pax.market.api.sdk.java.base.request.SdkRequest;
 import com.pax.market.api.sdk.java.base.util.CryptoUtils;
 import com.pax.market.api.sdk.java.base.util.HttpUtils;
 import com.pax.market.api.sdk.java.base.util.JsonUtils;
-import com.pax.market.api.sdk.java.base.util.StringUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.security.GeneralSecurityException;
@@ -63,6 +61,10 @@ public class DefaultClient {
      * The Read timeout.
      */
     protected int readTimeout = 30000; 				// 默认响应超时时间为30秒
+	/**
+	 * The Write timeout.
+	 */
+	protected int writeTimeout = 30000; 			// 默认响应超时时间为30秒
 	/**
 	 * The proxy setting
 	 */
@@ -125,9 +127,9 @@ public class DefaultClient {
 			request.addHeader(Constants.REQ_HEADER_APP_KEY, appKey);
 		}
 		request.addHeader(Constants.REQ_HEADER_SDK_VERSION, Version.getVersion());
-		if(proxy != null && proxy.type() == Proxy.Type.HTTP && basicAuthorization != null) {
-			request.addHeader(Constants.REQ_HEADER_PROXY_AUTHORIZATION, basicAuthorization);
-		}
+//		if(proxy != null && proxy.type() == Proxy.Type.HTTP && basicAuthorization != null) {
+//			request.addHeader(Constants.REQ_HEADER_PROXY_AUTHORIZATION, basicAuthorization);
+//		}
 
 //		Long timestamp = request.getTimestamp();
 //		if(timestamp == null){
@@ -141,26 +143,10 @@ public class DefaultClient {
 			request.addHeader(Constants.SIGNATURE, signature);
 		}
 		String requestUrl = HttpUtils.buildRequestUrl(baseUrl + request.getRequestMappingUrl(), query);
-		logger.info(" --> {} {}", request.getRequestMethod().getValue(), requestUrl);
+//		logger.info(" --> {} {}", request.getRequestMethod().getValue(), requestUrl);
 
-		boolean clearSocksCredentials = false;
-		if (proxy != null && proxy.type() == Proxy.Type.SOCKS && passwordAuthentication != null) {
-			Authenticator.setDefault(ThreadLocalProxyAuthenticator.getInstance());
-			ThreadLocalProxyAuthenticator.getInstance().setCredentials(passwordAuthentication);
-			clearSocksCredentials = true;
-		}
-
-		try {
-			if (!request.isCompressData()) {
-				response = HttpUtils.request(requestUrl, request.getRequestMethod().getValue(), connectTimeout, readTimeout, request.getRequestBody(), request.getHeaderMap(), request.getSaveFilePath(), proxy);
-			} else {
-				response = HttpUtils.compressRequest(requestUrl, request.getRequestMethod().getValue(), connectTimeout, readTimeout, request.getRequestBody(), request.getHeaderMap(), request.getSaveFilePath(), proxy);
-			}
-		} finally {
-			if (clearSocksCredentials) {
-				ThreadLocalProxyAuthenticator.clearCredentials();
-			}
-		}
+		response = HttpUtils.request(requestUrl, request.getRequestMethod(), connectTimeout, readTimeout, writeTimeout, request.getRequestBody(),
+					request.getHeaderMap(), request.getSaveFilePath(), proxy, basicAuthorization, passwordAuthentication);
 		return response;
 	}
 
@@ -180,6 +166,15 @@ public class DefaultClient {
      */
     public void setReadTimeout(int readTimeout) {
 		this.readTimeout = readTimeout;
+	}
+
+	/**
+	 * 设置API请求的写超时时间
+	 *
+	 * @param writeTimeout the write timeout
+	 */
+	public void setWriteTimeout(int writeTimeout) {
+		this.writeTimeout = writeTimeout;
 	}
 
 	public void setProxy(Proxy proxy) {
@@ -213,6 +208,7 @@ public class DefaultClient {
 		String signMethod;
 		int connectTimeout;
 		int readTimeout;
+		int writeTimeout;
 		Proxy proxy;
 		String basicAuthorization;
 		PasswordAuthentication passwordAuthentication;
@@ -221,6 +217,7 @@ public class DefaultClient {
 			this.signMethod =  Constants.SIGN_METHOD_HMAC;
 			this.connectTimeout = 3000;
 			this.readTimeout = 3000;
+			this.writeTimeout = 3000;
 		}
 
 		Builder(DefaultClient client) {
@@ -230,6 +227,7 @@ public class DefaultClient {
 			this.signMethod = client.signMethod;
 			this.connectTimeout = client.connectTimeout;
 			this.readTimeout = client.readTimeout;
+			this.writeTimeout = client.writeTimeout;
 			this.proxy = client.proxy;
 			this.basicAuthorization = client.basicAuthorization;
 			this.passwordAuthentication = client.passwordAuthentication;
@@ -262,6 +260,11 @@ public class DefaultClient {
 
 		public DefaultClient.Builder readTimeout(int timeout) {
 			this.readTimeout = timeout;
+			return this;
+		}
+
+		public DefaultClient.Builder writeTimeout(int timeout) {
+			this.writeTimeout = timeout;
 			return this;
 		}
 

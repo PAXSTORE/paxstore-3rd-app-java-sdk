@@ -48,10 +48,6 @@ public class SdkRequest {
      * The Save file path.
      */
     protected String saveFilePath;                                  // 文件保存路径
-    /**
-     * The Compress data.
-     */
-    protected boolean compressData = false;                         // 是否压缩数据
 
     /**
      * Instantiates a new Sdk request.
@@ -221,7 +217,7 @@ public class SdkRequest {
          * Get request method.
          */
         GET("GET"), /**
-         * Post request method.
+         * Post request setRequestBodymethod.
          */
         POST("POST"), /**
          * Put request method.
@@ -262,23 +258,5 @@ public class SdkRequest {
      */
     public void setSaveFilePath(String saveFilePath) {
         this.saveFilePath = saveFilePath;
-    }
-
-    /**
-     * Is compress data boolean.
-     *
-     * @return the boolean
-     */
-    public boolean isCompressData() {
-        return compressData;
-    }
-
-    /**
-     * Sets compress data.
-     *
-     * @param compressData the compress data
-     */
-    public void setCompressData(boolean compressData) {
-        this.compressData = compressData;
     }
 }
