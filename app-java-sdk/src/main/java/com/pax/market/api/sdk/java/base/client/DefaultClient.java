@@ -100,6 +100,7 @@ public class DefaultClient {
 		this.readTimeout = builder.readTimeout;
 		this.proxy = builder.proxy;
 		this.basicAuthorization = builder.basicAuthorization;
+		this.passwordAuthentication = builder.passwordAuthentication;
 	}
 
     /**
