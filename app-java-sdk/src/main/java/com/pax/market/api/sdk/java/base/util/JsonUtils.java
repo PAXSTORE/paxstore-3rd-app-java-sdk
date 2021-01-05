@@ -39,22 +39,22 @@ public class JsonUtils {
     }
 
     /**
-     * 根据javaBean生成Json对象格式字符串
+     * Generate Json object format string according to javaBean
      *
-     * @param object 任意javaBean类型对象
-     * @return 拼接好的String对象 string
+     * @param object Any javaBean type object
+     * @return The spliced String object string
      */
     public static String toJson(Object object) {
         return gson.toJson(object);
     }
 
     /**
-     * 根据Sdk返回的Json字符串生成Javabean，json字符串封装在data中
+     * Generate Javabean based on the Json string returned by the SDK, and the json string is encapsulated in data
      *
      * @param <T>        the type parameter
-     * @param sdkJsonStr Json字符串
+     * @param sdkJsonStr Json string
      * @param clazz      the clazz
-     * @return Javabean对象 t
+     * @return Javabean Object
      */
     public static <T> T fromJson(String sdkJsonStr, Class<T> clazz) {
         return gson.fromJson(sdkJsonStr, clazz);

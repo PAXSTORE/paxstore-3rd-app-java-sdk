@@ -23,7 +23,7 @@ import java.util.Map;
  */
 public class Md5Utils {
     /**
-     * 获取单个文件的MD5值！
+     * Get the MD5 value of a single file
 
      * @param file
      * @return
@@ -86,12 +86,13 @@ public class Md5Utils {
     }
 
     /**
-     * 获取文件夹中文件的MD5值
+     * Get MD5 value of file in folder
      *
      * @param file
      * @param listChild
-     *            ;true递归子目录中的文件
-     * @return
+     *
+     *
+     * @return files in subdirectories recursively
      */
     public static Map<String, String> getDirMD5(File file, boolean listChild) {
         if (!file.isDirectory()) {
@@ -114,7 +115,7 @@ public class Md5Utils {
     }
 
     /**
-     * 用于获取一个String的md5值
+     * Used to get the md5 value of a String
      * @param str
      * @return
      */

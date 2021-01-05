@@ -27,7 +27,7 @@ import java.util.zip.ZipOutputStream;
 
 
 /**
- * 通过Java的Zip输入输出流实现压缩和解压文件
+ * Compress and decompress files through Java's Zip input and output streams
  *
  * @author zcy
  */
@@ -39,10 +39,10 @@ public final class ZipUtil {
     }
 
     /**
-     * 压缩文件
+     * Compressed file
      *
-     * @param filePath 待压缩的文件路径
-     * @return 压缩后的文件 file
+     * @param filePath The path of the file to be compressed
+     * @return Compressed file
      */
     public static File zip(String filePath) {
         File target = null;
@@ -72,11 +72,11 @@ public final class ZipUtil {
     }
 
     /**
-     * 扫描添加文件Entry
+     * Scan to add file Entry
      *
-     * @param base   基路径
-     * @param source 源文件
-     * @param zos    Zip文件输出流
+     * @param base   Base path
+     * @param source Source File
+     * @param zos    Zip file output stream
      * @throws IOException
      */
     private static void addEntry(String base, File source, ZipOutputStream zos)
@@ -108,9 +108,9 @@ public final class ZipUtil {
     }
 
     /**
-     * 解压文件
+     * unzip files
      *
-     * @param filePath 压缩文件路径
+     * @param filePath Compressed file path
      */
     public static boolean unzip(String filePath) {
         File source = new File(filePath);

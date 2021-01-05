@@ -23,35 +23,31 @@ public class SdkRequest {
     /**
      * The Request method.
      */
-    protected RequestMethod requestMethod = RequestMethod.GET;      // 请求方法
+    protected RequestMethod requestMethod = RequestMethod.GET;
     /**
      * The Request mapping url.
      */
-    protected String requestMappingUrl;                             // Request mapping url
+    protected String requestMappingUrl;
     /**
      * The Header map.
      */
-    protected Map<String, String> headerMap;                        // 请求头参数
+    protected Map<String, String> headerMap;
     /**
      * The Request params.
      */
-    protected Map<String, String> requestParams;                    // 自定义表单参数
+    protected Map<String, String> requestParams;
     /**
      * The Timestamp.
      */
-    protected Long timestamp;                                       // 请求时间戳
+    protected Long timestamp;
     /**
      * The Request body.
      */
-    protected String requestBody;                                   // Request body json string
+    protected String requestBody;
     /**
      * The Save file path.
      */
     protected String saveFilePath;                                  // 文件保存路径
-    /**
-     * The Compress data.
-     */
-    protected boolean compressData = false;                         // 是否压缩数据
 
     /**
      * Instantiates a new Sdk request.
@@ -142,7 +138,7 @@ public class SdkRequest {
      * @param key   the key
      * @param value the value
      */
-    public void addHeader(String key, String value){
+    public void addHeader(String key, String value) {
         getHeaderMap().put(key, value);
     }
 
@@ -152,7 +148,7 @@ public class SdkRequest {
      * @return the request params
      */
     public Map<String, String> getRequestParams() {
-        if(this.requestParams == null){
+        if (this.requestParams == null) {
             this.requestParams = new HashMap<String, String>();
         }
         return requestParams;
@@ -216,22 +212,26 @@ public class SdkRequest {
     /**
      * The enum Request method.
      */
-    public enum RequestMethod{
+    public enum RequestMethod {
         /**
          * Get request method.
          */
-        GET("GET"), /**
+        GET("GET"),
+        /**
          * Post request method.
          */
-        POST("POST"), /**
+        POST("POST"),
+        /**
          * Put request method.
          */
-        PUT("PUT"), /**
+        PUT("PUT"),
+        /**
          * Delete request method.
          */
         DELETE("DELETE");
 
         private String value;
+
         RequestMethod(String value) {
             this.value = value;
         }
@@ -262,23 +262,5 @@ public class SdkRequest {
      */
     public void setSaveFilePath(String saveFilePath) {
         this.saveFilePath = saveFilePath;
-    }
-
-    /**
-     * Is compress data boolean.
-     *
-     * @return the boolean
-     */
-    public boolean isCompressData() {
-        return compressData;
-    }
-
-    /**
-     * Sets compress data.
-     *
-     * @param compressData the compress data
-     */
-    public void setCompressData(boolean compressData) {
-        this.compressData = compressData;
     }
 }

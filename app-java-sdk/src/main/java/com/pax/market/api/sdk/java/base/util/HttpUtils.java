@@ -13,14 +13,16 @@ package com.pax.market.api.sdk.java.base.util;
 
 
 import com.google.gson.JsonParseException;
+import com.pax.market.api.sdk.java.base.client.ThreadLocalProxyAuthenticator;
+import com.pax.market.api.sdk.java.base.util.auth.OkHttpAuthenticator;
 import com.pax.market.api.sdk.java.base.constant.Constants;
 import com.pax.market.api.sdk.java.base.constant.ResultCode;
 import com.pax.market.api.sdk.java.base.dto.SdkObject;
+import com.pax.market.api.sdk.java.base.request.SdkRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -28,38 +30,33 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.Reader;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
+import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.net.SocketTimeoutException;
-import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.security.GeneralSecurityException;
-import java.security.SecureRandom;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okhttp3.logging.HttpLoggingInterceptor;
 
 
 /**
- * 网络工具类。
+ * Network tools.
  */
 public abstract class HttpUtils {
 	private static final Logger logger = LoggerFactory.getLogger(HttpUtils.class);
@@ -68,6 +65,8 @@ public abstract class HttpUtils {
 	private static final String DEFAULT_CHARSET = Constants.CHARSET_UTF8;
 	private static Locale locale = Locale.CHINA;
 	public static final String IOEXCTION_FLAG = "IOException-";
+	private static final OkHttpClient OK_HTTP_CLIENT = new OkHttpClient();
+	private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 
 	/**
      * Sets local.
@@ -76,21 +75,6 @@ public abstract class HttpUtils {
      */
     public static void setLocal(Locale locale) {
 		HttpUtils.locale = locale;
-	}
-
-    /**
-     * The type Trust all trust manager.
-     */
-    public static class TrustAllTrustManager implements X509TrustManager {
-		public X509Certificate[] getAcceptedIssuers() {
-			return null;
-		}
-
-		public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-		}
-
-		public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
-		}
 	}
 
 	private HttpUtils() {
@@ -103,88 +87,69 @@ public abstract class HttpUtils {
      * @param requestMethod  the request method
      * @param connectTimeout the connect timeout
      * @param readTimeout    the read timeout
+	 * @param writeTimeout   the write timeout
      * @param userData       the user data
      * @param headerMap      the header map
      * @param saveFilePath   the save file path
      * @return the string
      */
-    public static String request(String requestUrl, String requestMethod, int connectTimeout, int readTimeout, String userData, Map<String, String> headerMap, String saveFilePath, Proxy proxy){
-		return request(requestUrl, requestMethod, connectTimeout, readTimeout, userData, false, headerMap, saveFilePath, proxy);
-	}
-
-    /**
-     * Compress request string.
-     *
-     * @param requestUrl     the request url
-     * @param requestMethod  the request method
-     * @param connectTimeout the connect timeout
-     * @param readTimeout    the read timeout
-     * @param userData       the user data
-     * @param headerMap      the header map
-     * @param saveFilePath   the save file path
-     * @return the string
-     */
-    public static String compressRequest(String requestUrl, String requestMethod, int connectTimeout, int readTimeout, String userData, Map<String, String> headerMap, String saveFilePath, Proxy proxy){
-		return request(requestUrl, requestMethod, connectTimeout, readTimeout, userData, true, headerMap, saveFilePath, proxy);
-	}
-
-	private static String request(String requestUrl, String requestMethod, int connectTimeout, int readTimeout, String userData, boolean compressData,
-								  Map<String, String> headerMap, String saveFilePath, Proxy proxy) {
-		HttpURLConnection urlConnection = null;
-		try {
-			urlConnection = getConnection(requestUrl, connectTimeout, readTimeout, proxy);
-			return finalRequest(urlConnection, requestMethod, userData, compressData, headerMap, saveFilePath);
-		} catch (IOException e) {
-			logger.error("IOException Occurred. Details: {}", e.toString());
-			return JsonUtils.getSdkJsonStr(ResultCode.SDK_DOWNLOAD_IOEXCEPTION.getCode(), IOEXCTION_FLAG + e.toString());
-		} finally {
-			if(urlConnection != null) {
-				urlConnection.disconnect();
-			}
-		}
-	}
-
-	private static String finalRequest(HttpURLConnection urlConnection, String requestMethod, String userData, boolean compressData,
-									   Map<String, String> headerMap, String saveFilePath) {
-		StringBuilder stringBuilder = new StringBuilder();
-		BufferedReader bufferedReader = null;
+	public static String request(String requestUrl, SdkRequest.RequestMethod requestMethod, int connectTimeout, int readTimeout, int writeTimeout, String userData,
+								 Map<String, String> headerMap, String saveFilePath, Proxy proxy, String basicAuthorization, PasswordAuthentication passwordAuthentication) {
 		FileOutputStream fileOutputStream = null;
 		String filePath = null;
+		boolean clearCredentials = false;
 		try {
-			urlConnection.setDoInput(true);
-			urlConnection.setUseCaches(false);
-			urlConnection.setRequestMethod(requestMethod);
+			HttpLoggingInterceptor mLoggingInterceptor = new HttpLoggingInterceptor();
+			mLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
+
+			OkHttpClient.Builder httpClientBuilder = OK_HTTP_CLIENT.newBuilder()
+					.addInterceptor(mLoggingInterceptor)
+					.connectTimeout(connectTimeout, TimeUnit.MILLISECONDS)
+					.readTimeout(readTimeout, TimeUnit.MILLISECONDS)
+					.writeTimeout(writeTimeout, TimeUnit.MILLISECONDS);
+
+			if (proxy != null) {
+				httpClientBuilder.proxy(proxy);
+				if (proxy.type() == Proxy.Type.HTTP && basicAuthorization != null) {
+					httpClientBuilder.proxyAuthenticator(new OkHttpAuthenticator(basicAuthorization));
+				} else if (proxy.type() == Proxy.Type.SOCKS && passwordAuthentication != null) {
+					clearCredentials = true;
+					java.net.Authenticator.setDefault(ThreadLocalProxyAuthenticator.getInstance());
+					ThreadLocalProxyAuthenticator.getInstance().setCredentials(passwordAuthentication);
+				} else {
+					httpClientBuilder.proxyAuthenticator(okhttp3.Authenticator.NONE);
+				}
+			}
+
+			Request.Builder requestBuilder = new Request.Builder().url(requestUrl);
+			switch (requestMethod) {
+				case POST:
+					requestBuilder.post(RequestBody.create(JSON, userData));
+					break;
+				case PUT:
+					requestBuilder.put(RequestBody.create(JSON, userData));
+					break;
+				case DELETE:
+					requestBuilder.delete();
+					break;
+				default:
+					requestBuilder.get();
+					break;
+			}
 			if(locale != null) {
-				urlConnection.setRequestProperty(Constants.ACCESS_LANGUAGE, getLanguageTag(locale));
+				requestBuilder.addHeader(Constants.ACCESS_LANGUAGE, getLanguageTag(locale));
 			}
 			if (headerMap != null) {
 				for (Entry<String, String> entry : headerMap.entrySet()) {
-					urlConnection.setRequestProperty(entry.getKey(), entry.getValue());
+					requestBuilder.addHeader(entry.getKey(), entry.getValue());
 				}
 			}
-			if ("GET".equalsIgnoreCase(requestMethod) || "DELETE".equalsIgnoreCase(requestMethod)) {
-				urlConnection.connect();
-			} else {
-				urlConnection.setDoOutput(true);
-			}
-			if ((null != userData) && (userData.length() > 0)) {
-				OutputStream outputStream = null;
-				try {
-					outputStream = urlConnection.getOutputStream();
-					if (!compressData) {
-						outputStream.write(userData.getBytes("UTF-8"));
-					} else {
-						String hexString = AlgHelper.bytes2HexString(compressData(userData.getBytes("UTF-8")));
-						outputStream.write(hexString.getBytes());
-					}
-				} finally {
-					if (outputStream != null) {
-						outputStream.close();
-					}
-				}
-			}
-            if (urlConnection.getResponseCode() == 200) {
-                if(saveFilePath != null) {
+			Response response = httpClientBuilder.build()
+					.newCall(requestBuilder.build())
+					.execute();
+
+			if (response.isSuccessful()) {
+				if(saveFilePath != null) {
                     filePath = saveFilePath + File.separator + FileUtils.generateMixString(16) ;
 
                     File fileDir = new File(saveFilePath);
@@ -195,41 +160,27 @@ public abstract class HttpUtils {
 
                     int bytesRead;
                     byte[] buffer = new byte[BUFFER_SIZE];
-                    while ((bytesRead = urlConnection.getInputStream().read(buffer)) != -1) {
+                    while ((bytesRead = response.body().byteStream().read(buffer)) != -1) {
                         fileOutputStream.write(buffer, 0, bytesRead);
                     }
                     return JsonUtils.getSdkJsonStr(ResultCode.SUCCESS.getCode(), filePath);
                 }
-
-				bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "utf-8"));
-			} else {
-				if(urlConnection.getErrorStream() != null) {
-					bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getErrorStream(), "utf-8"));
-				} else {
-					bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), "utf-8"));
-				}
 			}
 
-			String str;
-			while ((str = bufferedReader.readLine()) != null) {
-				stringBuilder.append(str);
-			}
-
-
+			String responseBody = response.body().string();
 			try {
-                SdkObject sdkObject = JsonUtils.fromJson(stringBuilder.toString(), SdkObject.class);
+                SdkObject sdkObject = JsonUtils.fromJson(responseBody, SdkObject.class);
                 if (sdkObject == null) {
-                    return JsonUtils.getSdkJsonStr(urlConnection.getResponseCode(), stringBuilder.toString());
+                    return JsonUtils.getSdkJsonStr(response.code(), responseBody);
                 }
             } catch (IllegalStateException e ) {
                 logger.error("IllegalStateException Occurred. Details: {}", e.toString());
-                return JsonUtils.getSdkJsonStr(urlConnection.getResponseCode(), stringBuilder.toString());
+                return JsonUtils.getSdkJsonStr(response.code(), responseBody);
             } catch (JsonParseException e1) {
                 logger.error("JsonParseException Occurred. Details: {}", e1.toString());
-                return JsonUtils.getSdkJsonStr(urlConnection.getResponseCode(), stringBuilder.toString());
+                return JsonUtils.getSdkJsonStr(response.code(), responseBody);
             }
-			return stringBuilder.toString();
-
+			return responseBody;
 		} catch (SocketTimeoutException localSocketTimeoutException) {
 			FileUtils.deleteFile(filePath);
 			logger.error("SocketTimeoutException Occurred. Details: {}", localSocketTimeoutException.toString());
@@ -251,13 +202,6 @@ public abstract class HttpUtils {
 			}
 			return JsonUtils.getSdkJsonStr(ResultCode.SDK_RQUEST_EXCEPTION.getCode(), errMsg);
 		} finally {
-			if(bufferedReader != null) {
-				try {
-					bufferedReader.close();
-				} catch (IOException e) {
-					logger.error("IOException Occurred. Details: {}", e.toString());
-				}
-			}
 			if(fileOutputStream != null){
 				try {
 					fileOutputStream.close();
@@ -265,59 +209,10 @@ public abstract class HttpUtils {
 					logger.error("IOException Occurred. Details: {}", e.toString());
 				}
 			}
-			if(urlConnection != null) {
-				urlConnection.disconnect();
+			if (clearCredentials) {
+				ThreadLocalProxyAuthenticator.clearCredentials();
 			}
 		}
-	}
-
-	private static HttpURLConnection getConnection(String requestUrl, int connectTimeout, int readTimeout, Proxy proxy) throws IOException {
-		URL url = new URL(requestUrl);
-		HttpURLConnection conn;
-		if (proxy == null || proxy.type() == Proxy.Type.DIRECT) {
-			 conn = (HttpURLConnection) url.openConnection();
-		} else {
-			conn = (HttpURLConnection) url.openConnection(proxy);
-		}
-		if (conn instanceof HttpsURLConnection) {
-			HttpsURLConnection connHttps = (HttpsURLConnection) conn;
-			try {
-				SSLContext ctx = SSLContext.getInstance("TLS");
-				ctx.init(null, new TrustManager[] { new TrustAllTrustManager() }, new SecureRandom());
-				connHttps.setSSLSocketFactory(ctx.getSocketFactory());
-				connHttps.setHostnameVerifier(createInsecureHostnameVerifier());
-			} catch (GeneralSecurityException e){
-				logger.error("GeneralSecurityException Occurred. Details: {}", e.toString());
-			}
-			connHttps.setHostnameVerifier(createInsecureHostnameVerifier());
-			conn = connHttps;
-		}
-
-		conn.setConnectTimeout(connectTimeout);
-		conn.setReadTimeout(readTimeout);
-		return conn;
-	}
-
-	private static String[] VERIFY_HOST_NAME_ARRAY = new String[]{};
-
-	public static final HostnameVerifier createInsecureHostnameVerifier() {
-		return new HostnameVerifier() {
-			@Override
-			public boolean verify(String hostname, SSLSession session) {
-				if (hostname == null || hostname.isEmpty()) {
-					return false;
-				}
-				return !Arrays.asList(VERIFY_HOST_NAME_ARRAY).contains(hostname);
-			}
-		};
-	}
-
-	private static URL buildGetUrl(String url, String query) throws IOException {
-		if (StringUtils.isEmpty(query)) {
-			return new URL(url);
-		}
-
-		return new URL(buildRequestUrl(url, query));
 	}
 
     /**
@@ -465,31 +360,31 @@ public abstract class HttpUtils {
 	}
 
     /**
-     * 使用默认的UTF-8字符集反编码请求参数值。
+     * Use the default UTF-8 character set to reverse encode request parameter values.
      *
-     * @param value 参数值
-     * @return 反编码后的参数值 string
+     * @param value Parameter value
+     * @return Parameter value after de-encoding string
      */
     public static String decode(String value) {
 		return decode(value, DEFAULT_CHARSET);
 	}
 
     /**
-     * 使用默认的UTF-8字符集编码请求参数值。
+     * Use the default UTF-8 character set encoding to request parameter values.
      *
-     * @param value 参数值
-     * @return 编码后的参数值 string
+     * @param value Parameter value
+     * @return Parameter value after encoding string
      */
     public static String encode(String value) {
 		return encode(value, DEFAULT_CHARSET);
 	}
 
     /**
-     * 使用指定的字符集反编码请求参数值。
+     * Use the specified character set to reverse encode the request parameter value.
      *
-     * @param value   参数值
-     * @param charset 字符集
-     * @return 反编码后的参数值 string
+     * @param value   Parameter value
+     * @param charset character set
+     * @return Parameter value after de-encoding string
      */
     public static String decode(String value, String charset) {
 		String result = null;
@@ -504,11 +399,11 @@ public abstract class HttpUtils {
 	}
 
     /**
-     * 使用指定的字符集编码请求参数值。
+     * Use the specified character set encoding to request parameter values.
      *
-     * @param value   参数值
-     * @param charset 字符集
-     * @return 编码后的参数值 string
+     * @param value   Parameter value
+     * @param charset character set
+     * @return Parameter value after encoding string
      */
     public static String encode(String value, String charset) {
 		String result = null;
@@ -523,10 +418,10 @@ public abstract class HttpUtils {
 	}
 
     /**
-     * 从URL中提取所有的参数。
+     * Extract all parameters from the URL.
      *
-     * @param query URL地址
-     * @return 参数映射 map
+     * @param query URL address
+     * @return Parameter mapping map
      */
     public static Map<String, String> splitUrlQuery(String query) {
 		Map<String, String> result = new HashMap<String, String>();

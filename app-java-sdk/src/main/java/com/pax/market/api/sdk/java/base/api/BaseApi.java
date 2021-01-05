@@ -36,6 +36,10 @@ public class BaseApi {
         this.client = new DefaultClient(baseUrl,appKey, appSecret);
     }
 
+    public String getBaseUrl() {
+        return this.client.getBaseUrl();
+    }
+
     public String getTerminalSN() {
         return terminalSN;
     }
@@ -43,7 +47,8 @@ public class BaseApi {
     public <T extends BaseApi> T setProxyDelegate(ProxyDelegate proxyDelegate) {
         if(proxyDelegate != null){
             this.client.setProxy(proxyDelegate.retrieveProxy());
-            this.client.setProxyAuthorization(proxyDelegate.retrieveProxyAuthorization());
+            this.client.setBasicAuthorization(proxyDelegate.retrieveBasicAuthorization());
+            this.client.setPasswordAuthentication(proxyDelegate.retrievePasswordAuthentication());
         } else {
             logger.warn("Proxy delegate is NULL, please set it before using proxy!");
         }

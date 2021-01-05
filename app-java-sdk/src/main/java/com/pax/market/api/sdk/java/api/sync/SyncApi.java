@@ -38,6 +38,10 @@ public class SyncApi extends BaseApi {
         super(baseUrl, appKey, appSecret, terminalSN);
     }
 
+    public void setBaseUrl(String baseUrl) {
+        super.getDefaultClient().setBaseUrl(baseUrl);
+    }
+
     public interface SyncType {
         /**
          * Application Info
@@ -61,7 +65,7 @@ public class SyncApi extends BaseApi {
     }
 
     /**
-     * 同步终端信息
+     * Synchronize terminal information
      *
      * @return Json result string
      */

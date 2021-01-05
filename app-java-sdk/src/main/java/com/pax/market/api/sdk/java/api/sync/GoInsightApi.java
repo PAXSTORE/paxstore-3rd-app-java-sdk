@@ -35,10 +35,13 @@ public class GoInsightApi extends BaseApi {
         this.timeZone = timeZone;
     }
 
+    public void setBaseUrl(String baseUrl) {
+        super.getDefaultClient().setBaseUrl(baseUrl);
+    }
 
 
     /**
-     * 同步终端业务数据 synchronize terminal business data
+     * synchronize terminal business data
      * example:  List<Map<String, Object>> list = new ArrayList<>();
      *           for (int i = 0; i < 3; i++) {
      *             Map<String, Object> map = new HashMap<>();
@@ -116,7 +119,7 @@ public class GoInsightApi extends BaseApi {
     }
 
     /**
-     *  获取终端同步的业务数据 Get bizData from server
+     * Get bizData from server
      */
     public DataQueryResultObject findDataFromInsight(String queryCode, TimestampRangeType rangeType, Integer pageNo, Integer pageSize, boolean isAllMerchant) {
         if (queryCode != null && queryCode.length() != QUERY_CODE_LENGTH) {
