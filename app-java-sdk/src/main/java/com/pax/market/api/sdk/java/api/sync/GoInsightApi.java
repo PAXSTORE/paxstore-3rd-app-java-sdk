@@ -35,6 +35,9 @@ public class GoInsightApi extends BaseApi {
         this.timeZone = timeZone;
     }
 
+    public void setBaseUrl(String baseUrl) {
+        super.getDefaultClient().setBaseUrl(baseUrl);
+    }
 
 
     /**

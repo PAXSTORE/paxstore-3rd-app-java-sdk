@@ -20,6 +20,9 @@ public class ActivateApi extends BaseApi {
      */
     protected static String checkUpdateUrl = "/3rdApps/init";
 
+    public void setBaseUrl(String baseUrl) {
+        super.getDefaultClient().setBaseUrl(baseUrl);
+    }
 
     /**
      *  Activate terminal with TID
