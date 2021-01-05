@@ -28,7 +28,7 @@ import java.util.Set;
 
 
 /**
- * 字符串工具类。
+ * String tool class.
  */
 public abstract class StringUtils {
 
@@ -41,7 +41,7 @@ public abstract class StringUtils {
 	private StringUtils() {}
 
     /**
-     * 检查指定的字符串是否为空。
+     * Check whether the specified string is empty.
      * <ul>
      * <li>SysUtils.isEmpty(null) = true</li>
      * <li>SysUtils.isEmpty("") = true</li>
@@ -49,7 +49,7 @@ public abstract class StringUtils {
      * <li>SysUtils.isEmpty("abc") = false</li>
      * </ul>
      *
-     * @param value 待检查的字符串
+     * @param value String to be checked
      * @return true /false
      */
     public static boolean isEmpty(String value) {
@@ -66,7 +66,7 @@ public abstract class StringUtils {
 	}
 
     /**
-     * 检查对象是否为数字型字符串,包含负数开头的。
+     * Check whether the object is a numeric string, including those starting with a negative number
      *
      * @param obj the obj
      * @return the boolean
@@ -93,7 +93,7 @@ public abstract class StringUtils {
 	}
 
     /**
-     * 检查指定的字符串列表是否不为空。
+     * Check whether the specified string list is not empty.
      *
      * @param values the values
      * @return the boolean
@@ -111,7 +111,7 @@ public abstract class StringUtils {
 	}
 
     /**
-     * 把通用字符编码的字符串转化为汉字编码。
+     * Convert the string of universal character encoding into Chinese character encoding.
      *
      * @param unicode the unicode
      * @return the string
@@ -127,7 +127,7 @@ public abstract class StringUtils {
 	}
 
     /**
-     * 把名称转换为小写加下划线的形式。
+     * Convert the name to lowercase and underscore.
      *
      * @param name the name
      * @return the string
@@ -150,7 +150,7 @@ public abstract class StringUtils {
 	}
 
     /**
-     * 把名称转换为首字母小写的驼峰形式。
+     * Convert the name to camel case with the first letter lowercase.
      *
      * @param name the name
      * @return the string
@@ -170,7 +170,7 @@ public abstract class StringUtils {
 	}
 
     /**
-     * 把字符串解释为日期对象，采用yyyy-MM-dd HH:mm:ss的格式。
+     * Interpret the string as a date object in the format of yyyy-MM-dd HH:mm:ss.
      *
      * @param str the str
      * @return the date
@@ -182,7 +182,7 @@ public abstract class StringUtils {
 	}
 
     /**
-     * 对日期进行字符串格式化，采用yyyy-MM-dd HH:mm:ss的格式。
+     * Format the date as a string using the format yyyy-MM-dd HH:mm:ss.
      *
      * @param date the date
      * @return the string
@@ -193,7 +193,7 @@ public abstract class StringUtils {
 	}
 
     /**
-     * 对日期进行字符串格式化，采用指定的格式。
+     * Format the date as a string and use the specified format.
      *
      * @param date    the date
      * @param pattern the pattern
@@ -205,10 +205,10 @@ public abstract class StringUtils {
 	}
 
     /**
-     * XML字符转义包括(<,>,',&,")五个字符.
+     * XML character escape includes five characters (<,>,',&,").
      *
-     * @param value 所需转义的字符串
-     * @return 转义后的字符串 @
+     * @param value The string to be escaped
+     * @return The escaped string
      */
     public static String escapeXml(String value) {
 		StringBuilder writer = new StringBuilder();
@@ -241,11 +241,11 @@ public abstract class StringUtils {
 	}
 
     /**
-     * 获取类的get/set属性名称集合。
+     * Get a collection of get/set attribute names of the class.
      *
-     * @param clazz 类
-     * @param isGet 是否获取读方法，true为读方法，false为写方法
-     * @return 属性名称集合 class properties
+     * @param clazz class
+     * @param isGet Whether to obtain the read method, true is the read method, false is the write method
+     * @return class properties
      * @throws IntrospectionException the introspection exception
      */
     public static Set<String> getClassProperties(Class<?> clazz, boolean isGet) throws IntrospectionException {
