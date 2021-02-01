@@ -90,6 +90,7 @@ public class ParamApi extends BaseApi {
     private static final String REQ_PARAM_STATUS = "status";
     private static final String REQ_PARAM_ERROR_CODE = "errorCode";
     private static final String REQ_PARAM_REMARKS = "remarks";
+    private static final String REQ_PARAM_TEMPLATE_NAME = "paramTemplateName";
     private static final String ERROR_REMARKS_REPLACE_VARIABLES = "Replace paramVariables failed";
     private static final String ERROR_REMARKS_NOT_GOOD_JSON = "Bad json : ";
     private static final String ERROR_REMARKS_VARIFY_MD_FAILED = "MD5 Validation Error";
@@ -110,6 +111,11 @@ public class ParamApi extends BaseApi {
      * The constant updateStatusBatchUrl.
      */
     protected static String updateStatusBatchUrl = "/3rdApps/actions";
+    /**
+     * Get last success param url
+     */
+    protected static String lastSuccessParamUrl = "/3rdApps/param/last/success";
+
     private final Logger logger = LoggerFactory.getLogger(ParamApi.class.getSimpleName());
 
     public ParamApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
@@ -133,6 +139,24 @@ public class ParamApi extends BaseApi {
         request.addRequestParam(REQ_PARAM_PACKAGE_NAME, packageName);
         request.addRequestParam(REQ_PARAM_VERSION_CODE, Integer.toString(versionCode));
         return JsonUtils.fromJson(call(request), ParamListObject.class);
+    }
+
+    /**
+     * Get terminal last success parm
+     * @param paramTemplateName  the template need to get
+     * @return
+     */
+    public ParamObject getLastSuccessParm(String paramTemplateName) {
+        SdkRequest request = new SdkRequest(lastSuccessParamUrl);
+        request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
+        request.addRequestParam(REQ_PARAM_TEMPLATE_NAME, paramTemplateName);
+        return JsonUtils.fromJson(call(request), ParamObject.class);
+    }
+
+    public ParamObject getLastSuccessParm() {
+        SdkRequest request = new SdkRequest(lastSuccessParamUrl);
+        request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
+        return JsonUtils.fromJson(call(request), ParamObject.class);
     }
 
     /**
