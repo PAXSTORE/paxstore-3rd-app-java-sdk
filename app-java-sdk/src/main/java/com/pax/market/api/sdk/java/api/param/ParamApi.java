@@ -85,11 +85,17 @@ public class ParamApi extends BaseApi {
      */
     public static final long RETRY_TIME_LIMIT = 10 * 24 * 3600_000L;
 
+    /**
+     *Get last success param limit
+     */
+    public static final long GET_SUCCESS_PARAM_LIMIT = 60_000L;
+
     private static final String REQ_PARAM_PACKAGE_NAME = "packageName";
     private static final String REQ_PARAM_VERSION_CODE = "versionCode";
     private static final String REQ_PARAM_STATUS = "status";
     private static final String REQ_PARAM_ERROR_CODE = "errorCode";
     private static final String REQ_PARAM_REMARKS = "remarks";
+    private static final String REQ_PARAM_TEMPLATE_NAME = "paramTemplateName";
     private static final String ERROR_REMARKS_REPLACE_VARIABLES = "Replace paramVariables failed";
     private static final String ERROR_REMARKS_NOT_GOOD_JSON = "Bad json : ";
     private static final String ERROR_REMARKS_VARIFY_MD_FAILED = "MD5 Validation Error";
@@ -110,7 +116,14 @@ public class ParamApi extends BaseApi {
      * The constant updateStatusBatchUrl.
      */
     protected static String updateStatusBatchUrl = "/3rdApps/actions";
+    /**
+     * Get last success param url
+     */
+    protected static String lastSuccessParamUrl = "/3rdApps/param/last/success";
+
     private final Logger logger = LoggerFactory.getLogger(ParamApi.class.getSimpleName());
+
+    private long lastGetTime = -1;
 
     public ParamApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
         super(baseUrl, appKey, appSecret, terminalSN);
@@ -133,6 +146,39 @@ public class ParamApi extends BaseApi {
         request.addRequestParam(REQ_PARAM_PACKAGE_NAME, packageName);
         request.addRequestParam(REQ_PARAM_VERSION_CODE, Integer.toString(versionCode));
         return JsonUtils.fromJson(call(request), ParamListObject.class);
+    }
+
+    /**
+     * Get terminal last success parm
+     * @param paramTemplateName  the template need to get
+     * @return
+     */
+    public ParamObject getLastSuccessParm(String paramTemplateName) {
+        logger.debug(lastGetTime + "");
+
+        if (lastGetTime != -1 && System.currentTimeMillis() - lastGetTime < GET_SUCCESS_PARAM_LIMIT) {
+            return createRateLimit();
+        } else {
+            lastGetTime = System.currentTimeMillis();
+        }
+
+        SdkRequest request = new SdkRequest(lastSuccessParamUrl);
+        request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
+        if (paramTemplateName != null) {
+            request.addRequestParam(REQ_PARAM_TEMPLATE_NAME, paramTemplateName);
+        }
+        return JsonUtils.fromJson(call(request), ParamObject.class);
+    }
+
+    public ParamObject createRateLimit() {
+        ParamObject paramObject = new ParamObject();
+        paramObject.setBusinessCode(-1);
+        paramObject.setMessage("Try again after one minute too frequently");
+        return paramObject;
+    }
+
+    public ParamObject getLastSuccessParm() {
+       return getLastSuccessParm(null);
     }
 
     /**
@@ -302,6 +348,57 @@ public class ParamApi extends BaseApi {
             }
         }
         logger.debug("downloadParamToPath: end");
+        return result;
+    }
+
+    public InnerDownloadResultObject downloadLastSuccessParmToPath(String savePath) {
+        return downloadLastSuccessParmToPath(savePath, null);
+    }
+
+    public InnerDownloadResultObject downloadLastSuccessParmToPath(String saveFilePath, String paramTemplateName) {
+        logger.debug("downloadLastSuccessParmToPath: start");
+        InnerDownloadResultObject result = new InnerDownloadResultObject();
+        if (saveFilePath == null || "".equals(saveFilePath.trim())) {
+            result.setBusinessCode(ResultCode.SDK_FILE_NOT_FOUND.getCode());
+            result.setMessage(JsonUtils.getSdkJson(ResultCode.SDK_FILE_NOT_FOUND.getCode(), SAVEPATH_CANNOT_BE_NULL));
+            return result;
+        }
+        result.setParamSavePath(saveFilePath);
+        ParamObject paramObject;
+        if (paramTemplateName != null) {
+             paramObject = getLastSuccessParm(paramTemplateName);
+        } else {
+            paramObject = getLastSuccessParm();
+        }
+
+        if (paramObject.getBusinessCode() != ResultCode.SUCCESS.getCode()) {
+            result.setBusinessCode(paramObject.getBusinessCode());
+            result.setMessage(paramObject.getMessage());
+            return result;
+        }
+
+        saveFilePath = saveFilePath + File.separator + paramObject.getActionId();
+        String remarks = null;
+
+        SdkObject sdkObject = downloadParamFileOnly(paramObject, saveFilePath);
+        if (sdkObject.getBusinessCode() != ResultCode.SUCCESS.getCode()) {
+            result.setBusinessCode(sdkObject.getBusinessCode());
+            result.setMessage(sdkObject.getMessage());
+            remarks = sdkObject.getMessage();
+            logger.debug("download error remarks: " + remarks);
+        }
+
+
+        if (remarks != null) {
+            // Since download failed, result of updating action is not concerned, just return the result of download failed reason
+            FileUtils.delFolder(saveFilePath);
+        } else {
+            FileUtils.moveToFatherFolder(saveFilePath);
+            result.setBusinessCode(ResultCode.SUCCESS.getCode());
+            result.setMessage(DOWNLOAD_SUCCESS);
+
+        }
+        logger.debug("downloadLastSuccessParmToPath: end");
         return result;
     }
 
