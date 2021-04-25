@@ -319,7 +319,6 @@ public class ParamApi extends BaseApi {
                 result.setMessage(ERROR_CELLULAR_NOT_ALLOWED);
                 return result;
             }
-            logger.debug("ParamApi", "ttt if go here 0");
             SdkObject sdkObject = downloadParamFileOnly(paramObject, saveFilePath);
             if (sdkObject.getBusinessCode() != ResultCode.SUCCESS.getCode()) {
                 setIOExceptionResult(lastFailObject, result, paramObject, sdkObject);
@@ -330,7 +329,6 @@ public class ParamApi extends BaseApi {
                 break;
             }
         }
-        logger.debug("ParamApi", "ttt if go here 1");
         if (remarks != null) {
             // Since download failed, result of updating action is not concerned, just return the result of download failed reason
             FileUtils.delFolder(saveFilePath);
