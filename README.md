@@ -6,7 +6,7 @@ PAXSTORE 3rd App Java SDK provides the basic java APIs for third party developer
 
 Gradle:
 
-    implementation 'com.pax.market:paxstore-3rd-app-java-sdk:8.0.0'
+    implementation 'com.github.PAXSTORE:paxstore-3rd-app-java-sdk:8.0.0'
 
 ## API Usage
 
