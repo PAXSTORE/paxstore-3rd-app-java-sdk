@@ -22,13 +22,12 @@ import java.util.Map;
  * Created by zcy on 2017/4/17 0017.
  */
 public class Md5Utils {
+
     /**
      * Get the MD5 value of a single file
-
      * @param file
      * @return
      */
-
     public static String getFileMD5(File file) {
         if (!file.isFile()) {
             return null;
@@ -54,6 +53,12 @@ public class Md5Utils {
         }
     }
 
+    /**
+     *
+     * @param fis
+     * @return
+     * @throws Exception
+     */
     public static String getFileMD5(InputStream fis) throws Exception {
         MessageDigest md = null;
         md = MessageDigest.getInstance("MD5");

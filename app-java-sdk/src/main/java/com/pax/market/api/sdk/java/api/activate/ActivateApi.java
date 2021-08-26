@@ -28,8 +28,8 @@ public class ActivateApi extends BaseApi {
 
     /**
      *  Activate terminal with TID
-     * @param tid
-     * @return
+     * @param tid the tid
+     * @return the result
      */
     public SdkObject initByTID(String tid) {
         SdkRequest request = new SdkRequest(checkUpdateUrl);

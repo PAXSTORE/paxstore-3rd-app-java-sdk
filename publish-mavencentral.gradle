@@ -1,0 +1,69 @@
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+task javadocJar(type: Jar) {
+    classifier = 'javadoc'
+    from javadoc
+}
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts {
+    archives javadocJar, sourcesJar
+}
+
+signing {
+    sign configurations.archives
+}
+
+group = "com.whatspos.sdk"
+archivesBaseName = "paxstore-3rd-app-java-sdk"
+version = "8.1.0"
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            repository(url: "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: 'paxstore-support@paxsz.com', password: 'P@xsz2017%%%')
+            }
+
+            snapshotRepository(url: "https://s01.oss.sonatype.org/content/repositories/snapshots/") {
+                authentication(userName: 'paxstore-support@paxsz.com', password: 'P@xsz2017%%%')
+            }
+
+            pom.project {
+                name 'Example Application'
+                packaging 'jar'
+                // optionally artifactId can be defined here
+                description 'PAXSTORE 3rd App Java SDK provides the basic java APIs for third party developers to integrate their apps on PAXSTORE.'
+                url 'https://github.com/PAXSTORE/paxstore-3rd-app-java-sdk'
+
+                scm {
+                    connection 'scm:git:github.com/PAXSTORE/paxstore-3rd-app-java-sdk.git'
+                    developerConnection 'scm:git:ssh://github.com/PAXSTORE/paxstore-3rd-app-java-sdk.git'
+                    url 'https://github.com/PAXSTORE/paxstore-3rd-app-java-sdk/tree/master'
+                }
+
+                licenses {
+                    license {
+                        name 'The Apache License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+
+                developers {
+                    developer {
+                        id 'Derek'
+                        name 'Derek'
+                        email 'zhangcy@paxsz.com'
+                    }
+                }
+            }
+        }
+    }
+}

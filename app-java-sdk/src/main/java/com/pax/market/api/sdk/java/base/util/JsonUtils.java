@@ -61,10 +61,10 @@ public class JsonUtils {
     }
 
     /**
-     * Gets sdk json.
      *
-     * @param resultCode the result code
-     * @return the sdk json
+     * @param resultCode
+     * @param errorMsg
+     * @return
      */
     public static String getSdkJson(int resultCode, String errorMsg) {
         String message = "";

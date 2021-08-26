@@ -246,8 +246,8 @@ public class ReplaceUtils {
     }
 
     /**
-     * Google Gson
      *
+     * @param gson
      * @param jsonInString
      * @return
      */
@@ -281,8 +281,8 @@ public class ReplaceUtils {
     /**
      * ignore regex in string
      *
-     * @param keyword
-     * @return
+     * @param keyword input
+     * @return result
      */
     public static String escapeExprSpecialWord(String keyword) {
         if (!StringUtils.isEmpty(keyword)) {
