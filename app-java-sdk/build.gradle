@@ -2,11 +2,6 @@ apply plugin: 'java-library'
 apply plugin: 'com.novoda.bintray-release'
 
 
-ext {
-    PUBLISH_GROUP_ID = "com.whatspos.sdk"        //项目包名
-    PUBLISH_ARTIFACT_ID = 'paxstore-3rd-app-java-sdk'            //项目名
-    PUBLISH_VERSION = '8.1.0'                    //版本号
-}
 
 apply from: "${rootProject.projectDir}/publish-mavencentral.gradle"
 

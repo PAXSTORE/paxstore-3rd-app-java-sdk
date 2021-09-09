@@ -62,9 +62,9 @@ public class JsonUtils {
 
     /**
      *
-     * @param resultCode
-     * @param errorMsg
-     * @return
+     * @param resultCode the resultCode
+     * @param errorMsg the errorMsg
+     * @return the string
      */
     public static String getSdkJson(int resultCode, String errorMsg) {
         String message = "";

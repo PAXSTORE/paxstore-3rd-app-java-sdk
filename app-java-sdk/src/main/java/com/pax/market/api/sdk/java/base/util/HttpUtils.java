@@ -83,18 +83,18 @@ public abstract class HttpUtils {
 	/**
 	 * Request string.
 	 *
-	 * @param requestUrl
-	 * @param requestMethod
-	 * @param connectTimeout
-	 * @param readTimeout
-	 * @param writeTimeout
-	 * @param userData
-	 * @param headerMap
-	 * @param saveFilePath
-	 * @param proxy
-	 * @param basicAuthorization
-	 * @param passwordAuthentication
-	 * @return
+	 * @param requestUrl		    the request url
+	 * @param requestMethod    the request method
+	 * @param connectTimeout    the connect timeout
+	 * @param readTimeout    the read timeout
+	 * @param writeTimeout    the write timeout
+	 * @param userData    the user data
+	 * @param headerMap    the header map
+	 * @param saveFilePath    the save file path
+	 * @param proxy  the proxy
+	 * @param basicAuthorization the basicAuthorization
+	 * @param passwordAuthentication the passwordAuthentication
+	 * @return  the string
 	 */
 	public static String request(String requestUrl, SdkRequest.RequestMethod requestMethod, int connectTimeout, int readTimeout, int writeTimeout, String userData,
 								 Map<String, String> headerMap, String saveFilePath, Proxy proxy, String basicAuthorization, PasswordAuthentication passwordAuthentication) {

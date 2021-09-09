@@ -37,7 +37,7 @@ public class UpdateApi extends BaseApi {
      *
      * @param versionCode versionCode of this app
      * @param packageName packageName of this app
-     * @return
+     * @return the update result
      */
     public UpdateObject checkUpdate(int versionCode, String packageName) {
         logger.info("Check update >>> ");

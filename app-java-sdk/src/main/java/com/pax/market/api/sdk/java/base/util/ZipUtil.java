@@ -111,6 +111,7 @@ public final class ZipUtil {
      * unzip files
      *
      * @param filePath Compressed file path
+     * @return the result
      */
     public static boolean unzip(String filePath) {
         File source = new File(filePath);

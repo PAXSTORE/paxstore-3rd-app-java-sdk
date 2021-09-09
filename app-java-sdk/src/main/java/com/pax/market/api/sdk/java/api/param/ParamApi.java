@@ -136,9 +136,9 @@ public class ParamApi extends BaseApi {
     /**
      * Get terminal params to download
      *
-     * @param packageName
-     * @param versionCode
-     * @return
+     * @param packageName the packageName
+     * @param versionCode the versionCode
+     * @return the paramList
      */
     public ParamListObject getParamDownloadList(String packageName, int versionCode) {
         SdkRequest request = new SdkRequest(downloadParamUrl);
@@ -151,7 +151,7 @@ public class ParamApi extends BaseApi {
     /**
      * Get terminal last success parm
      * @param paramTemplateName  the template need to get
-     * @return
+     * @return the param objet
      */
     public ParamObject getLastSuccessParm(String paramTemplateName) {
         logger.debug(lastGetTime + "");
@@ -186,7 +186,7 @@ public class ParamApi extends BaseApi {
      *
      * @param paramObject  You can get ParamObject from getParamDownloadList();
      * @param saveFilePath Path that param files will be saved.
-     * @return
+     * @return the download result
      */
     public DownloadResultObject downloadParamFileOnly(ParamObject paramObject, String saveFilePath) {
         SdkRequest request = new SdkRequest(paramObject.getDownloadUrl());
@@ -238,9 +238,10 @@ public class ParamApi extends BaseApi {
      * update push task status
      *
      * @param actionId  Id of push task.
+     * @param remarks the remarks
      * @param status    result of push task：{ pending:1, success:2, fail:3 }
      * @param errorCode error code { None error code:0 }
-     * @return
+     * @return the update result
      */
     public SdkObject updateDownloadStatus(String actionId, int status, int errorCode, String remarks) {
         String requestUrl = updateStatusUrl.replace("{actionId}", actionId);
@@ -255,9 +256,8 @@ public class ParamApi extends BaseApi {
 
     /**
      * Update push task result in a batch.
-     *
-     * @param updateActionObjectList
-     * @return
+     * @param updateActionObjectList the update action list
+     * @return the update result
      */
     public SdkObject updateDownloadStatusBatch(List<UpdateActionObject> updateActionObjectList) {
         String requestBody = JsonUtils.toJson(updateActionObjectList);
@@ -273,11 +273,12 @@ public class ParamApi extends BaseApi {
     /**
      * Download param files to specific folder
      *
-     * @param packageName
-     * @param versionCode
-     * @param saveFilePath
-     * @param lastFailObject
-     * @return
+     * @param packageName the packageName
+     * @param versionCode the versionCode
+     * @param saveFilePath the saveFilePath
+     * @param lastFailObject the lastFailObject
+     * @param mobileNetAvailable  the network available
+     * @return the result
      */
     public InnerDownloadResultObject downloadParamToPath(String packageName, int versionCode, String saveFilePath,
                                                          LastFailObject lastFailObject, boolean mobileNetAvailable) {
@@ -463,11 +464,12 @@ public class ParamApi extends BaseApi {
     }
 
     /**
-     * parse the downloaded parameter xml file, convert the xml elements to HashMap<String,String>
+     * parse the downloaded parameter xml file, convert the xml elements to HashMap String,String
      * this method will not keep the xml fields order. HashMap will have a better performance.
      *
      * @param file the downloaded xml
      * @return HashMap with key/value of xml elements
+     * @throws ParseXMLException the exception
      */
     public HashMap<String, String> parseDownloadParamXml(File file) throws ParseXMLException {
         HashMap<String, String> resultMap = new HashMap<>();
@@ -490,9 +492,9 @@ public class ParamApi extends BaseApi {
     }
 
     /**
-     * @param file
-     * @return
-     * @throws JsonParseException
+     * @param file the file
+     * @return the list
+     * @throws JsonParseException the exception
      */
     public LinkedHashMap<String, String> parseDownloadParamJsonWithOrder(File file) throws JsonParseException {
         if (file != null) {
@@ -515,11 +517,12 @@ public class ParamApi extends BaseApi {
     }
 
     /**
-     * parse the downloaded parameter xml file, convert the xml elements to LinkedHashMap<String,String>
+     * parse the downloaded parameter xml file, convert the xml elements to LinkedHashMap String,String
      * this method will keep the xml fields order. LinkedHashMap performance is slower than HashMap
      *
      * @param file the downloaded xml
      * @return LinkedHashMap with key/value of xml elements
+     * @throws ParseXMLException the exception
      */
     public LinkedHashMap<String, String> parseDownloadParamXmlWithOrder(File file) throws ParseXMLException {
         LinkedHashMap<String, String> resultMap = new LinkedHashMap<>();
