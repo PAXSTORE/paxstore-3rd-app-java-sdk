@@ -8,22 +8,12 @@ import java.util.List;
  * Created by john on 2021/10/25.
  */
 public class AppMsgTabSyncRequest implements Serializable {
-    @SerializedName("appKey")
-    private String appKey;
     @SerializedName("serialNo")
     private String serialNo;
     @SerializedName("tabNames")
     private List<String> tabNames;
     @SerializedName("deleteTabNames")
     private List<String> deleteTabNames;
-
-    public String getAppKey() {
-        return appKey;
-    }
-
-    public void setAppKey(String appKey) {
-        this.appKey = appKey;
-    }
 
     public String getSerialNo() {
         return serialNo;

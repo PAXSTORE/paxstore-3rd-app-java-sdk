@@ -38,7 +38,6 @@ public class SyncMsgTabApi extends BaseApi {
             return sdkObject;
         }
         AppMsgTabSyncRequest appMsgTabSyncRequest = new AppMsgTabSyncRequest();
-        appMsgTabSyncRequest.setAppKey(getAppKey());
         appMsgTabSyncRequest.setSerialNo(getTerminalSN());
         if (tabNames != null && !tabNames.isEmpty()) {
             appMsgTabSyncRequest.setTabNames(tabNames);
