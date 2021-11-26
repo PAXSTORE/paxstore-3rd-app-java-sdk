@@ -30,7 +30,7 @@ public class CheckServiceApi  extends BaseApi {
 
     public enum ServiceType {
 
-        LAUNCHER_UP("launcherUp");
+        LAUNCHER_UP("launcherup");
 
         ServiceType(String value) {
             this.value = value;

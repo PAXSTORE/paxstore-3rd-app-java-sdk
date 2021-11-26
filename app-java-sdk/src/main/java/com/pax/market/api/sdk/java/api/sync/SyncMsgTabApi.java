@@ -13,7 +13,7 @@ import java.util.List;
  * Created by john on 2021/10/25.
  */
 public class SyncMsgTabApi extends BaseApi {
-    protected static String syncMsgTabUrl = "/3rdApps/cloudmsg/tab";
+    protected static String syncMsgTabUrl = "/3rdApps/tab";
     protected static int ERROR_CODE_TAB_EMPTY = 1000;
 
     public SyncMsgTabApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
