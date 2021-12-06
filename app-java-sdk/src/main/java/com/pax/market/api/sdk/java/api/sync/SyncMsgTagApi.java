@@ -1,8 +1,9 @@
 package com.pax.market.api.sdk.java.api.sync;
 
-import com.pax.market.api.sdk.java.api.sync.dto.AppMsgTabSyncRequest;
+import com.pax.market.api.sdk.java.api.sync.dto.AppMsgTagSyncRequest;
 import com.pax.market.api.sdk.java.base.api.BaseApi;
 import com.pax.market.api.sdk.java.base.constant.Constants;
+import com.pax.market.api.sdk.java.base.dto.MsgTagObject;
 import com.pax.market.api.sdk.java.base.dto.SdkObject;
 import com.pax.market.api.sdk.java.base.request.SdkRequest;
 import com.pax.market.api.sdk.java.base.util.JsonUtils;
@@ -12,11 +13,11 @@ import java.util.List;
 /**
  * Created by john on 2021/10/25.
  */
-public class SyncMsgTabApi extends BaseApi {
-    protected static String syncMsgTabUrl = "/3rdApps/tab";
+public class SyncMsgTagApi extends BaseApi {
+    protected static String syncMsgTagUrl = "/3rdApps/tag";
     protected static int ERROR_CODE_TAB_EMPTY = 1000;
 
-    public SyncMsgTabApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
+    public SyncMsgTagApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
         super(baseUrl, appKey, appSecret, terminalSN);
     }
 
@@ -26,27 +27,27 @@ public class SyncMsgTabApi extends BaseApi {
 
     /**
      *  Sync app msg tab
-     * @param tabNames The msg tabs to create
-     * @param deleteTabNames The msg tabs to delete
+     * @param attachTagNames The msg tabs to create
+     * @param detachTagNames The msg tabs to delete
      * @return the result
      */
-    public SdkObject syncMsgTab(List<String> tabNames, List<String> deleteTabNames) {
-        if ((tabNames == null && deleteTabNames == null) || (tabNames != null && tabNames.isEmpty() && deleteTabNames != null && deleteTabNames.isEmpty())) {
+    public SdkObject syncMsgTab(List<String> attachTagNames, List<String> detachTagNames) {
+        if ((attachTagNames == null && detachTagNames == null) || (attachTagNames != null && attachTagNames.isEmpty() && detachTagNames != null && detachTagNames.isEmpty())) {
             SdkObject sdkObject = new SdkObject();
             sdkObject.setBusinessCode(ERROR_CODE_TAB_EMPTY);
-            sdkObject.setMessage("TabNames and deleteTabNames cannot both be null");
+            sdkObject.setMessage("TabNames and deleteTagNames cannot both be null");
             return sdkObject;
         }
-        AppMsgTabSyncRequest appMsgTabSyncRequest = new AppMsgTabSyncRequest();
+        AppMsgTagSyncRequest appMsgTabSyncRequest = new AppMsgTagSyncRequest();
         appMsgTabSyncRequest.setSerialNo(getTerminalSN());
-        if (tabNames != null && !tabNames.isEmpty()) {
-            appMsgTabSyncRequest.setTabNames(tabNames);
+        if (attachTagNames != null && !attachTagNames.isEmpty()) {
+            appMsgTabSyncRequest.setAttachTagNames(attachTagNames);
         }
-        if (deleteTabNames != null && !deleteTabNames.isEmpty()) {
-            appMsgTabSyncRequest.setDeleteTabNames(deleteTabNames);
+        if (detachTagNames != null && !detachTagNames.isEmpty()) {
+            appMsgTabSyncRequest.setDetachTagNames(detachTagNames);
         }
 
-        SdkRequest request = new SdkRequest(syncMsgTabUrl);
+        SdkRequest request = new SdkRequest(syncMsgTagUrl);
         request.setRequestMethod(SdkRequest.RequestMethod.POST);
         request.addHeader(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_JSON);
         request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
@@ -54,6 +55,14 @@ public class SyncMsgTabApi extends BaseApi {
         request.setRequestBody(requestBody);
         return JsonUtils.fromJson(call(request), SdkObject.class);
     }
+
+    public MsgTagObject getAllTag() {
+        SdkRequest request = new SdkRequest(syncMsgTagUrl);
+        request.addHeader(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_JSON);
+        request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
+        return JsonUtils.fromJson(call(request), MsgTagObject.class);
+    }
+
 
     public SdkObject createMsgTab(List<String> tabNames) {
         return syncMsgTab(tabNames, null);
