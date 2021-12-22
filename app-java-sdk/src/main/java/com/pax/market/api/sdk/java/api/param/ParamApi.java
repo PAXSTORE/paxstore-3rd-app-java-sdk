@@ -85,11 +85,17 @@ public class ParamApi extends BaseApi {
      */
     public static final long RETRY_TIME_LIMIT = 10 * 24 * 3600_000L;
 
+    /**
+     *Get last success param limit
+     */
+    public static final long GET_SUCCESS_PARAM_LIMIT = 60_000L;
+
     private static final String REQ_PARAM_PACKAGE_NAME = "packageName";
     private static final String REQ_PARAM_VERSION_CODE = "versionCode";
     private static final String REQ_PARAM_STATUS = "status";
     private static final String REQ_PARAM_ERROR_CODE = "errorCode";
     private static final String REQ_PARAM_REMARKS = "remarks";
+    private static final String REQ_PARAM_TEMPLATE_NAME = "paramTemplateName";
     private static final String ERROR_REMARKS_REPLACE_VARIABLES = "Replace paramVariables failed";
     private static final String ERROR_REMARKS_NOT_GOOD_JSON = "Bad json : ";
     private static final String ERROR_REMARKS_VARIFY_MD_FAILED = "MD5 Validation Error";
@@ -110,7 +116,14 @@ public class ParamApi extends BaseApi {
      * The constant updateStatusBatchUrl.
      */
     protected static String updateStatusBatchUrl = "/3rdApps/actions";
+    /**
+     * Get last success param url
+     */
+    protected static String lastSuccessParamUrl = "/3rdApps/param/last/success";
+
     private final Logger logger = LoggerFactory.getLogger(ParamApi.class.getSimpleName());
+
+    private long lastGetTime = -1;
 
     public ParamApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
         super(baseUrl, appKey, appSecret, terminalSN);
@@ -123,9 +136,9 @@ public class ParamApi extends BaseApi {
     /**
      * Get terminal params to download
      *
-     * @param packageName
-     * @param versionCode
-     * @return
+     * @param packageName the packageName
+     * @param versionCode the versionCode
+     * @return the paramList
      */
     public ParamListObject getParamDownloadList(String packageName, int versionCode) {
         SdkRequest request = new SdkRequest(downloadParamUrl);
@@ -136,11 +149,44 @@ public class ParamApi extends BaseApi {
     }
 
     /**
+     * Get terminal last success parm
+     * @param paramTemplateName  the template need to get
+     * @return the param objet
+     */
+    public ParamObject getLastSuccessParm(String paramTemplateName) {
+        logger.debug(lastGetTime + "");
+
+        if (lastGetTime != -1 && System.currentTimeMillis() - lastGetTime < GET_SUCCESS_PARAM_LIMIT) {
+            return createRateLimit();
+        } else {
+            lastGetTime = System.currentTimeMillis();
+        }
+
+        SdkRequest request = new SdkRequest(lastSuccessParamUrl);
+        request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
+        if (paramTemplateName != null) {
+            request.addRequestParam(REQ_PARAM_TEMPLATE_NAME, paramTemplateName);
+        }
+        return JsonUtils.fromJson(call(request), ParamObject.class);
+    }
+
+    public ParamObject createRateLimit() {
+        ParamObject paramObject = new ParamObject();
+        paramObject.setBusinessCode(-1);
+        paramObject.setMessage("Try again after one minute too frequently");
+        return paramObject;
+    }
+
+    public ParamObject getLastSuccessParm() {
+       return getLastSuccessParm(null);
+    }
+
+    /**
      * Download param files
      *
      * @param paramObject  You can get ParamObject from getParamDownloadList();
      * @param saveFilePath Path that param files will be saved.
-     * @return
+     * @return the download result
      */
     public DownloadResultObject downloadParamFileOnly(ParamObject paramObject, String saveFilePath) {
         SdkRequest request = new SdkRequest(paramObject.getDownloadUrl());
@@ -192,9 +238,10 @@ public class ParamApi extends BaseApi {
      * update push task status
      *
      * @param actionId  Id of push task.
+     * @param remarks the remarks
      * @param status    result of push task：{ pending:1, success:2, fail:3 }
      * @param errorCode error code { None error code:0 }
-     * @return
+     * @return the update result
      */
     public SdkObject updateDownloadStatus(String actionId, int status, int errorCode, String remarks) {
         String requestUrl = updateStatusUrl.replace("{actionId}", actionId);
@@ -209,9 +256,8 @@ public class ParamApi extends BaseApi {
 
     /**
      * Update push task result in a batch.
-     *
-     * @param updateActionObjectList
-     * @return
+     * @param updateActionObjectList the update action list
+     * @return the update result
      */
     public SdkObject updateDownloadStatusBatch(List<UpdateActionObject> updateActionObjectList) {
         String requestBody = JsonUtils.toJson(updateActionObjectList);
@@ -227,11 +273,12 @@ public class ParamApi extends BaseApi {
     /**
      * Download param files to specific folder
      *
-     * @param packageName
-     * @param versionCode
-     * @param saveFilePath
-     * @param lastFailObject
-     * @return
+     * @param packageName the packageName
+     * @param versionCode the versionCode
+     * @param saveFilePath the saveFilePath
+     * @param lastFailObject the lastFailObject
+     * @param mobileNetAvailable  the network available
+     * @return the result
      */
     public InnerDownloadResultObject downloadParamToPath(String packageName, int versionCode, String saveFilePath,
                                                          LastFailObject lastFailObject, boolean mobileNetAvailable) {
@@ -273,7 +320,6 @@ public class ParamApi extends BaseApi {
                 result.setMessage(ERROR_CELLULAR_NOT_ALLOWED);
                 return result;
             }
-            logger.debug("ParamApi", "ttt if go here 0");
             SdkObject sdkObject = downloadParamFileOnly(paramObject, saveFilePath);
             if (sdkObject.getBusinessCode() != ResultCode.SUCCESS.getCode()) {
                 setIOExceptionResult(lastFailObject, result, paramObject, sdkObject);
@@ -284,7 +330,6 @@ public class ParamApi extends BaseApi {
                 break;
             }
         }
-        logger.debug("ParamApi", "ttt if go here 1");
         if (remarks != null) {
             // Since download failed, result of updating action is not concerned, just return the result of download failed reason
             FileUtils.delFolder(saveFilePath);
@@ -302,6 +347,57 @@ public class ParamApi extends BaseApi {
             }
         }
         logger.debug("downloadParamToPath: end");
+        return result;
+    }
+
+    public InnerDownloadResultObject downloadLastSuccessParmToPath(String savePath) {
+        return downloadLastSuccessParmToPath(savePath, null);
+    }
+
+    public InnerDownloadResultObject downloadLastSuccessParmToPath(String saveFilePath, String paramTemplateName) {
+        logger.debug("downloadLastSuccessParmToPath: start");
+        InnerDownloadResultObject result = new InnerDownloadResultObject();
+        if (saveFilePath == null || "".equals(saveFilePath.trim())) {
+            result.setBusinessCode(ResultCode.SDK_FILE_NOT_FOUND.getCode());
+            result.setMessage(JsonUtils.getSdkJson(ResultCode.SDK_FILE_NOT_FOUND.getCode(), SAVEPATH_CANNOT_BE_NULL));
+            return result;
+        }
+        result.setParamSavePath(saveFilePath);
+        ParamObject paramObject;
+        if (paramTemplateName != null) {
+             paramObject = getLastSuccessParm(paramTemplateName);
+        } else {
+            paramObject = getLastSuccessParm();
+        }
+
+        if (paramObject.getBusinessCode() != ResultCode.SUCCESS.getCode()) {
+            result.setBusinessCode(paramObject.getBusinessCode());
+            result.setMessage(paramObject.getMessage());
+            return result;
+        }
+
+        saveFilePath = saveFilePath + File.separator + paramObject.getActionId();
+        String remarks = null;
+
+        SdkObject sdkObject = downloadParamFileOnly(paramObject, saveFilePath);
+        if (sdkObject.getBusinessCode() != ResultCode.SUCCESS.getCode()) {
+            result.setBusinessCode(sdkObject.getBusinessCode());
+            result.setMessage(sdkObject.getMessage());
+            remarks = sdkObject.getMessage();
+            logger.debug("download error remarks: " + remarks);
+        }
+
+
+        if (remarks != null) {
+            // Since download failed, result of updating action is not concerned, just return the result of download failed reason
+            FileUtils.delFolder(saveFilePath);
+        } else {
+            FileUtils.moveToFatherFolder(saveFilePath);
+            result.setBusinessCode(ResultCode.SUCCESS.getCode());
+            result.setMessage(DOWNLOAD_SUCCESS);
+
+        }
+        logger.debug("downloadLastSuccessParmToPath: end");
         return result;
     }
 
@@ -368,11 +464,12 @@ public class ParamApi extends BaseApi {
     }
 
     /**
-     * parse the downloaded parameter xml file, convert the xml elements to HashMap<String,String>
+     * parse the downloaded parameter xml file, convert the xml elements to HashMap String,String
      * this method will not keep the xml fields order. HashMap will have a better performance.
      *
      * @param file the downloaded xml
      * @return HashMap with key/value of xml elements
+     * @throws ParseXMLException the exception
      */
     public HashMap<String, String> parseDownloadParamXml(File file) throws ParseXMLException {
         HashMap<String, String> resultMap = new HashMap<>();
@@ -395,9 +492,9 @@ public class ParamApi extends BaseApi {
     }
 
     /**
-     * @param file
-     * @return
-     * @throws JsonParseException
+     * @param file the file
+     * @return the list
+     * @throws JsonParseException the exception
      */
     public LinkedHashMap<String, String> parseDownloadParamJsonWithOrder(File file) throws JsonParseException {
         if (file != null) {
@@ -420,11 +517,12 @@ public class ParamApi extends BaseApi {
     }
 
     /**
-     * parse the downloaded parameter xml file, convert the xml elements to LinkedHashMap<String,String>
+     * parse the downloaded parameter xml file, convert the xml elements to LinkedHashMap String,String
      * this method will keep the xml fields order. LinkedHashMap performance is slower than HashMap
      *
      * @param file the downloaded xml
      * @return LinkedHashMap with key/value of xml elements
+     * @throws ParseXMLException the exception
      */
     public LinkedHashMap<String, String> parseDownloadParamXmlWithOrder(File file) throws ParseXMLException {
         LinkedHashMap<String, String> resultMap = new LinkedHashMap<>();

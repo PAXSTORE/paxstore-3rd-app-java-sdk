@@ -8,9 +8,11 @@ import com.pax.market.api.sdk.java.base.request.SdkRequest;
 import com.pax.market.api.sdk.java.base.util.JsonUtils;
 
 public class ActivateApi extends BaseApi {
+    String model;
 
-    public ActivateApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
+    public ActivateApi(String baseUrl, String appKey, String appSecret, String terminalSN, String model) {
         super(baseUrl, appKey, appSecret, terminalSN);
+        this.model = model;
     }
 
     private static final String REQ_TID = "X-Terminal-TID";
@@ -26,8 +28,8 @@ public class ActivateApi extends BaseApi {
 
     /**
      *  Activate terminal with TID
-     * @param tid
-     * @return
+     * @param tid the tid
+     * @return the result
      */
     public SdkObject initByTID(String tid) {
         SdkRequest request = new SdkRequest(checkUpdateUrl);
@@ -36,6 +38,7 @@ public class ActivateApi extends BaseApi {
         String requestBody = JsonUtils.toJson(activateObject);
         request.setRequestMethod(SdkRequest.RequestMethod.PUT);
         request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
+        request.addHeader(Constants.REQ_HEADER_MODEL, model);
         request.setRequestBody(requestBody);
         return JsonUtils.fromJson(call(request), SdkObject.class);
     }

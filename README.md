@@ -1,4 +1,5 @@
-# PAXSTORE 3rd App Java SDK [ ![Download](https://api.bintray.com/packages/paxstore-support/paxstore/paxstore-3rd-app-java-sdk/images/download.svg?version=7.4.0) ](https://bintray.com/paxstore-support/paxstore/paxstore-3rd-app-java-sdk/7.4.0/link)
+# PAXSTORE 3rd App Java SDK 
+
 
 PAXSTORE 3rd App Java SDK provides the basic java APIs for third party developers to integrate their apps on PAXSTORE.
 
@@ -6,7 +7,7 @@ PAXSTORE 3rd App Java SDK provides the basic java APIs for third party developer
 
 Gradle:
 
-    implementation 'com.pax.market:paxstore-3rd-app-java-sdk:7.4.0'
+    implementation 'com.whatspos.sdk:paxstore-3rd-app-java-sdk:8.2.0'
 
 ## API Usage
 

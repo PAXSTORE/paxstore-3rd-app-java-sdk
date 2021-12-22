@@ -246,10 +246,10 @@ public class ReplaceUtils {
     }
 
     /**
-     * Google Gson
      *
-     * @param jsonInString
-     * @return
+     * @param gson the gson
+     * @param jsonInString the string
+     * @return the result
      */
     public final static boolean isJSONValid(Gson gson, String jsonInString) {
         try {
@@ -281,8 +281,8 @@ public class ReplaceUtils {
     /**
      * ignore regex in string
      *
-     * @param keyword
-     * @return
+     * @param keyword input
+     * @return result
      */
     public static String escapeExprSpecialWord(String keyword) {
         if (!StringUtils.isEmpty(keyword)) {
@@ -338,11 +338,12 @@ public class ReplaceUtils {
     }
 
     /**
-     * parse the downloaded parameter xml file, convert the xml elements to HashMap<String,String>
+     * parse the downloaded parameter xml file, convert the xml elements to HashMap String,String
      * this method will not keep the xml fields order. HashMap will have a better performance.
      *
-     * @param transMessage
+     * @param transMessage the message
      * @return HashMap with key/value of xml elements
+     * @throws ParseXMLException the exception
      */
     public HashMap<String, String> parseDownloadParamXml(String transMessage) throws ParseXMLException {
         HashMap<String, String> resultMap = new HashMap<>();

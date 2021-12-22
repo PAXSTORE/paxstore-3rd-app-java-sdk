@@ -66,7 +66,7 @@ public class SyncApi extends BaseApi {
 
     /**
      * Synchronize terminal information
-     *
+     * @param infoList  the information list
      * @return Json result string
      */
     public SdkObject syncTerminalInfo(List<TerminalSyncInfo> infoList){

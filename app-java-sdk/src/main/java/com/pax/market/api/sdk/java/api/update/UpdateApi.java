@@ -6,6 +6,9 @@ import com.pax.market.api.sdk.java.base.dto.UpdateObject;
 import com.pax.market.api.sdk.java.base.request.SdkRequest;
 import com.pax.market.api.sdk.java.base.util.JsonUtils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Created by zcy on 2019/4/2 0002.
  */
@@ -14,6 +17,7 @@ public class UpdateApi extends BaseApi {
 
     private static final String REQ_PARAM_PACKAGE_NAME = "packageName";
     private static final String REQ_PARAM_VERSION_CODE = "versionCode";
+    private final Logger logger = LoggerFactory.getLogger(UpdateApi.class.getSimpleName());
 
     /**
      * The constant downloadParamUrl.
@@ -33,9 +37,10 @@ public class UpdateApi extends BaseApi {
      *
      * @param versionCode versionCode of this app
      * @param packageName packageName of this app
-     * @return
+     * @return the update result
      */
     public UpdateObject checkUpdate(int versionCode, String packageName) {
+        logger.info("Check update >>> ");
         SdkRequest request = new SdkRequest(checkUpdateUrl);
         request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
         request.addRequestParam(REQ_PARAM_PACKAGE_NAME, packageName);

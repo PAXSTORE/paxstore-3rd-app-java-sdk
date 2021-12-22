@@ -204,8 +204,9 @@ public abstract class StringUtils {
 		return format.format(date);
 	}
 
+	//XML character escape includes five characters (<,>,',&,").
     /**
-     * XML character escape includes five characters (<,>,',&,").
+     * XML character escape includes five characters above
      *
      * @param value The string to be escaped
      * @return The escaped string
@@ -270,7 +271,7 @@ public abstract class StringUtils {
     /**
      * <p>Checks whether the <code>String</code> contains only
      * digit characters.</p>
-     * <p>
+     *
      * <p><code>Null</code> and empty String will return
      * <code>false</code>.</p>
      *
