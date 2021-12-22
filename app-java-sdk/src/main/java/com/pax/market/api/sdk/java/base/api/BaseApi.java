@@ -29,10 +29,12 @@ public class BaseApi {
      * The constant terminal SN.
      */
     private String terminalSN;
+    private String appKey;
     private DefaultClient client;
 
     public BaseApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
         this.terminalSN = terminalSN;
+        this.appKey = appKey;
         this.client = new DefaultClient(baseUrl,appKey, appSecret);
     }
 
@@ -42,6 +44,10 @@ public class BaseApi {
 
     public String getTerminalSN() {
         return terminalSN;
+    }
+
+    public String getAppKey() {
+        return appKey;
     }
 
     public <T extends BaseApi> T setProxyDelegate(ProxyDelegate proxyDelegate) {

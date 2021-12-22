@@ -7,7 +7,7 @@ PAXSTORE 3rd App Java SDK provides the basic java APIs for third party developer
 
 Gradle:
 
-    implementation 'com.whatspos.sdk:paxstore-3rd-app-java-sdk:8.1.0'
+    implementation 'com.whatspos.sdk:paxstore-3rd-app-java-sdk:8.2.0'
 
 ## API Usage
 
@@ -18,10 +18,6 @@ Gradle:
 
     ParamApi paramApi = new ParamApi(apiUrl, appKey, appSecret, terminalSerialNo)
     paramApi.downloadParamToPath(getApplication().getPackageName(), BuildConfig.VERSION_CODE, saveFilePath);
-### Get Last Push Success Param()
-    ///If you specify the parameter template name, get the last successful push parameter corresponding to the template
-    ParamApi paramApi = new ParamApi(apiUrl, appKey, appSecret, terminalSerialNo);
-    paramApi.getLastSuccessParm();
 
 ### Upload subsidiary device information(subsidiary device info or application info)
     TerminalSyncInfo terminalSyncInfo = new TerminalSyncInfo();             //Init terminal Sync Info
