@@ -72,11 +72,11 @@ public class CryptoUtils {
      * @throws GeneralSecurityException the general security exception
      */
     public static String signRequest(Map<String, String> params, String body, String secret, String signMethod) throws IOException, GeneralSecurityException {
-        // 1. 检查参数是否已经排序
+        // 1. check the params if ordered
         String[] keys = params.keySet().toArray(new String[0]);
         Arrays.sort(keys);
 
-        // 2. 把所有参数名和参数值串在一起
+        // 2. put all params keys and values together
         StringBuilder query = new StringBuilder();
         for (String key : keys) {
             String value = params.get(key);
@@ -85,12 +85,12 @@ public class CryptoUtils {
             }
         }
 
-        // 3. 把请求主体拼接在参数后面
+        // 3. append post body after the params
         if (body != null) {
             query.append(body);
         }
 
-        // 4. 使用MD5/HMAC加密
+        // 4. use MD5/HMAC to encrypt
         byte[] bytes;
         if (Constants.SIGN_METHOD_HMAC.equals(signMethod)) {
             bytes = encryptHMAC(query.toString(), secret);
@@ -285,7 +285,7 @@ public class CryptoUtils {
      *
      * @param input Raw byte array
      * @param key   A key that meets AES requirements
-     * @param mode  Cipher.ENCRYPT_MODE 或 Cipher.DECRYPT_MODE
+     * @param mode  Cipher.ENCRYPT_MODE or Cipher.DECRYPT_MODE
      */
     private static byte[] aes(byte[] input, byte[] key, int mode) {
         try {
@@ -305,7 +305,7 @@ public class CryptoUtils {
      * @param input Raw byte array
      * @param key   A key that meets AES requirements
      * @param iv    Initial vector
-     * @param mode  Cipher.ENCRYPT_MODE 或 Cipher.DECRYPT_MODE
+     * @param mode  Cipher.ENCRYPT_MODE or Cipher.DECRYPT_MODE
      */
     private static byte[] aes(byte[] input, byte[] key, byte[] iv, int mode) {
         try {
