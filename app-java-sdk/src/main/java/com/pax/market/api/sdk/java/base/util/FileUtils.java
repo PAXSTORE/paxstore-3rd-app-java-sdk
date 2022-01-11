@@ -61,7 +61,7 @@ public class FileUtils {
 
 
     public static boolean moveToFatherFolder(String pathName) {
-        //判断文件夹是否存在， 是否有子文件， 父目录是否存在
+        //Check if folder exists, if children exist, if father folder exists
         String endPath = pathName.substring(0, pathName.lastIndexOf(File.separator));
         if (!new File(pathName).exists() || new File(pathName).listFiles().length == 0 ||
                 pathName.lastIndexOf(File.separator) == 0 || !new File(endPath).exists()) {
@@ -94,11 +94,11 @@ public class FileUtils {
 
     public static void delFolder(String folderPath) {
         try {
-            delAllFile(folderPath); //删除完里面所有内容
+            delAllFile(folderPath); //delete all contents in it
             String filePath = folderPath;
             filePath = filePath.toString();
             File myFilePath = new File(filePath);
-            myFilePath.delete(); //删除空文件夹
+            myFilePath.delete(); //delete empty folder
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -125,8 +125,8 @@ public class FileUtils {
                 temp.delete();
             }
             if (temp.isDirectory()) {
-                delAllFile(path + "/" + tempList[i]);//先删除文件夹里面的文件
-                delFolder(path + "/" + tempList[i]);//再删除空文件夹
+                delAllFile(path + "/" + tempList[i]);//delete the files in it first
+                delFolder(path + "/" + tempList[i]);//then delete the folder
                 flag = true;
             }
         }

@@ -48,18 +48,18 @@ public final class ZipUtil {
         File target = null;
         File source = new File(filePath);
         if (source.exists()) {
-            // 压缩文件名=源文件名.zip
+            // compressed fileName=original fileName.zip
             String zipName = source.getName() + ".zip";
             target = new File(source.getParent(), zipName);
             if (target.exists()) {
-                target.delete(); // 删除旧的文件
+                target.delete(); // delete old file
             }
             FileOutputStream fos = null;
             ZipOutputStream zos = null;
             try {
                 fos = new FileOutputStream(target);
                 zos = new ZipOutputStream(new BufferedOutputStream(fos));
-                // 添加对应的文件Entry
+                // add correspond file Entry
                 addEntry("/", source, zos);
             } catch (IOException e) {
             	logger.error(String.format("error zip file '%s'", filePath), e);
@@ -81,11 +81,11 @@ public final class ZipUtil {
      */
     private static void addEntry(String base, File source, ZipOutputStream zos)
             throws IOException {
-        // 按目录分级，形如：/aaa/bbb.txt
+        // Rank by directory，eg:/aaa/bbb.txt
         String entry = base + source.getName();
         if (source.isDirectory()) {
             for (File file : source.listFiles()) {
-                // 递归列出目录下的所有文件，添加文件Entry
+                // list all files in the folder and add file entry
                 addEntry(entry + "/", file, zos);
             }
         } else {
@@ -145,10 +145,10 @@ public final class ZipUtil {
         try {
             File target = new File(source.getParent(), entry.getName());
             if (!target.getParentFile().exists()) {
-                // 创建文件父目录
+                // create father folder
                 target.getParentFile().mkdirs();
             }
-            // 写入文件
+            // write file
             fos = new FileOutputStream(target);
             bos = new BufferedOutputStream(fos);
             int read = 0;

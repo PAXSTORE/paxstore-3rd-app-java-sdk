@@ -4,8 +4,6 @@ import com.google.gson.Gson;
 import com.pax.market.api.sdk.java.api.sync.dto.TerminalSyncBizData;
 import com.pax.market.api.sdk.java.base.api.BaseApi;
 import com.pax.market.api.sdk.java.base.constant.Constants;
-import com.pax.market.api.sdk.java.base.dto.DataQueryResultObject;
-import com.pax.market.api.sdk.java.base.dto.DataWrapperObject;
 import com.pax.market.api.sdk.java.base.dto.SdkObject;
 import com.pax.market.api.sdk.java.base.request.SdkRequest;
 import com.pax.market.api.sdk.java.base.util.JsonUtils;
@@ -21,8 +19,6 @@ public class GoInsightApi extends BaseApi {
 
     private final Logger logger = LoggerFactory.getLogger(SyncApi.class.getSimpleName());
     protected static String sendBusinessDataUrl = "/3rdApps/goInsight/data/send";
-    protected static String getBusinessDataUrl = "/3rdApps/goInsight/data/querying/{queryCode}";
-    private final int QUERY_CODE_LENGTH = 8;
     private TimeZone timeZone;
 
     protected static int MAX_MB = 2;
@@ -94,121 +90,4 @@ public class GoInsightApi extends BaseApi {
     }
 
 
-    public DataQueryResultObject findTemrinalData(String queryCode){
-        return findDataFromInsight(queryCode, null,null, null, false);
-    }
-
-    public DataQueryResultObject findTemrinalData(String queryCode, TimestampRangeType rangeType){
-        return findDataFromInsight(queryCode, rangeType,null, null, false);
-    }
-
-    public DataQueryResultObject findTemrinalData(String queryCode,  Integer pageNo, Integer pageSize){
-        return findDataFromInsight(queryCode, null,pageNo, pageSize, false);
-    }
-
-    public DataQueryResultObject findMerchantData(String queryCode){
-        return findDataFromInsight(queryCode, null,null, null, true);
-    }
-
-    public DataQueryResultObject findMerchantData(String queryCode, TimestampRangeType rangeType){
-        return findDataFromInsight(queryCode, rangeType,null, null, true);
-    }
-
-    public DataQueryResultObject findMerchantData(String queryCode,  Integer pageNo, Integer pageSize){
-        return findDataFromInsight(queryCode, null,pageNo, pageSize, false);
-    }
-
-    /**
-     * Get bizData from server
-     * @param queryCode the queryCode
-     * @param rangeType the rangeType
-     * @param pageNo the pageNo
-     * @param pageSize the pageSize
-     * @param isAllMerchant if is AllMerchant
-     * @return the query result
-     */
-    public DataQueryResultObject findDataFromInsight(String queryCode, TimestampRangeType rangeType, Integer pageNo, Integer pageSize, boolean isAllMerchant) {
-        if (queryCode != null && queryCode.length() != QUERY_CODE_LENGTH) {
-            DataQueryResultObject resultObject = getErrorResult("QueryCode length must be 8", -1);
-            return resultObject;
-        }
-        if (pageSize != null && (pageSize <=0 || pageSize > 1000)) {
-            DataQueryResultObject resultObject = getErrorResult("PageSize should between (0-1000]", -2);
-            return resultObject;
-        }
-        String replacedUrl = getBusinessDataUrl.replace("{queryCode}", queryCode);
-        SdkRequest request = new SdkRequest(replacedUrl);
-        request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
-        request.addHeader(Constants.REQ_HEADER_TIMEZONE, timeZone.getID());
-        request.addRequestParam("isAllMerchant", String.valueOf(isAllMerchant));
-        if (pageNo != null && pageNo > 0 && pageSize != null && pageSize > 0) {
-            request.addRequestParam("pageSize", pageSize+"");
-            request.addRequestParam("pageNo", pageNo+"");
-        }
-        if (rangeType != null) {
-            request.addRequestParam("timeRangeType", rangeType.val+"");
-        }
-        DataWrapperObject dataWrapperObject = JsonUtils.fromJson(call(request), DataWrapperObject.class);
-        DataQueryResultObject resultObject = dataWrapperObject.getData();
-        if (resultObject == null) {
-            resultObject = new DataQueryResultObject();
-        }
-        resultObject.setBusinessCode(dataWrapperObject.getBusinessCode());
-        resultObject.setMessage(dataWrapperObject.getMessage());
-        return resultObject;
-    }
-
-    private DataQueryResultObject getErrorResult(String message, int code) {
-        DataQueryResultObject resultObject = new DataQueryResultObject();
-        resultObject.setBusinessCode(code);
-        resultObject.setMessage(message);
-        return resultObject;
-    }
-
-
-    /**
-     * search GoInsight data，Timestamp RangeType
-     */
-    public enum TimestampRangeType {
-
-        LAST_HOUR("p1h"),
-        YESTERDAY("p1d"),
-        LAST_WEEK("p1w"),
-        LAST_MONTH("p1m"),
-        LAST_QUARTER("p1q"),
-        LAST_YEAR("p1y"),
-        LAST_YEAR_BY_QUARTER("p1ybq"),
-
-        RECENT_5_MIN("r5min"),
-        RECENT_30_MIN("r30min"),
-        RECENT_HOUR("r1h"),
-        RECENT_3_HOUR("r3h"),
-        RECENT_DAY("r1d"),
-        RECENT_2_DAY("r2d"),
-        RECENT_5_DAY("r5d"),
-        RECENT_WEEK("r1w"),
-        RECENT_MONTH("r1m"),
-        RECENT_3_MONTH("r3m"),
-        RECENT_3_MONTH_BY_WEEK("r3mbw"),
-        RECENT_6_MONTH("r6m"),
-        RECENT_YEAR("r1y"),
-        RECENT_YEAR_BY_QUARTER("r1ybq"),
-
-        THIS_HOUR("t1h"),
-        TODAY("t1d"),
-        THIS_WEEK("t1w"),
-        THIS_MONTH("t1m"),
-        THIS_QUARTER("t1q"),
-        THIS_QUARTER_BY_WEEK("t1qbw"),
-        THIS_YEAR("t1y"),
-        THIS_YEAR_BY_QUARTER("t1ybq");
-
-        TimestampRangeType(String val) {
-            this.val = val;
-        }
-        private final String val;
-        public String val() {
-            return this.val;
-        }
-    }
 }
