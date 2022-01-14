@@ -31,11 +31,11 @@ public class SyncMsgTagApi extends BaseApi {
      * @param detachTagNames The msg tabs to delete
      * @return the result
      */
-    public SdkObject syncMsgTab(List<String> attachTagNames, List<String> detachTagNames) {
+    public SdkObject syncMsgTag(List<String> attachTagNames, List<String> detachTagNames) {
         if ((attachTagNames == null && detachTagNames == null) || (attachTagNames != null && attachTagNames.isEmpty() && detachTagNames != null && detachTagNames.isEmpty())) {
             SdkObject sdkObject = new SdkObject();
             sdkObject.setBusinessCode(ERROR_CODE_TAB_EMPTY);
-            sdkObject.setMessage("TabNames and deleteTagNames cannot both be null");
+            sdkObject.setMessage("attachTagNames and detachTagNames cannot both be null");
             return sdkObject;
         }
         AppMsgTagSyncRequest appMsgTabSyncRequest = new AppMsgTagSyncRequest();
@@ -64,11 +64,11 @@ public class SyncMsgTagApi extends BaseApi {
     }
 
 
-    public SdkObject createMsgTab(List<String> tabNames) {
-        return syncMsgTab(tabNames, null);
+    public SdkObject attachMsgTag(List<String> tagNames) {
+        return syncMsgTag(tagNames, null);
     }
 
-    public SdkObject deleteMsgTab(List<String> deleteTabNames) {
-        return syncMsgTab(null, deleteTabNames);
+    public SdkObject detachMsgTag(List<String> tagNames) {
+        return syncMsgTag(null, tagNames);
     }
 }

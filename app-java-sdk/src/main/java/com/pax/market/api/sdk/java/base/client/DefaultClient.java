@@ -56,15 +56,15 @@ public class DefaultClient {
     /**
      * The Connect timeout.
      */
-    protected int connectTimeout = 30000; 			// 默认连接超时时间为30秒
+    protected int connectTimeout = 30000; 			// default timeout 30s
     /**
      * The Read timeout.
      */
-    protected int readTimeout = 30000; 				// 默认响应超时时间为30秒
+    protected int readTimeout = 30000; 				// default timeout 30s
 	/**
 	 * The Write timeout.
 	 */
-	protected int writeTimeout = 30000; 			// 默认响应超时时间为30秒
+	protected int writeTimeout = 30000; 			// default timeout 30s
 	/**
 	 * The proxy setting
 	 */
