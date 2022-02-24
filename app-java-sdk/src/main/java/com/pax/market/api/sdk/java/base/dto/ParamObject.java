@@ -37,6 +37,16 @@ public class ParamObject extends SdkObject {
     @SerializedName("wifiOnly")
     private boolean wifiOnly;
 
+
+    @SerializedName("cSignature")
+    private String cookieSignature;
+    @SerializedName("cEdxpires")
+    private String cookieExpires;
+    @SerializedName("cKeyPairId")
+    private String cookieKeyPairId;
+
+
+
     public long getActionId() {
         return actionId;
     }
@@ -93,6 +103,30 @@ public class ParamObject extends SdkObject {
         this.wifiOnly = wifiOnly;
     }
 
+    public String getCookieSignature() {
+        return cookieSignature;
+    }
+
+    public void setCookieSignature(String cookieSignature) {
+        this.cookieSignature = cookieSignature;
+    }
+
+    public String getCookieExpires() {
+        return cookieExpires;
+    }
+
+    public void setCookieExpires(String cookieExpires) {
+        this.cookieExpires = cookieExpires;
+    }
+
+    public String getCookieKeyPairId() {
+        return cookieKeyPairId;
+    }
+
+    public void setCookieKeyPairId(String cookieKeyPairId) {
+        this.cookieKeyPairId = cookieKeyPairId;
+    }
+
     @Override
     public String toString() {
         return "ParamObject{" +
@@ -103,6 +137,9 @@ public class ParamObject extends SdkObject {
                 ", paramVariables='" + paramVariables + '\'' +
                 ", md='" + md + '\'' +
                 ", wifiOnly=" + wifiOnly +
+                ", cookieSignature=" + (cookieSignature == null ? "null" :"not null")  +
+                ", cookieExpires=" + (cookieExpires == null ? "null" :"not null")  +
+                ", cookieKeyPairId=" + (cookieKeyPairId == null ? "null" :"not null")  +
                 '}';
     }
 }

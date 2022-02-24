@@ -191,6 +191,10 @@ public class ParamApi extends BaseApi {
     public DownloadResultObject downloadParamFileOnly(ParamObject paramObject, String saveFilePath) {
         SdkRequest request = new SdkRequest(paramObject.getDownloadUrl());
         request.setSaveFilePath(saveFilePath);
+        request.addHeader("CloudFront-Signature", paramObject.getCookieSignature());
+        request.addHeader("CloudFront-Expires", paramObject.getCookieExpires());
+        request.addHeader("CloudFront-Key-Pair-Id", paramObject.getCookieKeyPairId());
+
         String execute = download(request);
         SdkObject sdkObject = JsonUtils.fromJson(execute, SdkObject.class);
 
