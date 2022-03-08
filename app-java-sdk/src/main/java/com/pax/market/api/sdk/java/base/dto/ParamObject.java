@@ -37,13 +37,9 @@ public class ParamObject extends SdkObject {
     @SerializedName("wifiOnly")
     private boolean wifiOnly;
 
+    @SerializedName("downloadUrlDetail")
+    private CookieObject cookieDto; //下载cookies
 
-    @SerializedName("cSignature")
-    private String cookieSignature;
-    @SerializedName("cEdxpires")
-    private String cookieExpires;
-    @SerializedName("cKeyPairId")
-    private String cookieKeyPairId;
 
 
 
@@ -104,27 +100,32 @@ public class ParamObject extends SdkObject {
     }
 
     public String getCookieSignature() {
-        return cookieSignature;
-    }
-
-    public void setCookieSignature(String cookieSignature) {
-        this.cookieSignature = cookieSignature;
+        if (cookieDto != null) {
+            return cookieDto.getCookieSignature();
+        }
+        return null;
     }
 
     public String getCookieExpires() {
-        return cookieExpires;
-    }
-
-    public void setCookieExpires(String cookieExpires) {
-        this.cookieExpires = cookieExpires;
+        if (cookieDto != null) {
+            return cookieDto.getCookieExpires();
+        }
+        return null;
     }
 
     public String getCookieKeyPairId() {
-        return cookieKeyPairId;
+        if (cookieDto != null) {
+            return cookieDto.getCookieKeyPairId();
+        }
+        return null;
     }
 
-    public void setCookieKeyPairId(String cookieKeyPairId) {
-        this.cookieKeyPairId = cookieKeyPairId;
+    public CookieObject getCookieDto() {
+        return cookieDto;
+    }
+
+    public void setCookieDto(CookieObject cookieDto) {
+        this.cookieDto = cookieDto;
     }
 
     @Override
@@ -137,9 +138,7 @@ public class ParamObject extends SdkObject {
                 ", paramVariables='" + paramVariables + '\'' +
                 ", md='" + md + '\'' +
                 ", wifiOnly=" + wifiOnly +
-                ", cookieSignature=" + (cookieSignature == null ? "null" :"not null")  +
-                ", cookieExpires=" + (cookieExpires == null ? "null" :"not null")  +
-                ", cookieKeyPairId=" + (cookieKeyPairId == null ? "null" :"not null")  +
+                ", cookieDto=" + cookieDto +
                 '}';
     }
 }

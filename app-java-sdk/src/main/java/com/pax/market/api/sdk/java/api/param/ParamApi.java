@@ -181,6 +181,19 @@ public class ParamApi extends BaseApi {
        return getLastSuccessParm(null);
     }
 
+    private String cookieHeader(String signature, String expires, String keyPairId) {
+        StringBuilder cookieHeader = new StringBuilder();
+        if (expires == null && keyPairId == null) {
+            cookieHeader.append("CloudFront-Signature").append('=').append(signature);
+        } else {
+            cookieHeader.append("CloudFront-Signature").append('=').append(signature);
+            cookieHeader.append("; ");
+            cookieHeader.append("CloudFront-Expires").append('=').append(expires);
+            cookieHeader.append("; ");
+            cookieHeader.append("CloudFront-Key-Pair-Id").append('=').append(keyPairId);
+        }
+        return cookieHeader.toString();
+    }
     /**
      * Download param files
      *
@@ -191,9 +204,10 @@ public class ParamApi extends BaseApi {
     public DownloadResultObject downloadParamFileOnly(ParamObject paramObject, String saveFilePath) {
         SdkRequest request = new SdkRequest(paramObject.getDownloadUrl());
         request.setSaveFilePath(saveFilePath);
-        request.addHeader("CloudFront-Signature", paramObject.getCookieSignature());
-        request.addHeader("CloudFront-Expires", paramObject.getCookieExpires());
-        request.addHeader("CloudFront-Key-Pair-Id", paramObject.getCookieKeyPairId());
+        if (paramObject.getCookieSignature() != null) { // there exist cookies
+            String cookies = cookieHeader(paramObject.getCookieSignature(), paramObject.getCookieExpires(), paramObject.getCookieKeyPairId());
+            request.addHeader("Cookie", cookies);
+        }
 
         String execute = download(request);
         SdkObject sdkObject = JsonUtils.fromJson(execute, SdkObject.class);
