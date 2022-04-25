@@ -103,6 +103,10 @@ public class DefaultClient {
 		this.passwordAuthentication = builder.passwordAuthentication;
 	}
 
+	public String pingHosts(String dynamicHost, String staticHost) {
+    	return HttpUtils.pingHosts(dynamicHost, staticHost, proxy, basicAuthorization, passwordAuthentication);
+	}
+
     /**
      * Execute string.
      *
