@@ -63,7 +63,7 @@ public abstract class HttpUtils {
 
 	private static final int BUFFER_SIZE = 4096;
 	private static final String DEFAULT_CHARSET = Constants.CHARSET_UTF8;
-	private static Locale locale = Locale.CHINA;
+	private static Locale locale = Locale.ENGLISH;
 	public static final String IOEXCTION_FLAG = "IOException-";
 	private static final OkHttpClient OK_HTTP_CLIENT = new OkHttpClient();
 	private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
@@ -80,6 +80,54 @@ public abstract class HttpUtils {
 	private HttpUtils() {
 	}
 
+	public static String pingHosts(String dynamicHost, String staticHost, Proxy proxy, String basicAuthorization, PasswordAuthentication passwordAuthentication) {
+    	return pingHostItem(dynamicHost, proxy, basicAuthorization, passwordAuthentication) != null
+				? dynamicHost
+				: pingHostItem(staticHost, proxy, basicAuthorization, passwordAuthentication);
+	}
+
+	private static String pingHostItem(String host, Proxy proxy, String basicAuthorization, PasswordAuthentication passwordAuthentication) {
+		logger.error("Ping host start:");
+		HttpLoggingInterceptor mLoggingInterceptor = new HttpLoggingInterceptor();
+		mLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
+		OkHttpClient.Builder httpClientBuilder = OK_HTTP_CLIENT.newBuilder()
+				.addInterceptor(mLoggingInterceptor)
+				.retryOnConnectionFailure(false)
+				.connectTimeout(5, TimeUnit.SECONDS)
+				.readTimeout(5, TimeUnit.SECONDS)
+				.writeTimeout(5, TimeUnit.SECONDS);
+		boolean clearCredentials = false;
+		if (proxy != null) {
+			httpClientBuilder.proxy(proxy);
+			if (proxy.type() == Proxy.Type.HTTP && basicAuthorization != null) {
+				httpClientBuilder.proxyAuthenticator(new OkHttpAuthenticator(basicAuthorization));
+			} else if (proxy.type() == Proxy.Type.SOCKS && passwordAuthentication != null) {
+				clearCredentials = true;
+				java.net.Authenticator.setDefault(ThreadLocalProxyAuthenticator.getInstance());
+				ThreadLocalProxyAuthenticator.getInstance().setCredentials(passwordAuthentication);
+			} else {
+				httpClientBuilder.proxyAuthenticator(okhttp3.Authenticator.NONE);
+			}
+		}
+		try {
+			String pingHost = host;
+			if (host.endsWith("p-market-api/v1")) {
+				pingHost = host.substring(0, host.indexOf("p-market-api/v1"));
+			}
+			Response execute = httpClientBuilder.build()
+					.newCall(new Request.Builder().url(pingHost + "healthcheck/ping").build())
+					.execute();
+			logger.error("Ping host end:");
+			return host;
+		} catch (IOException e) {
+			logger.error("Ping failed: {}", e.toString());
+		} finally {
+			if (clearCredentials) {
+				ThreadLocalProxyAuthenticator.clearCredentials();
+			}
+		}
+		return null;
+	}
 	/**
 	 * Request string.
 	 *
