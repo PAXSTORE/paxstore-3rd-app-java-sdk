@@ -73,6 +73,10 @@ public class BaseApi {
         return getDefaultClient().execute(request);
     }
 
+    public String pingHosts(String dynamicHost, String staticHost) {
+        return getDefaultClient().pingHosts(dynamicHost, staticHost);
+    }
+
     public String download(SdkRequest request){
         return getDefaultDownloadClient().execute(request);
     }

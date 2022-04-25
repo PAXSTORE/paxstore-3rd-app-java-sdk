@@ -37,6 +37,12 @@ public class ParamObject extends SdkObject {
     @SerializedName("wifiOnly")
     private boolean wifiOnly;
 
+    @SerializedName("downloadUrlDetail")
+    private CookieObject cookieDto; //下载cookies
+
+
+
+
     public long getActionId() {
         return actionId;
     }
@@ -93,6 +99,35 @@ public class ParamObject extends SdkObject {
         this.wifiOnly = wifiOnly;
     }
 
+    public String getCookieSignature() {
+        if (cookieDto != null) {
+            return cookieDto.getCookieSignature();
+        }
+        return null;
+    }
+
+    public String getCookieExpires() {
+        if (cookieDto != null) {
+            return cookieDto.getCookieExpires();
+        }
+        return null;
+    }
+
+    public String getCookieKeyPairId() {
+        if (cookieDto != null) {
+            return cookieDto.getCookieKeyPairId();
+        }
+        return null;
+    }
+
+    public CookieObject getCookieDto() {
+        return cookieDto;
+    }
+
+    public void setCookieDto(CookieObject cookieDto) {
+        this.cookieDto = cookieDto;
+    }
+
     @Override
     public String toString() {
         return "ParamObject{" +
@@ -103,6 +138,7 @@ public class ParamObject extends SdkObject {
                 ", paramVariables='" + paramVariables + '\'' +
                 ", md='" + md + '\'' +
                 ", wifiOnly=" + wifiOnly +
+                ", cookieDto=" + cookieDto +
                 '}';
     }
 }

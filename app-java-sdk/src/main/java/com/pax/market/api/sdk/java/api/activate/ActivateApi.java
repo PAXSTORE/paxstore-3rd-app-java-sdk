@@ -2,6 +2,7 @@ package com.pax.market.api.sdk.java.api.activate;
 
 import com.pax.market.api.sdk.java.base.api.BaseApi;
 import com.pax.market.api.sdk.java.base.constant.Constants;
+import com.pax.market.api.sdk.java.base.constant.ResultCode;
 import com.pax.market.api.sdk.java.base.dto.ActivateObject;
 import com.pax.market.api.sdk.java.base.dto.SdkObject;
 import com.pax.market.api.sdk.java.base.request.SdkRequest;
@@ -27,11 +28,13 @@ public class ActivateApi extends BaseApi {
     }
 
     /**
-     *  Activate terminal with TID
-     * @param tid the tid
-     * @return the result
+     * Activate terminal with TID
+     * @param tid activate tid
+     * @param dynamicApiHost dynamic Api Host
+     * @param staticApiUrlHost static Api Url Host
+     * @return activate by tid result
      */
-    public SdkObject initByTID(String tid) {
+    public SdkObject initByTID(String tid, String dynamicApiHost, String staticApiUrlHost) {
         SdkRequest request = new SdkRequest(checkUpdateUrl);
         ActivateObject activateObject = new ActivateObject();
         activateObject.setTid(tid);
@@ -40,6 +43,17 @@ public class ActivateApi extends BaseApi {
         request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
         request.addHeader(Constants.REQ_HEADER_MODEL, model);
         request.setRequestBody(requestBody);
-        return JsonUtils.fromJson(call(request), SdkObject.class);
+        if (staticApiUrlHost == null) { // if no static url , then just try with dynamic url
+            return JsonUtils.fromJson(this.call(request), SdkObject.class);
+        } else {
+            String host = this.pingHosts(dynamicApiHost, staticApiUrlHost);
+            if (host != null) {
+                this.setBaseUrl(host);
+                return JsonUtils.fromJson(this.call(request), SdkObject.class);
+            } else {
+                return JsonUtils.fromJson(JsonUtils.getSdkJsonStr(ResultCode.NO_HOST_AVAILABLE.getCode(), "Bad network, no host available..."), SdkObject.class);
+            }
+        }
     }
+
 }
