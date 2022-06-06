@@ -13,6 +13,7 @@
 package com.pax.market.api.sdk.java.api.sync;
 
 import com.google.gson.Gson;
+import com.pax.market.api.sdk.java.api.sync.dto.AccessoryInfo;
 import com.pax.market.api.sdk.java.api.sync.dto.TerminalSyncInfo;
 import com.pax.market.api.sdk.java.base.api.BaseApi;
 import com.pax.market.api.sdk.java.base.constant.Constants;
@@ -33,6 +34,9 @@ public class SyncApi extends BaseApi {
      * The constant downloadParamUrl.
      */
     protected static String syncTerminalInfoUrl = "/3rdApps/info";
+
+    protected static String reBindUrl = "/3rdApps/rki/bind";
+
 
     public SyncApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
         super(baseUrl, appKey, appSecret, terminalSN);
@@ -78,5 +82,14 @@ public class SyncApi extends BaseApi {
         return JsonUtils.fromJson(call(request), SdkObject.class);
     }
 
+
+    public SdkObject bindOrUpdateAccessory(AccessoryInfo accessoryInfo) {
+        SdkRequest request = new SdkRequest(reBindUrl);
+        request.setRequestMethod(SdkRequest.RequestMethod.POST);
+        request.addHeader(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_JSON);
+        request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
+        request.setRequestBody(new Gson().toJson(accessoryInfo));
+        return JsonUtils.fromJson(call(request), SdkObject.class);
+    }
 }
 
