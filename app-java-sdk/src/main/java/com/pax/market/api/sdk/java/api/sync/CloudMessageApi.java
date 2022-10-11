@@ -10,16 +10,11 @@ import com.pax.market.api.sdk.java.base.util.JsonUtils;
 
 import java.util.List;
 
-/**
- * Created by john on 2021/10/25.
- * @deprecated use {@link CloudMessageApi}
- */
-@Deprecated
-public class SyncMsgTagApi extends BaseApi {
+public class CloudMessageApi extends BaseApi {
     protected static String syncMsgTagUrl = "/3rdApps/tag";
     protected static int ERROR_CODE_TAB_EMPTY = 1000;
 
-    public SyncMsgTagApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
+    public CloudMessageApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
         super(baseUrl, appKey, appSecret, terminalSN);
     }
 
@@ -32,9 +27,7 @@ public class SyncMsgTagApi extends BaseApi {
      * @param attachTagNames The msg tabs to create
      * @param detachTagNames The msg tabs to delete
      * @return the result
-     * @deprecated use {@link CloudMessageApi#syncMsgTag}
      */
-    @Deprecated
     public SdkObject syncMsgTag(List<String> attachTagNames, List<String> detachTagNames) {
         if ((attachTagNames == null && detachTagNames == null) || (attachTagNames != null && attachTagNames.isEmpty() && detachTagNames != null && detachTagNames.isEmpty())) {
             SdkObject sdkObject = new SdkObject();
@@ -60,12 +53,6 @@ public class SyncMsgTagApi extends BaseApi {
         return JsonUtils.fromJson(call(request), SdkObject.class);
     }
 
-    /**
-     *
-     * @deprecated use {@link CloudMessageApi#getAllTag}
-     * @return MsgTagObject All Message Tag
-     */
-    @Deprecated
     public MsgTagObject getAllTag() {
         SdkRequest request = new SdkRequest(syncMsgTagUrl);
         request.addHeader(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_JSON);
@@ -74,24 +61,10 @@ public class SyncMsgTagApi extends BaseApi {
     }
 
 
-    /**
-     *
-     * @deprecated use {@link CloudMessageApi#attachMsgTag}
-     * @param tagNames A list of string for tags
-     * @return SdkObject Attach Result
-     */
-    @Deprecated
     public SdkObject attachMsgTag(List<String> tagNames) {
         return syncMsgTag(tagNames, null);
     }
 
-    /**
-     *
-     * @deprecated use {@link CloudMessageApi#detachMsgTag}
-     * @param tagNames A list of string for tags
-     * @return SdkObject Detach Result
-     */
-    @Deprecated
     public SdkObject detachMsgTag(List<String> tagNames) {
         return syncMsgTag(null, tagNames);
     }
