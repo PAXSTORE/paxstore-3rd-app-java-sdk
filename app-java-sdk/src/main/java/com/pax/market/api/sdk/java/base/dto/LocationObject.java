@@ -4,25 +4,25 @@ import com.google.gson.annotations.SerializedName;
 
 public class LocationObject extends SdkObject{
     @SerializedName("lng")
-    private float longitude;
+    private Float longitude;
     @SerializedName("lat")
-    private float latitude;
+    private Float latitude;
     //This value is not returned by the server and is manually set by the sdk
     private Long lastLocateTime;
 
-    public float getLongitude() {
+    public Float getLongitude() {
         return longitude;
     }
 
-    public void setLongitude(float longitude) {
+    public void setLongitude(Float longitude) {
         this.longitude = longitude;
     }
 
-    public float getLatitude() {
+    public Float getLatitude() {
         return latitude;
     }
 
-    public void setLatitude(float latitude) {
+    public void setLatitude(Float latitude) {
         this.latitude = latitude;
     }
 
