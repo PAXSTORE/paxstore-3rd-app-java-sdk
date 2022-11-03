@@ -40,6 +40,7 @@ public class LocationObject extends SdkObject{
                 "longitude=" + longitude +
                 ", latitude=" + latitude +
                 ", lastLocateTime=" + lastLocateTime +
+                ", message=" + getMessage() +
                 '}';
     }
 }
