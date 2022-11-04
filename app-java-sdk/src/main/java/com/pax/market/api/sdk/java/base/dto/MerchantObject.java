@@ -18,6 +18,7 @@ public class MerchantObject extends SdkObject{
     public String toString() {
         return "MerchantObject{" +
                 "name='" + name + '\'' +
+                ", message=" + getMessage() +
                 '}';
     }
 }
