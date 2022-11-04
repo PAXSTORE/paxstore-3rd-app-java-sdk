@@ -11,7 +11,7 @@ import com.pax.market.api.sdk.java.base.util.JsonUtils;
 import java.util.List;
 
 public class CloudMessageApi extends BaseApi {
-    protected static String syncMsgTagUrl = "/3rdApps/tag";
+    protected static String syncMsgTagUrl = "v1/3rdApps/tag";
     protected static int ERROR_CODE_TAB_EMPTY = 1000;
 
     public CloudMessageApi(String baseUrl, String appKey, String appSecret, String terminalSN) {

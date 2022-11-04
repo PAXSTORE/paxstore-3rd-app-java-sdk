@@ -16,7 +16,7 @@ import java.util.List;
  */
 @Deprecated
 public class SyncMsgTagApi extends BaseApi {
-    protected static String syncMsgTagUrl = "/3rdApps/tag";
+    protected static String syncMsgTagUrl = "v1/3rdApps/tag";
     protected static int ERROR_CODE_TAB_EMPTY = 1000;
 
     public SyncMsgTagApi(String baseUrl, String appKey, String appSecret, String terminalSN) {

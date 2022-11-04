@@ -22,7 +22,7 @@ public class UpdateApi extends BaseApi {
     /**
      * The constant downloadParamUrl.
      */
-    protected static String checkUpdateUrl = "/3rdApps/upgrade";
+    protected static String checkUpdateUrl = "v1/3rdApps/upgrade";
 
     public UpdateApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
         super(baseUrl, appKey, appSecret, terminalSN);

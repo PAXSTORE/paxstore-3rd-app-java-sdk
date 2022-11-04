@@ -35,12 +35,12 @@ public class SyncApi extends BaseApi {
     /**
      * The constant downloadParamUrl.
      */
-    protected static String syncTerminalInfoUrl = "/3rdApps/info";
+    protected static String syncTerminalInfoUrl = "v1/3rdApps/info";
 
-    protected static String reBindUrl = "/3rdApps/rki/bind";
+    protected static String reBindUrl = "v1/3rdApps/rki/bind";
 
-    protected static String locationUrl = "/3rdApps/location";
-    protected static String merchantUrl = "/3rdApps/merchant";
+    protected static String locationUrl = "v1/3rdApps/location";
+    protected static String merchantUrl = "v1/3rdApps/merchant";
 
 
     public SyncApi(String baseUrl, String appKey, String appSecret, String terminalSN) {

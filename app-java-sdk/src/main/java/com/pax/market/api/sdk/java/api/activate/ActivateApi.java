@@ -21,7 +21,9 @@ public class ActivateApi extends BaseApi {
     /**
      * The constant downloadParamUrl.
      */
-    protected static String checkUpdateUrl = "/3rdApps/init";
+    protected static String checkUpdateUrl = "v1/3rdApps/init";
+
+    protected static String checkUpdateUrlV2 = "v2/3rdApps/init";
 
     public void setBaseUrl(String baseUrl) {
         super.getDefaultClient().setBaseUrl(baseUrl);
@@ -42,6 +44,40 @@ public class ActivateApi extends BaseApi {
         request.setRequestMethod(SdkRequest.RequestMethod.PUT);
         request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
         request.addHeader(Constants.REQ_HEADER_MODEL, model);
+        request.setRequestBody(requestBody);
+        if (staticApiUrlHost == null) { // if no static url , then just try with dynamic url
+            return JsonUtils.fromJson(this.call(request), SdkObject.class);
+        } else {
+            String host = this.pingHosts(dynamicApiHost, staticApiUrlHost);
+            if (host != null) {
+                this.setBaseUrl(host);
+                return JsonUtils.fromJson(this.call(request), SdkObject.class);
+            } else {
+                return JsonUtils.fromJson(JsonUtils.getSdkJsonStr(ResultCode.NO_HOST_AVAILABLE.getCode(), "Bad network, no host available..."), SdkObject.class);
+            }
+        }
+    }
+
+
+    /**
+     * Activate terminal with TID
+     * @param tid activate tid
+     * @param dynamicApiHost dynamic Api Host
+     * @param staticApiUrlHost static Api Url Host
+     * @param terminalCert terminal cert
+     * @return activate by tid result
+     */
+    public SdkObject SdkObject2initByTIDV2(String tid, String dynamicApiHost, String staticApiUrlHost, String terminalCert) {
+        SdkRequest request = new SdkRequest(checkUpdateUrlV2);
+        ActivateObject activateObject = new ActivateObject();
+        activateObject.setTid(tid);
+        String requestBody = JsonUtils.toJson(activateObject);
+        request.setRequestMethod(SdkRequest.RequestMethod.PUT);
+        request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
+        request.addHeader(Constants.REQ_TERMINAL_CERTIFICATE, terminalCert);
+        request.addHeader(Constants.REQ_HEADER_MODEL, model);
+
+
         request.setRequestBody(requestBody);
         if (staticApiUrlHost == null) { // if no static url , then just try with dynamic url
             return JsonUtils.fromJson(this.call(request), SdkObject.class);

@@ -18,7 +18,7 @@ public class CheckServiceApi  extends BaseApi {
     /**
      * The constant checkServiceUrl.
      */
-    protected static final String checkServiceUrl = "/3rdApps/service/{serviceType}/usable";
+    protected static final String checkServiceUrl = "v1/3rdApps/service/{serviceType}/usable";
 
     public CheckServiceApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
         super(baseUrl, appKey, appSecret, terminalSN);

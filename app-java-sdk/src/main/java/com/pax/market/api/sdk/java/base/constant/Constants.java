@@ -96,6 +96,8 @@ public class Constants {
      * The constant REQ_HEADER_SN.
      */
     public static final String REQ_HEADER_SN = "X-Terminal-SN";
+
+    public static final String REQ_TERMINAL_CERTIFICATE = "X-Terminal-Certificate";
     /**
      * The constant REQ_HEADER_MODEL.
      */
