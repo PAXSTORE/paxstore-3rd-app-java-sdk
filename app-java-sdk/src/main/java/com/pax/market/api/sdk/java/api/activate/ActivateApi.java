@@ -65,15 +65,17 @@ public class ActivateApi extends BaseApi {
      * @param dynamicApiHost dynamic Api Host
      * @param staticApiUrlHost static Api Url Host
      * @param terminalCert terminal cert
+     * @param certSn terminal cert
      * @return activate by tid result
      */
-    public SdkObject SdkObject2initByTIDV2(String tid, String dynamicApiHost, String staticApiUrlHost, String terminalCert) {
+    public SdkObject SdkObject2initByTIDV2(String tid, String dynamicApiHost, String staticApiUrlHost,
+                                           String terminalCert, String certSn) {
         SdkRequest request = new SdkRequest(checkUpdateUrlV2);
         ActivateObject activateObject = new ActivateObject();
         activateObject.setTid(tid);
         String requestBody = JsonUtils.toJson(activateObject);
         request.setRequestMethod(SdkRequest.RequestMethod.PUT);
-        request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
+        request.addHeader(Constants.REQ_HEADER_SN, certSn);
         request.addHeader(Constants.REQ_TERMINAL_CERTIFICATE, terminalCert);
         request.addHeader(Constants.REQ_HEADER_MODEL, model);
 
