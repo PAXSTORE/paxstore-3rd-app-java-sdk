@@ -29,11 +29,9 @@ public class PingApi extends BaseApi {
     /**
      * check if this app has update on PAXSTORE
      *
-     * @param versionCode versionCode of this app
-     * @param packageName packageName of this app
      * @return the update result
      */
-    public SdkObject ping(int versionCode, String packageName) {
+    public SdkObject ping() {
         logger.info("Check ping >>> ");
         SdkRequest request = new SdkRequest(pingUrl);
         request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
