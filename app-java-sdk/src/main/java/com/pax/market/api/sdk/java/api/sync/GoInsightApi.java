@@ -18,7 +18,7 @@ import java.util.TimeZone;
 public class GoInsightApi extends BaseApi {
 
     private final Logger logger = LoggerFactory.getLogger(SyncApi.class.getSimpleName());
-    protected static String sendBusinessDataUrl = "/3rdApps/goInsight/data/send";
+    protected static String sendBusinessDataUrl = "v1/3rdApps/goInsight/data/send";
     private TimeZone timeZone;
 
     protected static int MAX_MB = 2;

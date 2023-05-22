@@ -88,11 +88,19 @@ public class DefaultClient {
     public DefaultClient(String baseUrl, String appKey, String appSecret) {
 		this.appKey = appKey;
 		this.appSecret = appSecret;
-		this.baseUrl = baseUrl;
+		subV1InBaseUrl(baseUrl);
 	}
 
-	public DefaultClient(DefaultClient.Builder builder){
-		this.baseUrl = builder.baseUrl;
+	private void subV1InBaseUrl(String baseUrl) {
+		if (baseUrl != null && baseUrl.endsWith("v1")) {
+			this.baseUrl = baseUrl.substring(0, baseUrl.length() - 2);
+		} else {
+			this.baseUrl = baseUrl;
+		}
+	}
+
+	public DefaultClient(DefaultClient.Builder builder) {
+		subV1InBaseUrl(builder.baseUrl);
 		this.appKey = builder.appKey;
 		this.appSecret = builder.appSecret;
 		this.signMethod = builder.signMethod;
@@ -195,7 +203,7 @@ public class DefaultClient {
 	}
 
 	public void setBaseUrl(String baseUrl) {
-    	this.baseUrl = baseUrl;
+		subV1InBaseUrl(baseUrl);
 	}
 
 	public String getBaseUrl() {

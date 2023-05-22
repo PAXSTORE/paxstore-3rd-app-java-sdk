@@ -107,19 +107,19 @@ public class ParamApi extends BaseApi {
     /**
      * The constant downloadParamUrl.
      */
-    protected static String downloadParamUrl = "/3rdApps/param";
+    protected static String downloadParamUrl = "v1/3rdApps/param";
     /**
      * The constant updateStatusUrl.
      */
-    protected static String updateStatusUrl = "/3rdApps/actions/{actionId}/status";
+    protected static String updateStatusUrl = "v1/3rdApps/actions/{actionId}/status";
     /**
      * The constant updateStatusBatchUrl.
      */
-    protected static String updateStatusBatchUrl = "/3rdApps/actions";
+    protected static String updateStatusBatchUrl = "v1/3rdApps/actions";
     /**
      * Get last success param url
      */
-    protected static String lastSuccessParamUrl = "/3rdApps/param/last/success";
+    protected static String lastSuccessParamUrl = "v1/3rdApps/param/last/success";
 
     private final Logger logger = LoggerFactory.getLogger(ParamApi.class.getSimpleName());
 

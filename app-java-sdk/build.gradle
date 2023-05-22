@@ -1,5 +1,4 @@
 apply plugin: 'java-library'
-apply plugin: 'com.novoda.bintray-release'
 
 
 
@@ -42,13 +41,3 @@ compileJava.source generateSdkVersion.outputs.files, sourceSets.main.java
 sourceCompatibility = "1.8"
 targetCompatibility = "1.8"
 
-publish {
-    userOrg = 'paxstore-support'
-    repoName = 'paxstore'
-    groupId = 'com.pax.market'
-    artifactId = 'paxstore-3rd-app-java-sdk'
-    publishVersion = "${version}"
-    desc = 'Basic java APIs for third party developers to integrate their apps on PAXSTORE.'
-    website = 'https://github.com/PAXSTORE/paxstore-3rd-app-java-sdk'
-    licences = ["Apache-2.0"]
-}

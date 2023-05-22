@@ -17,6 +17,8 @@ import com.pax.market.api.sdk.java.api.sync.dto.AccessoryInfo;
 import com.pax.market.api.sdk.java.api.sync.dto.TerminalSyncInfo;
 import com.pax.market.api.sdk.java.base.api.BaseApi;
 import com.pax.market.api.sdk.java.base.constant.Constants;
+import com.pax.market.api.sdk.java.base.dto.LocationObject;
+import com.pax.market.api.sdk.java.base.dto.MerchantObject;
 import com.pax.market.api.sdk.java.base.dto.SdkObject;
 import com.pax.market.api.sdk.java.base.request.SdkRequest;
 import com.pax.market.api.sdk.java.base.util.JsonUtils;
@@ -33,9 +35,12 @@ public class SyncApi extends BaseApi {
     /**
      * The constant downloadParamUrl.
      */
-    protected static String syncTerminalInfoUrl = "/3rdApps/info";
+    protected static String syncTerminalInfoUrl = "v1/3rdApps/info";
 
-    protected static String reBindUrl = "/3rdApps/rki/bind";
+    protected static String reBindUrl = "v1/3rdApps/rki/bind";
+
+    protected static String locationUrl = "v1/3rdApps/location";
+    protected static String merchantUrl = "v1/3rdApps/merchant";
 
 
     public SyncApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
@@ -90,6 +95,22 @@ public class SyncApi extends BaseApi {
         request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
         request.setRequestBody(new Gson().toJson(accessoryInfo));
         return JsonUtils.fromJson(call(request), SdkObject.class);
+    }
+
+    public MerchantObject getMerchantInfo() {
+        SdkRequest request = new SdkRequest(merchantUrl);
+        request.setRequestMethod(SdkRequest.RequestMethod.GET);
+        request.addHeader(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_JSON);
+        request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
+        return JsonUtils.fromJson(call(request), MerchantObject.class);
+    }
+
+    public LocationObject getLocationInfo() {
+        SdkRequest request = new SdkRequest(locationUrl);
+        request.setRequestMethod(SdkRequest.RequestMethod.GET);
+        request.addHeader(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_JSON);
+        request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
+        return JsonUtils.fromJson(call(request), LocationObject.class);
     }
 }
 
