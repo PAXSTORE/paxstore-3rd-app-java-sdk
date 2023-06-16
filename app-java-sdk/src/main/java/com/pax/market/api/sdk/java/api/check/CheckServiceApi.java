@@ -57,4 +57,16 @@ public class CheckServiceApi  extends BaseApi {
         return JsonUtils.fromJson(call(request), ServiceAvailableObject.class);
     }
 
+    /**
+     * check if Solution service is subscribed according to the serviceType
+     *
+     * @return service available result
+     */
+    public ServiceAvailableObject checkSolutionAppAvailable() {
+        String replacedUrl = checkServiceUrl.replace("{serviceType}", "industry_solution");
+        logger.info("checkServiceUrl >>> " + replacedUrl);
+        SdkRequest request = new SdkRequest(replacedUrl);
+        request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
+        return JsonUtils.fromJson(call(request), ServiceAvailableObject.class);
+    }
 }
