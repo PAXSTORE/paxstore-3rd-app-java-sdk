@@ -30,7 +30,8 @@ public class CheckServiceApi  extends BaseApi {
 
     public enum ServiceType {
 
-        LAUNCHER_UP("launcherup");
+        LAUNCHER_UP("launcherup"),
+        INDUSTRY_SOLUTION("industry_solution");
 
         ServiceType(String value) {
             this.value = value;
@@ -63,10 +64,6 @@ public class CheckServiceApi  extends BaseApi {
      * @return service available result
      */
     public ServiceAvailableObject checkSolutionAppAvailable() {
-        String replacedUrl = checkServiceUrl.replace("{serviceType}", "industry_solution");
-        logger.info("checkServiceUrl >>> " + replacedUrl);
-        SdkRequest request = new SdkRequest(replacedUrl);
-        request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
-        return JsonUtils.fromJson(call(request), ServiceAvailableObject.class);
+        return checkServiceAvailable(ServiceType.INDUSTRY_SOLUTION);
     }
 }
