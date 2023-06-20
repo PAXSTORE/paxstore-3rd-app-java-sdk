@@ -30,7 +30,8 @@ public class CheckServiceApi  extends BaseApi {
 
     public enum ServiceType {
 
-        LAUNCHER_UP("launcherup");
+        LAUNCHER_UP("launcherup"),
+        INDUSTRY_SOLUTION("industry_solution");
 
         ServiceType(String value) {
             this.value = value;
@@ -57,4 +58,12 @@ public class CheckServiceApi  extends BaseApi {
         return JsonUtils.fromJson(call(request), ServiceAvailableObject.class);
     }
 
+    /**
+     * check if Solution service is subscribed according to the serviceType
+     *
+     * @return service available result
+     */
+    public ServiceAvailableObject checkSolutionAppAvailable() {
+        return checkServiceAvailable(ServiceType.INDUSTRY_SOLUTION);
+    }
 }
