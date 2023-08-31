@@ -40,6 +40,12 @@ public class ParamObject extends SdkObject {
     @SerializedName("downloadUrlDetail")
     private CookieObject cookieDto; //下载cookies
 
+    @SerializedName("sha256")
+    private String sha256;
+
+    @SerializedName("signature")
+    private String signature;
+
 
 
 
@@ -126,6 +132,23 @@ public class ParamObject extends SdkObject {
 
     public void setCookieDto(CookieObject cookieDto) {
         this.cookieDto = cookieDto;
+    }
+
+
+    public String getSha256() {
+        return sha256;
+    }
+
+    public void setSha256(String sha256) {
+        this.sha256 = sha256;
+    }
+
+    public String getSignature() {
+        return signature;
+    }
+
+    public void setSignature(String signature) {
+        this.signature = signature;
     }
 
     @Override
