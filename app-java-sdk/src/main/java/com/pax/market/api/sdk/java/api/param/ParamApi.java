@@ -169,7 +169,7 @@ public class ParamApi extends BaseApi {
     }
 
     /**
-     * Get terminal last success parm
+     * Get terminal last success param
      * @param paramTemplateName the template need to get
      * @return the param objet
      */
@@ -513,12 +513,12 @@ public class ParamApi extends BaseApi {
         return downloadLastSuccess(saveFilePath, paramTemplateName, false);
     }
 
-    public DownloadResultObject downloadLastSuccessWithShaCheck(String saveFilePath) {
+    public DownloadResultObject downloadLastSuccessWithSha256Check(String saveFilePath) {
         return mapToDownloadResult(saveFilePath,
                 downloadLastSuccess(saveFilePath, null, true));
     }
 
-    public DownloadResultObject downloadLastSuccessWithShaCheck(String saveFilePath, String paramTemplateName) {
+    public DownloadResultObject downloadLastSuccessWithSha256Check(String saveFilePath, String paramTemplateName) {
         return mapToDownloadResult(saveFilePath,
                 downloadLastSuccess(saveFilePath, paramTemplateName, true));
     }
