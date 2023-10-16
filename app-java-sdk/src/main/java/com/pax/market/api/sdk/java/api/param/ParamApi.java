@@ -11,6 +11,8 @@
  */
 package com.pax.market.api.sdk.java.api.param;
 
+import static com.pax.market.api.sdk.java.base.util.HttpUtils.IOEXCTION_FLAG;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
@@ -27,9 +29,11 @@ import com.pax.market.api.sdk.java.base.dto.UpdateActionObject;
 import com.pax.market.api.sdk.java.base.exception.ParseXMLException;
 import com.pax.market.api.sdk.java.base.request.SdkRequest;
 import com.pax.market.api.sdk.java.base.util.FileUtils;
+import com.pax.market.api.sdk.java.base.util.HMACSignatureGenerator;
 import com.pax.market.api.sdk.java.base.util.JsonUtils;
 import com.pax.market.api.sdk.java.base.util.Md5Utils;
 import com.pax.market.api.sdk.java.base.util.ReplaceUtils;
+import com.pax.market.api.sdk.java.base.util.SHA256Utils;
 import com.pax.market.api.sdk.java.base.util.ZipUtil;
 
 import org.dom4j.Document;
@@ -39,13 +43,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
-
-import static com.pax.market.api.sdk.java.base.util.HttpUtils.IOEXCTION_FLAG;
 
 
 /**
@@ -86,10 +90,10 @@ public class ParamApi extends BaseApi {
     public static final long RETRY_TIME_LIMIT = 10 * 24 * 3600_000L;
 
     /**
-     *Get last success param limit
+     * Get last success param limit
      */
     public static final long GET_SUCCESS_PARAM_LIMIT = 60_000L;
-
+    public static final String ERROR_CELLULAR_NOT_ALLOWED = "Cellular download not allowed";
     private static final String REQ_PARAM_PACKAGE_NAME = "packageName";
     private static final String REQ_PARAM_VERSION_CODE = "versionCode";
     private static final String REQ_PARAM_STATUS = "status";
@@ -99,9 +103,11 @@ public class ParamApi extends BaseApi {
     private static final String ERROR_REMARKS_REPLACE_VARIABLES = "Replace paramVariables failed";
     private static final String ERROR_REMARKS_NOT_GOOD_JSON = "Bad json : ";
     private static final String ERROR_REMARKS_VARIFY_MD_FAILED = "MD5 Validation Error";
+    private static final String ERROR_REMARKS_VARIFY_SHA256_OR_SIG_NOT_FOUND = "SHA256 or signature not found";
+    private static final String ERROR_REMARKS_VARIFY_SHA256_FAILED = "SHA256 Validation Error";
+    private static final String ERROR_REMARKS_VARIFY_SHA256_SIGNATURE_FAILED = "SHA256 signature Validation Error";
     private static final String ERROR_UNZIP_FAILED = "Unzip file failed";
     private static final String DOWNLOAD_SUCCESS = "Success";
-    public static final String ERROR_CELLULAR_NOT_ALLOWED = "Cellular download not allowed";
     private static final String SAVEPATH_CANNOT_BE_NULL = "Save path can not be empty";
 
     /**
@@ -121,12 +127,26 @@ public class ParamApi extends BaseApi {
      */
     protected static String lastSuccessParamUrl = "v1/3rdApps/param/last/success";
 
-    private final Logger logger = LoggerFactory.getLogger(ParamApi.class.getSimpleName());
+    private final Logger logger = LoggerFactory.getLogger(ParamApi.class);
 
     private long lastGetTime = -1;
 
     public ParamApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
         super(baseUrl, appKey, appSecret, terminalSN);
+    }
+
+    public String calculateSHA256(String filePath) {
+        File file = new File(filePath);
+        if (file.isFile() && file.exists()) {
+            try {
+                FileInputStream inputStream = new FileInputStream(file);
+
+                return  SHA256Utils.sha256Hex(inputStream);
+            } catch (IOException e) {
+                logger.error("calculateSHA256 error:" + e);
+            }
+        }
+        return null;
     }
 
     public void setBaseUrl(String baseUrl) {
@@ -149,11 +169,11 @@ public class ParamApi extends BaseApi {
     }
 
     /**
-     * Get terminal last success parm
-     * @param paramTemplateName  the template need to get
+     * Get terminal last success param
+     * @param paramTemplateName the template need to get
      * @return the param objet
      */
-    public ParamObject getLastSuccessParm(String paramTemplateName) {
+    public ParamObject getLastSuccessParam(String paramTemplateName) {
         logger.debug(lastGetTime + "");
 
         if (lastGetTime != -1 && System.currentTimeMillis() - lastGetTime < GET_SUCCESS_PARAM_LIMIT) {
@@ -177,8 +197,8 @@ public class ParamApi extends BaseApi {
         return paramObject;
     }
 
-    public ParamObject getLastSuccessParm() {
-       return getLastSuccessParm(null);
+    public ParamObject getLastSuccessParam() {
+        return getLastSuccessParam(null);
     }
 
     private String cookieHeader(String signature, String expires, String keyPairId) {
@@ -194,14 +214,20 @@ public class ParamApi extends BaseApi {
         }
         return cookieHeader.toString();
     }
+
     /**
      * Download param files
      *
      * @param paramObject  You can get ParamObject from getParamDownloadList();
      * @param saveFilePath Path that param files will be saved.
+     * @param needVerifySha need verify sha256 or not
      * @return the download result
      */
-    public DownloadResultObject downloadParamFileOnly(ParamObject paramObject, String saveFilePath) {
+    public DownloadResultObject downloadParamFileOnly(ParamObject paramObject, String saveFilePath, boolean needVerifySha) {
+        DownloadResultObject resultObject = new DownloadResultObject();
+        resultObject.setParamSavePath(saveFilePath);
+
+        // 0. prepare request
         SdkRequest request = new SdkRequest(paramObject.getDownloadUrl());
         request.setSaveFilePath(saveFilePath);
         if (paramObject.getCookieSignature() != null) { // there exist cookies
@@ -209,46 +235,145 @@ public class ParamApi extends BaseApi {
             request.addHeader("Cookie", cookies);
         }
 
+        // 1. download
         String execute = download(request);
-        SdkObject sdkObject = JsonUtils.fromJson(execute, SdkObject.class);
-
-        if (sdkObject.getBusinessCode() == ResultCode.SUCCESS.getCode()) {
-            //compare md，if md is null, pass
-            if (paramObject.getMd() == null || paramObject.getMd().equals("")
-                    || paramObject.getMd().equals(Md5Utils.getFileMD5(new File(sdkObject.getMessage())))) {
-                logger.debug("download file md5 is correct");
-                //Unzip zipfile and delete it
-                boolean unzipResult = ZipUtil.unzip(sdkObject.getMessage());
-                boolean deleteResult = FileUtils.deleteFile(sdkObject.getMessage());
-                if (!unzipResult || !deleteResult) {
-                    sdkObject.setBusinessCode(ResultCode.SDK_UNZIP_FAILED.getCode());
-                    sdkObject.setMessage(ERROR_UNZIP_FAILED);
-                } else {
-                    //replace file
-                    if (!ReplaceUtils.isHashMapJson(paramObject.getParamVariables())) {
-                        sdkObject.setBusinessCode(ResultCode.SDK_REPLACE_VARIABLES_FAILED.getCode());
-                        sdkObject.setMessage(ERROR_REMARKS_NOT_GOOD_JSON + paramObject.getParamVariables());
-                    } else {
-                        boolean ifReplaceSuccess = ReplaceUtils.replaceParams(saveFilePath, paramObject.getParamVariables());
-                        if (!ifReplaceSuccess) {
-                            logger.info("replace paramVariables failed");
-                            sdkObject.setBusinessCode(ResultCode.SDK_REPLACE_VARIABLES_FAILED.getCode());
-                            sdkObject.setMessage(ERROR_REMARKS_REPLACE_VARIABLES);
-                        }
-                    }
-                }
-            } else {
-                logger.debug("download file md5 is wrong");
-                sdkObject.setBusinessCode(ResultCode.SDK_MD_FAILED.getCode());
-                sdkObject.setMessage(ERROR_REMARKS_VARIFY_MD_FAILED);
-            }
+        SdkObject downloadResult = JsonUtils.fromJson(execute, SdkObject.class);
+        String parPath = downloadResult.getMessage();
+        if (downloadResult.getBusinessCode() != ResultCode.SUCCESS.getCode()) {
+            return mapToResult(resultObject, downloadResult);
         }
 
-        DownloadResultObject resultObject = new DownloadResultObject();
-        resultObject.setMessage(sdkObject.getMessage());
-        resultObject.setBusinessCode(sdkObject.getBusinessCode());
-        resultObject.setParamSavePath(saveFilePath);
+        // 2. verify
+        DownloadResultObject verifyResult = verifySHA256OrMd(paramObject, needVerifySha, resultObject, parPath);
+        if (verifyResult != null) {
+            return verifyResult;
+        }
+
+        // 3. unzip and replace param variables
+        SdkObject unzipFileAndDeletePar = unzipFileAndDeletePar(paramObject, saveFilePath, parPath);
+        if (unzipFileAndDeletePar.getBusinessCode() != 0) {
+            return mapToResult(resultObject, unzipFileAndDeletePar);
+        }
+
+        // all success
+        return mapToResult(resultObject, downloadResult);
+    }
+
+    private DownloadResultObject verifySHA256OrMd(ParamObject paramObject, boolean needVerifySha, DownloadResultObject resultObject, String parPath) {
+        if (needVerifySha) {
+            //compare sha256. if sha256 is null, fail
+            SdkObject verifyShaResult = verifySha256(paramObject, parPath);
+            if (verifyShaResult.getBusinessCode() != 0) {
+                return mapToResult(resultObject, verifyShaResult);
+            }
+        } else {
+            //compare md，if md is null, pass
+            if (!verifyMd5(paramObject, parPath)) {
+                resultObject.setBusinessCode(ResultCode.SDK_MD_FAILED.getCode());
+                resultObject.setMessage(ERROR_REMARKS_VARIFY_MD_FAILED);
+                return resultObject;
+            }
+        }
+        return null;
+    }
+
+    private DownloadResultObject mapToResult(DownloadResultObject resultObject, SdkObject downloadResult) {
+        resultObject.setMessage(downloadResult.getMessage());
+        resultObject.setBusinessCode(downloadResult.getBusinessCode());
         return resultObject;
+    }
+
+    /**
+     * verify the sha256 of the file
+     *
+     * @param paramObject  You can get ParamObject from getParamDownloadList();
+     * @param parPath Path that param files will be saved.
+     * @return SdkObject    the final result
+     */
+    private SdkObject verifySha256(ParamObject paramObject, String parPath) {
+        SdkObject sdkObject = new SdkObject();
+        if (paramObject.getSha256() == null || paramObject.getSignature() == null) {
+            logger.warn("sha256 or signature not found in task");
+            sdkObject.setBusinessCode(ResultCode.SDK_SHA256_OR_SIGNATURE_NOT_FOUND.getCode());
+            sdkObject.setMessage(ERROR_REMARKS_VARIFY_SHA256_OR_SIG_NOT_FOUND);
+            return sdkObject;
+        }
+
+        String localCalSHA256 = calculateSHA256(parPath);
+        if (!paramObject.getSha256().equals(localCalSHA256)) {
+            logger.warn("sha256 verify failed");
+            sdkObject.setBusinessCode(ResultCode.SDK_SHA256_FAILED.getCode());
+            sdkObject.setMessage(ERROR_REMARKS_VARIFY_SHA256_FAILED);
+            return sdkObject;
+        }
+
+        String localSignature = HMACSignatureGenerator.generateHmacSha256(localCalSHA256, getAppSecret());
+        if (!paramObject.getSignature().equals(localSignature)) {
+            logger.warn("signature verify failed");
+            sdkObject.setBusinessCode(ResultCode.SDK_SHA256_SIGNATURE_FAILED.getCode());
+            sdkObject.setMessage(ERROR_REMARKS_VARIFY_SHA256_SIGNATURE_FAILED);
+            return sdkObject;
+        }
+
+        // pass all verify, then success
+        sdkObject.setBusinessCode(ResultCode.SUCCESS.getCode());
+        return sdkObject;
+    }
+
+    /**
+     * verify the md5 of the file
+     *
+     * @param paramObject  You can get ParamObject from getParamDownloadList();
+     * @param parPath Path the par file exists
+     * @return boolean    the verify result
+     */
+    private boolean verifyMd5(ParamObject paramObject, String parPath) {
+        if (paramObject.getMd() == null || paramObject.getMd().equals("")
+                || paramObject.getMd().equals(Md5Utils.getFileMD5(new File(parPath)))) {
+            logger.debug("download file md5 is correct");
+           return true;
+        } else {
+            logger.warn("download file md5 is wrong");
+            return false;
+        }
+    }
+
+    /**
+     * unzip file to folder and delete par
+     *
+     * @param paramObject  You can get ParamObject from getParamDownloadList();
+     * @param saveFilePath Path that param files will be saved.
+     * @param parPath    the par path
+     * @return SdkObject the result
+     */
+    private SdkObject unzipFileAndDeletePar(ParamObject paramObject, String saveFilePath, String parPath) {
+        //Unzip zipfile and delete it
+        SdkObject sdkObject = new SdkObject();
+        boolean unzipResult = ZipUtil.unzip(parPath);
+        boolean deleteResult = FileUtils.deleteFile(parPath);
+        if (!unzipResult || !deleteResult) {
+            sdkObject.setBusinessCode(ResultCode.SDK_UNZIP_FAILED.getCode());
+            sdkObject.setMessage(ERROR_UNZIP_FAILED);
+            return sdkObject;
+        }
+
+        //replace file
+        if (!ReplaceUtils.isHashMapJson(paramObject.getParamVariables())) {
+            sdkObject.setBusinessCode(ResultCode.SDK_REPLACE_VARIABLES_FAILED.getCode());
+            sdkObject.setMessage(ERROR_REMARKS_NOT_GOOD_JSON + paramObject.getParamVariables());
+            return sdkObject;
+        }
+        boolean ifReplaceSuccess = ReplaceUtils.replaceParams(saveFilePath, paramObject.getParamVariables());
+        if (!ifReplaceSuccess) {
+            logger.warn("replace paramVariables failed");
+            sdkObject.setBusinessCode(ResultCode.SDK_REPLACE_VARIABLES_FAILED.getCode());
+            sdkObject.setMessage(ERROR_REMARKS_REPLACE_VARIABLES);
+            return sdkObject;
+        }
+
+        // unzip, delete and replace success
+        sdkObject.setBusinessCode(ResultCode.SUCCESS.getCode());
+        return sdkObject;
     }
 
 
@@ -256,7 +381,7 @@ public class ParamApi extends BaseApi {
      * update push task status
      *
      * @param actionId  Id of push task.
-     * @param remarks the remarks
+     * @param remarks   the remarks
      * @param status    result of push task：{ pending:1, success:2, fail:3 }
      * @param errorCode error code { None error code:0 }
      * @return the update result
@@ -274,6 +399,7 @@ public class ParamApi extends BaseApi {
 
     /**
      * Update push task result in a batch.
+     *
      * @param updateActionObjectList the update action list
      * @return the update result
      */
@@ -287,19 +413,30 @@ public class ParamApi extends BaseApi {
         return JsonUtils.fromJson(call(request), SdkObject.class);
     }
 
+    public InnerDownloadResultObject downloadParamToPath(String packageName, int versionCode, String saveFilePath,
+                                                         LastFailObject lastFailObject, boolean mobileNetAvailable) {
+        return downloadParams(packageName, versionCode, saveFilePath, lastFailObject, mobileNetAvailable, false);
+    }
+
+    public InnerDownloadResultObject downloadParamsWithShaCheck(String packageName, int versionCode, String saveFilePath,
+                                                                LastFailObject lastFailObject, boolean mobileNetAvailable) {
+        return downloadParams(packageName, versionCode, saveFilePath, lastFailObject, mobileNetAvailable, true);
+    }
 
     /**
      * Download param files to specific folder
      *
-     * @param packageName the packageName
-     * @param versionCode the versionCode
-     * @param saveFilePath the saveFilePath
-     * @param lastFailObject the lastFailObject
-     * @param mobileNetAvailable  the network available
+     * @param packageName        the packageName
+     * @param versionCode        the versionCode
+     * @param saveFilePath       the saveFilePath
+     * @param lastFailObject     the lastFailObject
+     * @param mobileNetAvailable the network available
+     * @param verySha256 need verify SHA256 or not
      * @return the result
      */
-    public InnerDownloadResultObject downloadParamToPath(String packageName, int versionCode, String saveFilePath,
-                                                         LastFailObject lastFailObject, boolean mobileNetAvailable) {
+    public InnerDownloadResultObject downloadParams(String packageName, int versionCode, String saveFilePath,
+                                                    LastFailObject lastFailObject, boolean mobileNetAvailable,
+                                                    boolean verySha256) {
         logger.debug("downloadParamToPath: start");
         InnerDownloadResultObject result = new InnerDownloadResultObject();
         if (saveFilePath == null || "".equals(saveFilePath.trim())) {
@@ -338,7 +475,7 @@ public class ParamApi extends BaseApi {
                 result.setMessage(ERROR_CELLULAR_NOT_ALLOWED);
                 return result;
             }
-            SdkObject sdkObject = downloadParamFileOnly(paramObject, saveFilePath);
+            SdkObject sdkObject = downloadParamFileOnly(paramObject, saveFilePath, verySha256);
             if (sdkObject.getBusinessCode() != ResultCode.SUCCESS.getCode()) {
                 setIOExceptionResult(lastFailObject, result, paramObject, sdkObject);
                 result.setBusinessCode(sdkObject.getBusinessCode());
@@ -369,10 +506,35 @@ public class ParamApi extends BaseApi {
     }
 
     public InnerDownloadResultObject downloadLastSuccessParmToPath(String savePath) {
-        return downloadLastSuccessParmToPath(savePath, null);
+        return downloadLastSuccess(savePath, null, false);
     }
 
     public InnerDownloadResultObject downloadLastSuccessParmToPath(String saveFilePath, String paramTemplateName) {
+        return downloadLastSuccess(saveFilePath, paramTemplateName, false);
+    }
+
+    public DownloadResultObject downloadLastSuccessWithSha256Check(String saveFilePath) {
+        return mapToDownloadResult(saveFilePath,
+                downloadLastSuccess(saveFilePath, null, true));
+    }
+
+    public DownloadResultObject downloadLastSuccessWithSha256Check(String saveFilePath, String paramTemplateName) {
+        return mapToDownloadResult(saveFilePath,
+                downloadLastSuccess(saveFilePath, paramTemplateName, true));
+    }
+
+    public DownloadResultObject mapToDownloadResult(String saveFilePath, InnerDownloadResultObject downloadResultObject) {
+        DownloadResultObject resultObject = new DownloadResultObject();
+        resultObject.setMessage(downloadResultObject.getMessage());
+        resultObject.setBusinessCode(downloadResultObject.getBusinessCode());
+        resultObject.setParamSavePath(saveFilePath);
+        if (resultObject.getBusinessCode() != 0) {
+            logger.error("Download Result:" + "errorCode: " + resultObject.getBusinessCode() + " errorMessage: " + resultObject.getMessage());
+        }
+        return resultObject;
+    }
+
+    public InnerDownloadResultObject downloadLastSuccess(String saveFilePath, String paramTemplateName, boolean needVerifySha) {
         logger.debug("downloadLastSuccessParmToPath: start");
         InnerDownloadResultObject result = new InnerDownloadResultObject();
         if (saveFilePath == null || "".equals(saveFilePath.trim())) {
@@ -383,9 +545,9 @@ public class ParamApi extends BaseApi {
         result.setParamSavePath(saveFilePath);
         ParamObject paramObject;
         if (paramTemplateName != null) {
-             paramObject = getLastSuccessParm(paramTemplateName);
+            paramObject = getLastSuccessParam(paramTemplateName);
         } else {
-            paramObject = getLastSuccessParm();
+            paramObject = getLastSuccessParam();
         }
 
         if (paramObject.getBusinessCode() != ResultCode.SUCCESS.getCode()) {
@@ -397,12 +559,12 @@ public class ParamApi extends BaseApi {
         saveFilePath = saveFilePath + File.separator + paramObject.getActionId();
         String remarks = null;
 
-        SdkObject sdkObject = downloadParamFileOnly(paramObject, saveFilePath);
+        SdkObject sdkObject = downloadParamFileOnly(paramObject, saveFilePath, needVerifySha);
         if (sdkObject.getBusinessCode() != ResultCode.SUCCESS.getCode()) {
             result.setBusinessCode(sdkObject.getBusinessCode());
             result.setMessage(sdkObject.getMessage());
             remarks = sdkObject.getMessage();
-            logger.debug("download error remarks: " + remarks);
+            logger.warn("download error remarks: " + remarks);
         }
 
 
@@ -420,10 +582,7 @@ public class ParamApi extends BaseApi {
     }
 
     /**
-     * @param lastFailObject
-     * @param result
-     * @param paramObject
-     * @param sdkObject
+     *
      */
     private void setIOExceptionResult(LastFailObject lastFailObject, InnerDownloadResultObject result, ParamObject paramObject, SdkObject sdkObject) {
         if (sdkObject.getMessage() != null && sdkObject.getMessage().contains(IOEXCTION_FLAG)) {
@@ -504,7 +663,7 @@ public class ParamApi extends BaseApi {
                 throw new ParseXMLException(e);
             }
         } else {
-            logger.info("parseDownloadParamXml: file is null, please make sure the file is correct.");
+            logger.warn("parseDownloadParamXml: file is null, please make sure the file is correct.");
         }
         return resultMap;
     }
@@ -527,7 +686,7 @@ public class ParamApi extends BaseApi {
                     return gson.fromJson(fileString, type);
                 }
             } catch (Exception e) {
-                logger.error("Read file error", e);
+                logger.error("Read file error" + e);
                 throw new JsonParseException(e.getMessage());
             }
         }
@@ -557,7 +716,7 @@ public class ParamApi extends BaseApi {
                 throw new ParseXMLException(e);
             }
         } else {
-            logger.info("parseDownloadParamXmlWithOrder: file is null, please make sure the file is correct.");
+            logger.warn("parseDownloadParamXmlWithOrder: file is null, please make sure the file is correct.");
         }
         return resultMap;
     }

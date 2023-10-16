@@ -1,5 +1,6 @@
 apply plugin: 'java-library'
 
+import java.util.regex.Pattern
 
 
 apply from: "${rootProject.projectDir}/publish-mavencentral.gradle"
@@ -16,8 +17,36 @@ dependencies {
 }
 
 
+def validateString(String inputString) {
+
+    if (inputString.endsWith("-SNAPSHOT")) {
+        inputString = inputString.replace("-SNAPSHOT", "")
+    }
+
+    // 定义正则表达式模式
+    def pattern = Pattern.compile("[0-9]+(\\.[0-9]+)*")
+
+    // 匹配输入字符串与模式
+    def matcher = pattern.matcher(inputString)
+
+    // 检查是否完全匹配
+    def isMatch = matcher.matches()
+
+    if (!isMatch) {
+        throw new IllegalArgumentException("The version naming does not comply with the standard: "+
+                inputString + " >> If you want to release a temporary version for testing, you can " +
+                "temporarily close the validateString (version) method on line 46 of the build. " +
+                "gradle file under the SDK module")
+    }
+}
+
+
 task generateSdkVersion {
+
+// 调用验证函数
     inputs.property "version", "${version}"
+    validateString(version) // 替换为您要验证的字符串
+
     outputs.dir "$buildDir/generated"
     doFirst {
         def versionFile = file("$buildDir/generated/com/pax/market/api/sdk/java/Version.java")

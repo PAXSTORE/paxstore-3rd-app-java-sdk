@@ -31,10 +31,12 @@ public class BaseApi {
     private String terminalSN;
     private String appKey;
     private DefaultClient client;
+    private String appSecret;
 
     public BaseApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
         this.terminalSN = terminalSN;
         this.appKey = appKey;
+        this.appSecret = appSecret;
         this.client = new DefaultClient(baseUrl, appKey, appSecret);
     }
 
@@ -48,6 +50,10 @@ public class BaseApi {
 
     public String getAppKey() {
         return appKey;
+    }
+
+    public String getAppSecret() {
+        return appSecret;
     }
 
     public <T extends BaseApi> T setProxyDelegate(ProxyDelegate proxyDelegate) {
