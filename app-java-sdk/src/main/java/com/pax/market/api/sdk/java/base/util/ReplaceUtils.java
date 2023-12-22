@@ -8,18 +8,13 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import com.pax.market.api.sdk.java.base.constant.Constants;
 import com.pax.market.api.sdk.java.base.dto.ParamsVariableObject;
-import com.pax.market.api.sdk.java.base.exception.ParseXMLException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.ReversedLinesFileReader;
-import org.dom4j.Document;
-import org.dom4j.Element;
-import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -337,33 +332,6 @@ public class ReplaceUtils {
         return Matcher.quoteReplacement(buf.toString());
     }
 
-    /**
-     * parse the downloaded parameter xml file, convert the xml elements to HashMap String,String
-     * this method will not keep the xml fields order. HashMap will have a better performance.
-     *
-     * @param transMessage the message
-     * @return HashMap with key/value of xml elements
-     * @throws ParseXMLException the exception
-     */
-    public HashMap<String, String> parseDownloadParamXml(String transMessage) throws ParseXMLException {
-        HashMap<String, String> resultMap = new HashMap<>();
-        if (transMessage != null && !transMessage.isEmpty()) {
-            try {
-                SAXReader saxReader = new SAXReader();
-                Document document = saxReader.read(new ByteArrayInputStream(transMessage.getBytes("UTF-8")));
-                Element root = document.getRootElement();
-                for (Iterator it = root.elementIterator(); it.hasNext(); ) {
-                    Element element = (Element) it.next();
-                    resultMap.put(element.getName(), element.getText());
-                }
-            } catch (Exception e) {
-                throw new ParseXMLException(e);
-            }
-        } else {
-            logger.info("parseDownloadParamXml: file is null, please make sure the file is correct.");
-        }
-        return resultMap;
-    }
 
 
 }
