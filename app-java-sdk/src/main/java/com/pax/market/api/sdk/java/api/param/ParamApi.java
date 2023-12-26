@@ -671,7 +671,7 @@ public class ParamApi extends BaseApi {
         return null;
     }
 
-    public static HashMap<String, String> parseDownloadParamXml(File xmlFile) throws Exception{
+    public HashMap<String, String> parseDownloadParamXml(File xmlFile) throws ParseXMLException{
         HashMap<String, String> xmlData = new HashMap<>();
         if (!xmlFile.exists() || !xmlFile.isFile()) {
             System.out.println("parseDownloadParamXml error, File not exists or not a valid xml");
@@ -680,11 +680,10 @@ public class ParamApi extends BaseApi {
         try {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-            // 使用UTF-8编码读取XML文件
+
             InputStreamReader isr = new InputStreamReader(new FileInputStream(xmlFile), StandardCharsets.UTF_8);
             Document doc = dBuilder.parse(new InputSource(isr));
 
-            // 忽略根节点，直接获取子节点
             NodeList nodeList = doc.getDocumentElement().getChildNodes();
             for (int i = 0; i < nodeList.getLength(); i++) {
                 Node node = nodeList.item(i);
@@ -699,7 +698,7 @@ public class ParamApi extends BaseApi {
         return xmlData;
     }
 
-    public static LinkedHashMap<String, String> parseDownloadParamXmlWithOrder(File xmlFile) throws Exception{
+    public LinkedHashMap<String, String> parseDownloadParamXmlWithOrder(File xmlFile) throws ParseXMLException{
         LinkedHashMap<String, String> xmlData = new LinkedHashMap<>();
         if (!xmlFile.exists() || !xmlFile.isFile()) {
             System.out.println("parseDownloadParamXmlWithOrder error, File not exists or not a valid xml");
@@ -708,11 +707,10 @@ public class ParamApi extends BaseApi {
         try {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-            // 使用UTF-8编码读取XML文件
+
             InputStreamReader isr = new InputStreamReader(new FileInputStream(xmlFile), StandardCharsets.UTF_8);
             Document doc = dBuilder.parse(new InputSource(isr));
 
-            // 忽略根节点，直接获取子节点
             NodeList nodeList = doc.getDocumentElement().getChildNodes();
             for (int i = 0; i < nodeList.getLength(); i++) {
                 Node node = nodeList.item(i);

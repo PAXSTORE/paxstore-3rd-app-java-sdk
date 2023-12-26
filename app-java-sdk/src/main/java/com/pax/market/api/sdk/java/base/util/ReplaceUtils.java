@@ -8,24 +8,33 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import com.pax.market.api.sdk.java.base.constant.Constants;
 import com.pax.market.api.sdk.java.base.dto.ParamsVariableObject;
+import com.pax.market.api.sdk.java.base.exception.ParseXMLException;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.input.ReversedLinesFileReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 
 /**
  * Created by zhangchenyang on 2018/2/26.
@@ -332,6 +341,37 @@ public class ReplaceUtils {
         return Matcher.quoteReplacement(buf.toString());
     }
 
-
+    /**
+     * parse the downloaded parameter xml file, convert the xml elements to HashMap String,String
+     * this method will not keep the xml fields order. HashMap will have a better performance.
+     *
+     * @param transMessage the message
+     * @return HashMap with key/value of xml elements
+     * @throws ParseXMLException the exception
+     */
+    public HashMap<String, String> parseDownloadParamXml(String transMessage) throws ParseXMLException {
+        HashMap<String, String> resultMap = new HashMap<>();
+        if (transMessage == null || transMessage.isEmpty()) {
+            logger.info("parseDownloadParamXml: file is null, please make sure the file is correct.");
+            return resultMap;
+        }
+        try {
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            ByteArrayInputStream input = new ByteArrayInputStream(transMessage.getBytes(StandardCharsets.UTF_8));
+            Document document = builder.parse(input);
+            Element root = document.getDocumentElement();
+            NodeList nodeList = root.getChildNodes();
+            for (int i = 0; i < nodeList.getLength(); i++) {
+                if (nodeList.item(i) instanceof Element) {
+                    Element element = (Element) nodeList.item(i);
+                    resultMap.put(element.getNodeName(), element.getTextContent());
+                }
+            }
+        } catch (Exception e) {
+            throw new ParseXMLException(e);
+        }
+        return resultMap;
+    }
 
 }
