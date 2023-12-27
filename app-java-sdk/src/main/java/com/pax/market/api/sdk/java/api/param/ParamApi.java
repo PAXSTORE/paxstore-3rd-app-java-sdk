@@ -11,8 +11,6 @@
  */
 package com.pax.market.api.sdk.java.api.param;
 
-import static com.pax.market.api.sdk.java.base.util.HttpUtils.IOEXCTION_FLAG;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
@@ -36,20 +34,28 @@ import com.pax.market.api.sdk.java.base.util.ReplaceUtils;
 import com.pax.market.api.sdk.java.base.util.SHA256Utils;
 import com.pax.market.api.sdk.java.base.util.ZipUtil;
 
-import org.dom4j.Document;
-import org.dom4j.Element;
-import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.xml.sax.InputSource; // 引入org.xml.sax.InputSource
+
+import static com.pax.market.api.sdk.java.base.util.HttpUtils.IOEXCTION_FLAG;
 
 
 /**
@@ -641,34 +647,6 @@ public class ParamApi extends BaseApi {
     }
 
     /**
-     * parse the downloaded parameter xml file, convert the xml elements to HashMap String,String
-     * this method will not keep the xml fields order. HashMap will have a better performance.
-     *
-     * @param file the downloaded xml
-     * @return HashMap with key/value of xml elements
-     * @throws ParseXMLException the exception
-     */
-    public HashMap<String, String> parseDownloadParamXml(File file) throws ParseXMLException {
-        HashMap<String, String> resultMap = new HashMap<>();
-        if (file != null) {
-            try {
-                SAXReader saxReader = new SAXReader();
-                Document document = saxReader.read(file);
-                Element root = document.getRootElement();
-                for (Iterator it = root.elementIterator(); it.hasNext(); ) {
-                    Element element = (Element) it.next();
-                    resultMap.put(element.getName(), element.getText());
-                }
-            } catch (Exception e) {
-                throw new ParseXMLException(e);
-            }
-        } else {
-            logger.warn("parseDownloadParamXml: file is null, please make sure the file is correct.");
-        }
-        return resultMap;
-    }
-
-    /**
      * @param file the file
      * @return the list
      * @throws JsonParseException the exception
@@ -693,33 +671,58 @@ public class ParamApi extends BaseApi {
         return null;
     }
 
-    /**
-     * parse the downloaded parameter xml file, convert the xml elements to LinkedHashMap String,String
-     * this method will keep the xml fields order. LinkedHashMap performance is slower than HashMap
-     *
-     * @param file the downloaded xml
-     * @return LinkedHashMap with key/value of xml elements
-     * @throws ParseXMLException the exception
-     */
-    public LinkedHashMap<String, String> parseDownloadParamXmlWithOrder(File file) throws ParseXMLException {
-        LinkedHashMap<String, String> resultMap = new LinkedHashMap<>();
-        if (file != null) {
-            try {
-                SAXReader saxReader = new SAXReader();
-                Document document = saxReader.read(file);
-                Element root = document.getRootElement();
-                for (Iterator it = root.elementIterator(); it.hasNext(); ) {
-                    Element element = (Element) it.next();
-                    resultMap.put(element.getName(), element.getText());
-                }
-            } catch (Exception e) {
-                throw new ParseXMLException(e);
-            }
-        } else {
-            logger.warn("parseDownloadParamXmlWithOrder: file is null, please make sure the file is correct.");
+    public HashMap<String, String> parseDownloadParamXml(File xmlFile) throws ParseXMLException{
+        HashMap<String, String> xmlData = new HashMap<>();
+        if (!xmlFile.exists() || !xmlFile.isFile()) {
+            System.out.println("parseDownloadParamXml error, File not exists or not a valid xml");
+            return xmlData;
         }
-        return resultMap;
+        try {
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+
+            InputStreamReader isr = new InputStreamReader(new FileInputStream(xmlFile), StandardCharsets.UTF_8);
+            Document doc = dBuilder.parse(new InputSource(isr));
+
+            NodeList nodeList = doc.getDocumentElement().getChildNodes();
+            for (int i = 0; i < nodeList.getLength(); i++) {
+                Node node = nodeList.item(i);
+                if (node.getNodeType() == Node.ELEMENT_NODE) {
+                    Element element = (Element) node;
+                    xmlData.put(element.getNodeName(), element.getTextContent());
+                }
+            }
+        } catch (Exception e) {
+            throw new ParseXMLException(e);
+        }
+        return xmlData;
     }
 
+    public LinkedHashMap<String, String> parseDownloadParamXmlWithOrder(File xmlFile) throws ParseXMLException{
+        LinkedHashMap<String, String> xmlData = new LinkedHashMap<>();
+        if (!xmlFile.exists() || !xmlFile.isFile()) {
+            System.out.println("parseDownloadParamXmlWithOrder error, File not exists or not a valid xml");
+            return xmlData;
+        }
+        try {
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+
+            InputStreamReader isr = new InputStreamReader(new FileInputStream(xmlFile), StandardCharsets.UTF_8);
+            Document doc = dBuilder.parse(new InputSource(isr));
+
+            NodeList nodeList = doc.getDocumentElement().getChildNodes();
+            for (int i = 0; i < nodeList.getLength(); i++) {
+                Node node = nodeList.item(i);
+                if (node.getNodeType() == Node.ELEMENT_NODE) {
+                    Element element = (Element) node;
+                    xmlData.put(element.getNodeName(), element.getTextContent());
+                }
+            }
+        } catch (Exception e) {
+            throw new ParseXMLException(e);
+        }
+        return xmlData;
+    }
 
 }
