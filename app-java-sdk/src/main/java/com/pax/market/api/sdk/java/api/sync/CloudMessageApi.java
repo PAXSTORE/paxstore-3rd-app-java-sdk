@@ -14,8 +14,21 @@ public class CloudMessageApi extends BaseApi {
     protected static String syncMsgTagUrl = "v1/3rdApps/tag";
     protected static int ERROR_CODE_TAB_EMPTY = 1000;
 
+    private static CloudMessageApi instance = null;
+
     public CloudMessageApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
         super(baseUrl, appKey, appSecret, terminalSN);
+    }
+
+    public static CloudMessageApi getInstance(String baseUrl, String appKey, String appSecret, String terminalSN) {
+        if (instance == null) {
+            instance = new CloudMessageApi(baseUrl, appKey, appSecret, terminalSN);
+        }
+        return instance;
+    }
+
+    public static CloudMessageApi getInstance() {
+        return instance;
     }
 
     public void setBaseUrl(String baseUrl) {
@@ -23,7 +36,8 @@ public class CloudMessageApi extends BaseApi {
     }
 
     /**
-     *  Sync app msg tab
+     * Sync app msg tab
+     *
      * @param attachTagNames The msg tabs to create
      * @param detachTagNames The msg tabs to delete
      * @return the result
