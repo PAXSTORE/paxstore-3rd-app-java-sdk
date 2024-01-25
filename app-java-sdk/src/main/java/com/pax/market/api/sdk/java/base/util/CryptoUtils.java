@@ -24,11 +24,8 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Map;
 
-import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
 import javax.crypto.Mac;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
@@ -37,7 +34,6 @@ import javax.crypto.spec.SecretKeySpec;
 public class CryptoUtils {
     private static final Logger logger = LoggerFactory.getLogger(CryptoUtils.class);
 
-    private static final String AES = "AES";
     private static final String AES_CBC = "AES/CBC/PKCS5Padding";
 
     public static final int DEFAULT_AES_KEY_SIZE = 128;
@@ -192,194 +188,6 @@ public class CryptoUtils {
             sign.append(hex.toUpperCase());
         }
         return sign.toString();
-    }
-
-
-    /**
-     * Use AES to encrypt the original string.
-     *
-     * @param input Encrypted content
-     * @param secret Encryption key
-     * @return base64 encoded string
-     */
-    public static String aesEncrypt(String input, String secret) {
-        byte[] secretBytes = AlgHelper.hexStringToBytes(secret);
-        byte[] secretKey = KeyUtils.genSecretKey(secretBytes);
-        String result = null;
-        try {
-            result = bytesToHexString(aesEncrypt(input.getBytes(Constants.CHARSET_UTF8), secretKey));
-        } catch (Exception e) {
-            logger.error("AES encrypt ex", e);
-        }
-        return result;
-    }
-
-    /**
-     * Use AES to encrypt the original string.
-     *
-     * @param input Original input character array
-     * @param key   A key that meets AES requirements
-     * @return the byte [ ]
-     */
-    public static byte[] aesEncrypt(byte[] input, byte[] key) {
-        return aes(input, key, Cipher.ENCRYPT_MODE);
-    }
-
-    /**
-     * Use AES to encrypt the original string.
-     *
-     * @param input Original input character array
-     * @param key   A key that meets AES requirements
-     * @param iv    Initial vector
-     * @return the byte [ ]
-     */
-    public static byte[] aesEncrypt(byte[] input, byte[] key, byte[] iv) {
-        return aes(input, key, iv, Cipher.ENCRYPT_MODE);
-    }
-
-    /**
-     * Use AES to decrypt the string and return the original string.
-     *
-     * @param input Decrypt content
-     * @param secret Decryption key
-     * @return base64 encoded string
-     */
-    public static String aesDecrypt(String input, String secret) {
-        byte[] secretBytes = AlgHelper.hexStringToBytes(secret);
-        byte[] secretKey = KeyUtils.genSecretKey(secretBytes);
-
-        String result = null;
-        try {
-            result = new String(aesDecrypt(hexStringToBytes(input), secretKey), Constants.CHARSET_UTF8);
-        } catch (Exception e) {
-            logger.error("AES decrypt ex", e);
-        }
-        return result;
-    }
-
-    /**
-     * Use AES to decrypt the string and return the original string.
-     *
-     * @param input base64 encoded encrypted string
-     * @param key   A key that meets AES requirements
-     * @return the byte [ ]
-     */
-    public static byte[] aesDecrypt(byte[] input, byte[] key) {
-        return aes(input, key, Cipher.DECRYPT_MODE);
-    }
-
-    /**
-     * Use AES to decrypt the string and return the original string.
-     *
-     * @param input base64 encoded encrypted string
-     * @param key   A key that meets AES requirements
-     * @param iv    Initial vector
-     * @return the byte [ ]
-     */
-    public static byte[] aesDecrypt(byte[] input, byte[] key, byte[] iv) {
-        return aes(input, key, iv, Cipher.DECRYPT_MODE);
-    }
-
-    /**
-     * Use AES to encrypt or decrypt the original byte array without encoding, and return the result of the byte array without encoding.
-     *
-     * @param input Raw byte array
-     * @param key   A key that meets AES requirements
-     * @param mode  Cipher.ENCRYPT_MODE or Cipher.DECRYPT_MODE
-     */
-    private static byte[] aes(byte[] input, byte[] key, int mode) {
-        try {
-            SecretKey secretKey = new SecretKeySpec(key, AES);
-            Cipher cipher = Cipher.getInstance(AES);
-            cipher.init(mode, secretKey);
-            return cipher.doFinal(input);
-        } catch (GeneralSecurityException e) {
-            logger.error("AES ex, mode:{}", mode, e);
-            return null;
-        }
-    }
-
-    /**
-     * Use AES to encrypt or decrypt the original byte array without encoding, and return the result of the byte array without encoding.
-     *
-     * @param input Raw byte array
-     * @param key   A key that meets AES requirements
-     * @param iv    Initial vector
-     * @param mode  Cipher.ENCRYPT_MODE or Cipher.DECRYPT_MODE
-     */
-    private static byte[] aes(byte[] input, byte[] key, byte[] iv, int mode) {
-        try {
-            SecretKey secretKey = new SecretKeySpec(key, AES);
-            IvParameterSpec ivSpec = new IvParameterSpec(iv);
-            Cipher cipher = Cipher.getInstance(AES_CBC);
-            cipher.init(mode, secretKey, ivSpec);
-            return cipher.doFinal(input);
-        } catch (GeneralSecurityException e) {
-            logger.error("AES encrypt ex", e);
-            return null;
-        }
-    }
-
-
-    /**
-     * Generate AES key, optional length is 128, 192, 256 bits.
-     *
-     * @param keysize the keysize
-     * @return the byte [ ]
-     */
-    public static byte[] generateAesKey(int keysize) {
-        try {
-            KeyGenerator keyGenerator = KeyGenerator.getInstance(AES);
-            keyGenerator.init(keysize);
-            SecretKey secretKey = keyGenerator.generateKey();
-            return secretKey.getEncoded();
-        } catch (GeneralSecurityException e) {
-            logger.error("AES encrypt ex", e);
-            return null;
-        }
-    }
-
-    /**
-     * Generate a random vector, the default size is cipher.getBlockSize(), 16 bytes.
-     *
-     * @return the byte [ ]
-     */
-    public static byte[] generateIV() {
-        byte[] bytes = new byte[DEFAULT_IV_SIZE];
-        random.nextBytes(bytes);
-        return bytes;
-    }
-
-    public static String bytesToHexString(byte[] paramArrayOfByte) {
-        StringBuilder localStringBuilder = new StringBuilder();
-        if ((paramArrayOfByte == null) || (paramArrayOfByte.length <= 0)) {
-            return null;
-        }
-        for (int i = 0; i < paramArrayOfByte.length; i++) {
-            int j = paramArrayOfByte[i] & 0xFF;
-            String str = Integer.toHexString(j);
-            if (str.length() < 2) {
-                localStringBuilder.append(0);
-            }
-            localStringBuilder.append(str);
-        }
-        return localStringBuilder.toString();
-    }
-
-    public static byte[] hexStringToBytes(String paramString) {
-        paramString = paramString.toUpperCase();
-        if ((paramString == null) || (paramString.equals(""))) {
-            return null;
-        }
-        paramString = paramString.toUpperCase();
-        int i = paramString.length() / 2;
-        char[] arrayOfChar = paramString.toCharArray();
-        byte[] arrayOfByte = new byte[i];
-        for (int j = 0; j < i; j++) {
-            int k = j * 2;
-            arrayOfByte[j] = ((byte) (charToByte(arrayOfChar[k]) << 4 | (charToByte(arrayOfChar[(k + 1)]) & 0xff)));
-        }
-        return arrayOfByte;
     }
 
     public static byte charToByte(char paramChar) {
