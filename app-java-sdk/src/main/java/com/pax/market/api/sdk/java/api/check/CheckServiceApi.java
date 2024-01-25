@@ -4,13 +4,14 @@ import com.pax.market.api.sdk.java.api.update.UpdateApi;
 import com.pax.market.api.sdk.java.base.api.BaseApi;
 import com.pax.market.api.sdk.java.base.constant.Constants;
 import com.pax.market.api.sdk.java.base.dto.ServiceAvailableObject;
+import com.pax.market.api.sdk.java.base.dto.TerminalStatusObject;
 import com.pax.market.api.sdk.java.base.request.SdkRequest;
 import com.pax.market.api.sdk.java.base.util.JsonUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CheckServiceApi  extends BaseApi {
+public class CheckServiceApi extends BaseApi {
 
 
     private final Logger logger = LoggerFactory.getLogger(UpdateApi.class.getSimpleName());
@@ -19,6 +20,7 @@ public class CheckServiceApi  extends BaseApi {
      * The constant checkServiceUrl.
      */
     protected static final String checkServiceUrl = "v1/3rdApps/service/{serviceType}/usable";
+    protected static final String checkTerminalStatusUrl = "v1/3rdApps/terminal/status";
 
     public CheckServiceApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
         super(baseUrl, appKey, appSecret, terminalSN);
@@ -65,5 +67,15 @@ public class CheckServiceApi  extends BaseApi {
      */
     public ServiceAvailableObject checkSolutionAppAvailable() {
         return checkServiceAvailable(ServiceType.INDUSTRY_SOLUTION);
+    }
+
+    /**
+     * check Terminal status
+     * @return Terminal status
+     */
+    public TerminalStatusObject checkTerminalStatus() {
+        SdkRequest request = new SdkRequest(checkTerminalStatusUrl);
+        request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
+        return JsonUtils.fromJson(call(request), TerminalStatusObject.class);
     }
 }
