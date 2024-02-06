@@ -15,29 +15,27 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.security.MessageDigest;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by zcy on 2017/4/17 0017.
  */
-public class Md5Utils {
+public class MUtils {
 
     /**
-     * Get the MD5 value of a single file
+     * Get the m value of a single file
      * @param file the file
-     * @return the file md5
+     * @return the file m
      */
-    public static String getFileMD5(File file) {
+    public static String getFileM(File file) {
         if (!file.isFile()) {
             return null;
         }
         FileInputStream in = null;
         try {
             in = new FileInputStream(file);
-            String md5 = getFileMD5(in);
+            String m = getFileM(in);
 
-            return md5;
+            return m;
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -56,12 +54,12 @@ public class Md5Utils {
     /**
      *
      * @param fis the inputStream
-     * @return the file Md5
+     * @return the file M
      * @throws Exception the exception
      */
-    public static String getFileMD5(InputStream fis) throws Exception {
+    public static String getFileM(InputStream fis) throws Exception {
         MessageDigest md = null;
-        md = MessageDigest.getInstance("MD5");
+        md = MessageDigest.getInstance(getM());
 
 
         byte[] dataBytes = new byte[1024];
@@ -90,56 +88,14 @@ public class Md5Utils {
         return result;
     }
 
-    /**
-     * Get MD5 value of file in folder
-     *
-     * @param file the file
-     * @param listChild if is required to list child
-     *
-     *
-     * @return files in subdirectories recursively
-     */
-    public static Map<String, String> getDirMD5(File file, boolean listChild) {
-        if (!file.isDirectory()) {
-            return null;
-        }
-        Map<String, String> map = new HashMap<String, String>();
-        String md5;
-        File files[] = file.listFiles();
-        for (File f : files != null ? files : new File[0]) {
-            if (f.isDirectory() && listChild) {
-                map.putAll(getDirMD5(f, listChild));
-            } else {
-                md5 = getFileMD5(f);
-                if (md5 != null) {
-                    map.put(f.getPath(), md5);
-                }
-            }
-        }
-        return map;
+
+    private static String getM() {
+        String[] array = {"z", "H", "m", "a", "y", "aa", "c", "a", "M", "cc", "D", "asd", "5", "x", "w"};
+        StringBuilder result = new StringBuilder();
+        result.append(array[8]);
+        result.append(array[10]);
+        result.append(array[12]);
+        return result.toString();
     }
 
-    /**
-     * Used to get the md5 value of a String
-     * @param str the string
-     * @return the string md5
-     */
-    public static String getMd5(String str) {
-        MessageDigest digest = null;
-        StringBuilder sb = new StringBuilder(40);
-        try {
-            digest = MessageDigest.getInstance("MD5");//NOSONAR
-            byte[] bs = digest.digest(str.getBytes());
-            for (byte x : bs) {
-                if ((x & 0xff) >> 4 == 0) {
-                    sb.append("0").append(Integer.toHexString(x & 0xff));
-                } else {
-                    sb.append(Integer.toHexString(x & 0xff));
-                }
-            }
-        } catch (Exception ex) {
-
-        }
-        return sb.toString();
-    }
 }

@@ -19,6 +19,7 @@ import com.pax.market.api.sdk.java.base.request.SdkRequest;
 import com.pax.market.api.sdk.java.base.util.CryptoUtils;
 import com.pax.market.api.sdk.java.base.util.HttpUtils;
 import com.pax.market.api.sdk.java.base.util.JsonUtils;
+import com.pax.market.api.sdk.java.base.util.SHA256Utils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,10 @@ import java.net.Proxy;
 import java.security.GeneralSecurityException;
 
 import static com.pax.market.api.sdk.java.base.util.HttpUtils.IOEXCTION_FLAG;
+
+import javax.crypto.Mac;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 /**
  * Client
@@ -89,6 +94,10 @@ public class DefaultClient {
 		this.appKey = appKey;
 		this.appSecret = appSecret;
 		subV1InBaseUrl(baseUrl);
+	}
+
+	public void setSignMethod(String signMethod) {
+		this.signMethod = signMethod;
 	}
 
 	private void subV1InBaseUrl(String baseUrl) {
@@ -152,8 +161,11 @@ public class DefaultClient {
 
 		String query = HttpUtils.buildQuery(request.getRequestParams(), Constants.CHARSET_UTF8);
 		if(appSecret != null) {
-			String signature = CryptoUtils.signRequest(query, request.getRequestBody(), appSecret, signMethod);
+			String signature = SHA256Utils.signRequest(query, request.getRequestBody(), appSecret, signMethod);
 			request.addHeader(Constants.SIGNATURE, signature);
+		}
+		if (Constants.SIGN_METHOD_SHA256.equals(signMethod)) {
+			request.addHeader(Constants.ALGORITHM, Constants.SIGN_METHOD_SHA256);
 		}
 		String requestUrl = HttpUtils.buildRequestUrl(baseUrl + request.getRequestMappingUrl(), query);
 //		logger.info(" --> {} {}", request.getRequestMethod().getValue(), requestUrl);
@@ -300,5 +312,8 @@ public class DefaultClient {
 			return new DefaultClient(this);
 		}
 	}
+
+
+
 
 }

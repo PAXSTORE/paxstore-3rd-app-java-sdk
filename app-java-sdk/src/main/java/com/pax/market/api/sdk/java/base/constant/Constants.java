@@ -33,6 +33,8 @@ public class Constants {
      */
     public static final String SIGNATURE = "signature";
 
+    public static final String ALGORITHM = "algorithm";
+
 
     /**
      * TOP default time format
@@ -71,13 +73,12 @@ public class Constants {
     public static final String ACCESS_LANGUAGE = "Accept-Language";
 
     /**
-     * MD5 signature
-     */
-    public static final String SIGN_METHOD_MD5 = "md5";
-    /**
      * HMAC signature method
      */
     public static final String SIGN_METHOD_HMAC = "hmac";
+
+
+    public static final String SIGN_METHOD_SHA256 = "sha256";
 
     /**
      * The constant CONTENT_TYPE.

@@ -93,7 +93,7 @@ public class JsonUtils {
             case SDK_UNZIP_FAILED:
                 message = "Sdk unzip failed";
                 break;
-            case SDK_MD_FAILED:
+            case SDK_M_FAILED:
                 message = "Sdk md failed";
                 break;
             case SDK_REPLACE_VARIABLES_FAILED:
