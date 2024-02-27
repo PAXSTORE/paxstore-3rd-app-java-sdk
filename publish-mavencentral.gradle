@@ -25,7 +25,7 @@ def PUBLISH_GROUP_ID = 'com.whatspos.sdk' //这里可以不是直接申请时候
 
 def PUBLISH_ARTIFACT_ID = "paxstore-3rd-app-java-sdk"
 
-def PUBLISH_VERSION = "9.2.10205066-SNAPSHOT"
+def PUBLISH_VERSION = "9.3.0.02271716-SNAPSHOT"
 
 // 当你发布的是一个纯java的依赖，那么就需要把下面的方法打开因为纯java的依赖，maven那边要求提供完整的javadoc，
 // 但是aar不需要提供，也无法提供，因为下面的task javadocJar命令无法被识别
