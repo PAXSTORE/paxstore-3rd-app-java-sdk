@@ -100,18 +100,18 @@ public class SHA256Utils {
      */
     public static String signRequest(String queryString, String body, String secret, String signMethod) throws IOException, GeneralSecurityException {
 
-        // 1. 判断参数是否存在
+        // 1. check if param exists
         StringBuilder query = new StringBuilder();
         if(queryString != null){
             query.append(queryString);
         }
 
-        // 2. 把请求主体拼接在参数后面
+        // 2. append body
         if (body != null) {
             query.append(body);
         }
 
-        // 3. 使用HMAC加密
+        // 3. use hmac
         byte[] bytes;
         if (Constants.SIGN_METHOD_HMAC.equals(signMethod)) {
             bytes = encryptHMAC(query.toString(), secret, CryptoUtils.getM());
