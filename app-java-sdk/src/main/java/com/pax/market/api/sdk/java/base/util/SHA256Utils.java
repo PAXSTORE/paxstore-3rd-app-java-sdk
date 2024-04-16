@@ -2,10 +2,17 @@ package com.pax.market.api.sdk.java.base.util;
 
 
 
+import com.pax.market.api.sdk.java.base.constant.Constants;
+
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+
+import javax.crypto.Mac;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 public class SHA256Utils {
 
@@ -78,6 +85,87 @@ public class SHA256Utils {
         }
 
         return digest;
+    }
+
+    /**
+     * Sign the request
+     *
+     * @param queryString Request parameter
+     * @param body        Request body content
+     * @param secret      Signing key
+     * @param signMethod  Signature method
+     * @return signature string
+     * @throws IOException              the io exception
+     * @throws GeneralSecurityException the general security exception
+     */
+    public static String signRequest(String queryString, String body, String secret, String signMethod) throws IOException, GeneralSecurityException {
+
+        // 1. check if param exists
+        StringBuilder query = new StringBuilder();
+        if(queryString != null){
+            query.append(queryString);
+        }
+
+        // 2. append body
+        if (body != null) {
+            query.append(body);
+        }
+
+        // 3. use hmac
+        byte[] bytes;
+        if (Constants.SIGN_METHOD_HMAC.equals(signMethod)) {
+            bytes = encryptHMAC(query.toString(), secret, CryptoUtils.getM());
+        } else {
+            bytes = encryptHMAC(query.toString(), secret, getS());
+        }
+
+        // 4. transfer to hex
+        return byte2hex(bytes);
+    }
+
+    /**
+     * Convert byte stream to hexadecimal representation.
+     *
+     * @param bytes the bytes
+     * @return the string
+     */
+    public static String byte2hex(byte[] bytes) {
+        StringBuilder sign = new StringBuilder();
+        for (int i = 0; i < bytes.length; i++) {
+            String hex = Integer.toHexString(bytes[i] & 0xFF);
+            if (hex.length() == 1) {
+                sign.append("0");
+            }
+            sign.append(hex.toUpperCase());
+        }
+        return sign.toString();
+    }
+
+
+    public static byte[] encryptHMAC(String data, String secret, String algo) throws GeneralSecurityException, IOException {
+        byte[] bytes;
+        SecretKey secretKey = new SecretKeySpec(secret.getBytes(Constants.CHARSET_UTF8), algo);
+        Mac mac = Mac.getInstance(secretKey.getAlgorithm());
+        mac.init(secretKey);
+        bytes = mac.doFinal(data.getBytes(Constants.CHARSET_UTF8));
+        return bytes;
+    }
+
+
+    public static String getS() {
+        String[] array = {"z", "H", "m", "a", "y", "aa", "c", "a", "S", "cc", "H", "asd", "A", "2", "5", "A", "6"};
+        StringBuilder result = new StringBuilder();
+        result.append(array[1]);
+        result.append(array[2]);
+        result.append(array[3]);
+        result.append(array[6]);
+        result.append(array[8]);
+        result.append(array[10]);
+        result.append(array[12]);
+        result.append(array[13]);
+        result.append(array[14]);
+        result.append(array[16]);
+        return result.toString();
     }
 
 }

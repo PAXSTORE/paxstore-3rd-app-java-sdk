@@ -29,7 +29,7 @@ import com.pax.market.api.sdk.java.base.request.SdkRequest;
 import com.pax.market.api.sdk.java.base.util.FileUtils;
 import com.pax.market.api.sdk.java.base.util.HMACSignatureGenerator;
 import com.pax.market.api.sdk.java.base.util.JsonUtils;
-import com.pax.market.api.sdk.java.base.util.Md5Utils;
+import com.pax.market.api.sdk.java.base.util.MUtils;
 import com.pax.market.api.sdk.java.base.util.ReplaceUtils;
 import com.pax.market.api.sdk.java.base.util.SHA256Utils;
 import com.pax.market.api.sdk.java.base.util.ZipUtil;
@@ -250,7 +250,7 @@ public class ParamApi extends BaseApi {
         }
 
         // 2. verify
-        DownloadResultObject verifyResult = verifySHA256OrMd(paramObject, needVerifySha, resultObject, parPath);
+        DownloadResultObject verifyResult = verifySHA256OrM(paramObject, needVerifySha, resultObject, parPath);
         if (verifyResult != null) {
             return verifyResult;
         }
@@ -265,7 +265,7 @@ public class ParamApi extends BaseApi {
         return mapToResult(resultObject, downloadResult);
     }
 
-    private DownloadResultObject verifySHA256OrMd(ParamObject paramObject, boolean needVerifySha, DownloadResultObject resultObject, String parPath) {
+    private DownloadResultObject verifySHA256OrM(ParamObject paramObject, boolean needVerifySha, DownloadResultObject resultObject, String parPath) {
         if (needVerifySha) {
             //compare sha256. if sha256 is null, fail
             SdkObject verifyShaResult = verifySha256(paramObject, parPath);
@@ -273,9 +273,9 @@ public class ParamApi extends BaseApi {
                 return mapToResult(resultObject, verifyShaResult);
             }
         } else {
-            //compare md，if md is null, pass
-            if (!verifyMd5(paramObject, parPath)) {
-                resultObject.setBusinessCode(ResultCode.SDK_MD_FAILED.getCode());
+            //compare m，if m is null, pass
+            if (!verifyM(paramObject, parPath)) {
+                resultObject.setBusinessCode(ResultCode.SDK_M_FAILED.getCode());
                 resultObject.setMessage(ERROR_REMARKS_VARIFY_MD_FAILED);
                 return resultObject;
             }
@@ -327,15 +327,15 @@ public class ParamApi extends BaseApi {
     }
 
     /**
-     * verify the md5 of the file
+     * verify the M of the file
      *
      * @param paramObject  You can get ParamObject from getParamDownloadList();
      * @param parPath Path the par file exists
      * @return boolean    the verify result
      */
-    private boolean verifyMd5(ParamObject paramObject, String parPath) {
-        if (paramObject.getMd() == null || paramObject.getMd().equals("")
-                || paramObject.getMd().equals(Md5Utils.getFileMD5(new File(parPath)))) {
+    private boolean verifyM(ParamObject paramObject, String parPath) {
+        if (paramObject.getM() == null || paramObject.getM().equals("")
+                || paramObject.getM().equals(MUtils.getFileM(new File(parPath)))) {
             logger.debug("download file md5 is correct");
            return true;
         } else {
