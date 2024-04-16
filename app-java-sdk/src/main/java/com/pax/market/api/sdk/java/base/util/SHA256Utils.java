@@ -119,7 +119,7 @@ public class SHA256Utils {
             bytes = encryptHMAC(query.toString(), secret, getS());
         }
 
-        // 4. 把二进制转化为大写的十六进制
+        // 4. transfer to hex
         return byte2hex(bytes);
     }
 
