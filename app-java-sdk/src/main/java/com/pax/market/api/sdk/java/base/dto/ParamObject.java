@@ -33,7 +33,7 @@ public class ParamObject extends SdkObject {
     @SerializedName("paramVariables")
     private String paramVariables;
     @SerializedName("md")
-    private String md;
+    private String m;
     @SerializedName("wifiOnly")
     private boolean wifiOnly;
 
@@ -89,12 +89,12 @@ public class ParamObject extends SdkObject {
         this.paramVariables = paramVariables;
     }
 
-    public String getMd() {
-        return md;
+    public String getM() {
+        return m;
     }
 
-    public void setMd(String md) {
-        this.md = md;
+    public void setM(String m) {
+        this.m = m;
     }
 
     public boolean isWifiOnly() {
@@ -159,7 +159,7 @@ public class ParamObject extends SdkObject {
                 ", versionCode=" + versionCode +
                 ", downloadUrl='" + downloadUrl + '\'' +
                 ", paramVariables='" + paramVariables + '\'' +
-                ", md='" + md + '\'' +
+                ", md='" + m + '\'' +
                 ", wifiOnly=" + wifiOnly +
                 ", cookieDto=" + cookieDto +
                 '}';

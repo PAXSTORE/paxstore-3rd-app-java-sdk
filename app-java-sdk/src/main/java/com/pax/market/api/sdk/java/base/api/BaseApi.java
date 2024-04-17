@@ -40,6 +40,10 @@ public class BaseApi {
         this.client = new DefaultClient(baseUrl, appKey, appSecret);
     }
 
+    public void setSignMethod(String signMethod) {
+        this.client.setSignMethod(signMethod);
+    }
+
     public String getBaseUrl() {
         return this.client.getBaseUrl();
     }

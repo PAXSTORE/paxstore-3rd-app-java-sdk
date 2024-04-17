@@ -3,6 +3,7 @@ package com.pax.market.api.sdk.java.api.check;
 import com.pax.market.api.sdk.java.api.update.UpdateApi;
 import com.pax.market.api.sdk.java.base.api.BaseApi;
 import com.pax.market.api.sdk.java.base.constant.Constants;
+import com.pax.market.api.sdk.java.base.dto.SdkObject;
 import com.pax.market.api.sdk.java.base.dto.ServiceAvailableObject;
 import com.pax.market.api.sdk.java.base.dto.TerminalStatusObject;
 import com.pax.market.api.sdk.java.base.request.SdkRequest;
@@ -21,6 +22,8 @@ public class CheckServiceApi extends BaseApi {
      */
     protected static final String checkServiceUrl = "v1/3rdApps/service/{serviceType}/usable";
     protected static final String checkTerminalStatusUrl = "v1/3rdApps/terminal/status";
+
+    protected static final String checkSolutionUsageUrl = "v1/3rdApps/solution/usage";
 
     public CheckServiceApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
         super(baseUrl, appKey, appSecret, terminalSN);
@@ -77,5 +80,18 @@ public class CheckServiceApi extends BaseApi {
         SdkRequest request = new SdkRequest(checkTerminalStatusUrl);
         request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
         return JsonUtils.fromJson(call(request), TerminalStatusObject.class);
+    }
+
+    /**
+     * check Solution Usage
+     * @return businessCode and message
+     */
+    public SdkObject checkSolutionUsage() {
+        SdkRequest request = new SdkRequest(checkSolutionUsageUrl);
+        request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
+        request.addHeader(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_JSON);
+        request.setRequestMethod(SdkRequest.RequestMethod.POST);
+        request.setRequestBody("");
+        return JsonUtils.fromJson(call(request), SdkObject.class);
     }
 }
