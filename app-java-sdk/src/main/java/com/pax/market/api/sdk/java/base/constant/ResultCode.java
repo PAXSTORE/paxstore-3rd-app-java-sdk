@@ -38,6 +38,8 @@ public enum ResultCode {
     SDK_SHA256_OR_SIGNATURE_NOT_FOUND(16117),
     SDK_SHA256_SIGNATURE_FAILED(16118),
 
+    SDK_ALREADY_DOWNLOADED(16119),
+
     UN_CODE(-1);
 
     private int code;

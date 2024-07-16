@@ -84,6 +84,11 @@ public class ParamApi extends BaseApi {
      */
     public static final int CODE_DOWNLOAD_ERROR = 1;
 
+    public static final int ERROR_CODE_PARAM_APPLY_FAILED = 48;
+    public static final String REMARKS_CODE_PARAM_DOWNLOADED = "15223";
+    public static final String REMARKS_CODE_PARAM_APPLIED = "15224";
+
+
     /**
      * The constant RETRY_COUNT.
      */
@@ -114,6 +119,7 @@ public class ParamApi extends BaseApi {
     private static final String ERROR_REMARKS_VARIFY_SHA256_SIGNATURE_FAILED = "SHA256 signature Validation Error";
     private static final String ERROR_UNZIP_FAILED = "Unzip file failed";
     private static final String DOWNLOAD_SUCCESS = "Success";
+    private static final String FILE_DOWNLOAD_SUCCESS = "Params downloaded";
     private static final String SAVEPATH_CANNOT_BE_NULL = "Save path can not be empty";
 
     /**
@@ -420,13 +426,13 @@ public class ParamApi extends BaseApi {
     }
 
     public InnerDownloadResultObject downloadParamToPath(String packageName, int versionCode, String saveFilePath,
-                                                         LastFailObject lastFailObject, boolean mobileNetAvailable) {
-        return downloadParams(packageName, versionCode, saveFilePath, lastFailObject, mobileNetAvailable, false);
+                                                            LastFailObject lastFailObject, boolean mobileNetAvailable, boolean needApplyStatus, List<Long> downloadedList) {
+        return downloadParams(packageName, versionCode, saveFilePath, lastFailObject, mobileNetAvailable, false, needApplyStatus, downloadedList);
     }
 
     public InnerDownloadResultObject downloadParamsWithShaCheck(String packageName, int versionCode, String saveFilePath,
-                                                                LastFailObject lastFailObject, boolean mobileNetAvailable) {
-        return downloadParams(packageName, versionCode, saveFilePath, lastFailObject, mobileNetAvailable, true);
+                                                                LastFailObject lastFailObject, boolean mobileNetAvailable, boolean needApplyStatus, List<Long> downloadedList) {
+        return downloadParams(packageName, versionCode, saveFilePath, lastFailObject, mobileNetAvailable, true, needApplyStatus, downloadedList);
     }
 
     /**
@@ -438,11 +444,13 @@ public class ParamApi extends BaseApi {
      * @param lastFailObject     the lastFailObject
      * @param mobileNetAvailable the network available
      * @param verySha256 need verify SHA256 or not
+     * @param needApplyStatus if need to sync apply result
+     * @param downloadedList do not download again for tasks in this list
      * @return the result
      */
     public InnerDownloadResultObject downloadParams(String packageName, int versionCode, String saveFilePath,
                                                     LastFailObject lastFailObject, boolean mobileNetAvailable,
-                                                    boolean verySha256) {
+                                                    boolean verySha256, boolean needApplyStatus, List<Long> downloadedList) {
         logger.debug("downloadParamToPath: start");
         InnerDownloadResultObject result = new InnerDownloadResultObject();
         if (saveFilePath == null || "".equals(saveFilePath.trim())) {
@@ -461,6 +469,30 @@ public class ParamApi extends BaseApi {
         } else if (paramListObject.getTotalCount() == 0) {
             result.setBusinessCode(-10);
             result.setMessage("No params to download");
+            return result;
+        }
+
+        if (needApplyStatus && downloadedList != null && !downloadedList.isEmpty()) {
+            List<ParamObject> removeList = new ArrayList<>();
+            for (ParamObject paramObject : paramListObject.getList()) {
+                for (Long actionId : downloadedList) {
+                    if (actionId.equals(paramObject.getActionId())) {
+                        removeList.add(paramObject);
+                    }
+                }
+            }
+            logger.error("removelist: " + removeList);
+            logger.error("11 paramListObject: " + paramListObject.getList());
+            if (!removeList.isEmpty()) {
+                updateAsDownloaded(removeList);
+            }
+            paramListObject.getList().removeAll(removeList);
+            result.setActionList(transferToIdList(removeList));
+            logger.error("22 paramListObject: " + paramListObject.getList());
+        }
+        if (paramListObject.getList().isEmpty()) {
+            result.setBusinessCode(ResultCode.SDK_ALREADY_DOWNLOADED.getCode());
+            result.setMessage("Params already downloaded");
             return result;
         }
 
@@ -496,20 +528,65 @@ public class ParamApi extends BaseApi {
             FileUtils.delFolder(saveFilePath);
             updateActionListByRemarks(paramListObject, result, remarks);
         } else {
-            SdkObject updateResultObj = updateActionListByRemarks(paramListObject, result, remarks);
-            if (updateResultObj.getBusinessCode() != ResultCode.SUCCESS.getCode()) {
-                FileUtils.delFolder(saveFilePath);
-                result.setBusinessCode(updateResultObj.getBusinessCode());
-                result.setMessage(updateResultObj.getMessage());
-            } else {
+            if (!needApplyStatus) {
+                SdkObject updateResultObj = updateActionListByRemarks(paramListObject, result, remarks);
+                if (updateResultObj.getBusinessCode() != ResultCode.SUCCESS.getCode()) {
+                    FileUtils.delFolder(saveFilePath);
+                    result.setBusinessCode(updateResultObj.getBusinessCode());
+                    result.setMessage(updateResultObj.getMessage());
+                } else {
+                    FileUtils.moveToFatherFolder(saveFilePath);
+                    result.setBusinessCode(ResultCode.SUCCESS.getCode());
+                    result.setMessage(DOWNLOAD_SUCCESS);
+                }
+            } else { // 如果需要把参数的apply状态上送， 那么这里就不要把任务更新为结束
+                // 当下载成功之后， 就把文件解压到上级目录
                 FileUtils.moveToFatherFolder(saveFilePath);
+                // 这里就是把所有的任务不要立即更新为成功， 而是等待更新
+                // 这里更新为参数下载成功， 等待apply
                 result.setBusinessCode(ResultCode.SUCCESS.getCode());
-                result.setMessage(DOWNLOAD_SUCCESS);
+                result.setMessage(FILE_DOWNLOAD_SUCCESS);
+                List<UpdateActionObject> updateBatchBody1 = getUpdateBatchBody(paramListObject, "Params downloaded, wait apply", ACT_STATUS_PENDING, CODE_NONE_ERROR);
+                updateDownloadStatusBatch(updateBatchBody1);
+                ArrayList<Long> actionIdList = transferToIdList(paramListObject.getList()); // 这里不可能为空， 所以不需要判断
+                if (result.getActionList() != null) { // 可能之前已经有被igonre的item了， 那么追加即可
+                    result.getActionList().addAll(actionIdList);
+                } else {
+                    result.setActionList(actionIdList);
+                }
             }
         }
         logger.debug("downloadParamToPath: end");
         return result;
     }
+
+    /**
+     * update as downloaded when see the task again
+     * @param removeList
+     */
+    private void updateAsDownloaded(List<ParamObject> removeList) {
+        ParamListObject paramListObject = new ParamListObject();
+        paramListObject.setList(removeList);
+        List<UpdateActionObject> updateBatchBody = getUpdateBatchBody(paramListObject, "Params downloaded, wait apply", ACT_STATUS_PENDING, CODE_NONE_ERROR);
+        updateDownloadStatusBatch(updateBatchBody);
+    }
+
+    /**
+     * transform to actionId list
+     * @param list
+     * @return
+     */
+    private static ArrayList<Long> transferToIdList(List<ParamObject> list) {
+        if (list == null || list.isEmpty()) {
+            return null;
+        }
+        ArrayList<Long> actionIdList = new ArrayList<>();
+        for (ParamObject paramObject : list) {
+            actionIdList.add(paramObject.getActionId());
+        }
+        return actionIdList;
+    }
+
 
     public InnerDownloadResultObject downloadLastSuccessParmToPath(String savePath) {
         return downloadLastSuccess(savePath, null, false);
@@ -534,6 +611,7 @@ public class ParamApi extends BaseApi {
         resultObject.setMessage(downloadResultObject.getMessage());
         resultObject.setBusinessCode(downloadResultObject.getBusinessCode());
         resultObject.setParamSavePath(saveFilePath);
+        resultObject.setActionList(downloadResultObject.getActionList());
         if (resultObject.getBusinessCode() != 0) {
             logger.error("Download Result:" + "errorCode: " + resultObject.getBusinessCode() + " errorMessage: " + resultObject.getMessage());
         }
@@ -605,7 +683,6 @@ public class ParamApi extends BaseApi {
             result.setLastFailObject(lastFailObject);
         }
     }
-
 
     private SdkObject updateActionListByRemarks(ParamListObject paramListObject, InnerDownloadResultObject result, String remarks) {
         List<UpdateActionObject> updateBatchList;
@@ -723,6 +800,32 @@ public class ParamApi extends BaseApi {
             throw new ParseXMLException(e);
         }
         return xmlData;
+    }
+
+    public SdkObject updateApplyResult(List<Long> actionIdList, Integer status, int errorCode, String remarks) {
+        SdkObject sdkObject = new SdkObject();
+        if (status == null) {
+            sdkObject.setBusinessCode(-1);
+            sdkObject.setMessage("status should not be null");
+            return sdkObject;
+        }
+        if (actionIdList == null || actionIdList.isEmpty()) {
+            sdkObject.setBusinessCode(-1);
+            sdkObject.setMessage("actionIdList should not be null or empty");
+            return sdkObject;
+        }
+
+
+        List<UpdateActionObject> updateActionObjectList = new ArrayList<UpdateActionObject>();
+        for (Long actionId : actionIdList) {
+            UpdateActionObject updateActionObject = new UpdateActionObject();
+            updateActionObject.setActionId(actionId);
+            updateActionObject.setStatus(status);
+            updateActionObject.setErrorCode(errorCode);
+            updateActionObject.setRemarks(remarks);
+            updateActionObjectList.add(updateActionObject);
+        }
+        return updateDownloadStatusBatch(updateActionObjectList);
     }
 
 }
