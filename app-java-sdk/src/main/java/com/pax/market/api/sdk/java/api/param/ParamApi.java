@@ -481,14 +481,11 @@ public class ParamApi extends BaseApi {
                     }
                 }
             }
-            logger.error("removelist: " + removeList);
-            logger.error("11 paramListObject: " + paramListObject.getList());
             if (!removeList.isEmpty()) {
                 updateAsDownloaded(removeList);
             }
             paramListObject.getList().removeAll(removeList);
             result.setActionList(transferToIdList(removeList));
-            logger.error("22 paramListObject: " + paramListObject.getList());
         }
         if (paramListObject.getList().isEmpty()) {
             result.setBusinessCode(ResultCode.SDK_ALREADY_DOWNLOADED.getCode());
@@ -546,7 +543,7 @@ public class ParamApi extends BaseApi {
                 // 这里更新为参数下载成功， 等待apply
                 result.setBusinessCode(ResultCode.SUCCESS.getCode());
                 result.setMessage(FILE_DOWNLOAD_SUCCESS);
-                List<UpdateActionObject> updateBatchBody1 = getUpdateBatchBody(paramListObject, "Params downloaded, wait apply", ACT_STATUS_PENDING, CODE_NONE_ERROR);
+                List<UpdateActionObject> updateBatchBody1 = getUpdateBatchBody(paramListObject, REMARKS_CODE_PARAM_DOWNLOADED, ACT_STATUS_PENDING, CODE_NONE_ERROR);
                 updateDownloadStatusBatch(updateBatchBody1);
                 ArrayList<Long> actionIdList = transferToIdList(paramListObject.getList()); // 这里不可能为空， 所以不需要判断
                 if (result.getActionList() != null) { // 可能之前已经有被igonre的item了， 那么追加即可
@@ -567,7 +564,7 @@ public class ParamApi extends BaseApi {
     private void updateAsDownloaded(List<ParamObject> removeList) {
         ParamListObject paramListObject = new ParamListObject();
         paramListObject.setList(removeList);
-        List<UpdateActionObject> updateBatchBody = getUpdateBatchBody(paramListObject, "Params downloaded, wait apply", ACT_STATUS_PENDING, CODE_NONE_ERROR);
+        List<UpdateActionObject> updateBatchBody = getUpdateBatchBody(paramListObject, REMARKS_CODE_PARAM_DOWNLOADED, ACT_STATUS_PENDING, CODE_NONE_ERROR);
         updateDownloadStatusBatch(updateBatchBody);
     }
 
