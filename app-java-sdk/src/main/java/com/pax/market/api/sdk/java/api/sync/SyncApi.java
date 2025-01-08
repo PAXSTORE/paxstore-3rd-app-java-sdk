@@ -19,6 +19,7 @@ import com.pax.market.api.sdk.java.base.api.BaseApi;
 import com.pax.market.api.sdk.java.base.constant.Constants;
 import com.pax.market.api.sdk.java.base.dto.LocationObject;
 import com.pax.market.api.sdk.java.base.dto.MerchantObject;
+import com.pax.market.api.sdk.java.base.dto.PendingTaskObject;
 import com.pax.market.api.sdk.java.base.dto.SdkObject;
 import com.pax.market.api.sdk.java.base.request.SdkRequest;
 import com.pax.market.api.sdk.java.base.util.JsonUtils;
@@ -41,6 +42,7 @@ public class SyncApi extends BaseApi {
 
     protected static String locationUrl = "v1/3rdApps/location";
     protected static String merchantUrl = "v1/3rdApps/merchant";
+    protected static String pendingTaskUrl = "v1/3rdApps/hasPendingTask";
 
 
     public SyncApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
@@ -111,6 +113,14 @@ public class SyncApi extends BaseApi {
         request.addHeader(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_JSON);
         request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
         return JsonUtils.fromJson(call(request), LocationObject.class);
+    }
+
+    public PendingTaskObject hasPendingTask() {
+        SdkRequest request = new SdkRequest(pendingTaskUrl);
+        request.setRequestMethod(SdkRequest.RequestMethod.GET);
+        request.addHeader(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_JSON);
+        request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
+        return JsonUtils.fromJson(call(request), PendingTaskObject.class);
     }
 }
 
