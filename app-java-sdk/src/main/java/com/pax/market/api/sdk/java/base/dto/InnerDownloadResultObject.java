@@ -2,6 +2,8 @@ package com.pax.market.api.sdk.java.base.dto;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.ArrayList;
+
 /**
  * This is for aar use, not for users.
  */
@@ -17,6 +19,8 @@ public class InnerDownloadResultObject extends SdkObject {
      */
     @SerializedName("failRecord")
     LastFailObject lastFailObject;
+    @SerializedName("actionList")
+    ArrayList<Long> actionList;
 
     public LastFailObject getLastFailObject() {
         return lastFailObject;
@@ -32,6 +36,14 @@ public class InnerDownloadResultObject extends SdkObject {
 
     public void setParamSavePath(String paramSavePath) {
         this.paramSavePath = paramSavePath;
+    }
+
+    public void setActionList(ArrayList<Long> actionList) {
+        this.actionList = actionList;
+    }
+
+    public ArrayList<Long> getActionList() {
+        return actionList;
     }
 
     @Override
