@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Random;
 
@@ -143,7 +144,7 @@ public class FileUtils {
 
     public static String readFileToString(final File file) throws IOException {
         try (InputStream in = openInputStream(file)) {
-            return IOUtil.toString(in, sun.nio.cs.UTF_8.INSTANCE);
+            return IOUtil.toString(in, StandardCharsets.UTF_8);
         }
     }
 
@@ -169,7 +170,7 @@ public class FileUtils {
      * @throws IOException in case of an I/O error
      */
     public static void writeStringToFile(final File file, final String data) throws IOException {
-        writeStringToFile(file, data, sun.nio.cs.UTF_8.INSTANCE, false);
+        writeStringToFile(file, data, StandardCharsets.UTF_8, false);
     }
 
     /**
