@@ -729,7 +729,7 @@ public class ParamApi extends BaseApi {
         if (file != null) {
             String fileString = null;
             try {
-                fileString = org.apache.commons.io.FileUtils.readFileToString(file);
+                fileString = FileUtils.readFileToString(file);
 
                 if (fileString != null) {
                     Gson gson = new Gson();
