@@ -10,8 +10,6 @@ import com.pax.market.api.sdk.java.base.constant.Constants;
 import com.pax.market.api.sdk.java.base.dto.ParamsVariableObject;
 import com.pax.market.api.sdk.java.base.exception.ParseXMLException;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.input.ReversedLinesFileReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -262,24 +260,6 @@ public class ReplaceUtils {
         } catch (JsonSyntaxException ex) {
             return false;
         }
-    }
-
-    private static String readLastLine(File fin) {
-
-        ReversedLinesFileReader fileReader = null;
-        String lastLine = null;
-        try {
-            fileReader = new ReversedLinesFileReader(fin);
-            while ((lastLine = fileReader.readLine()) != null) {
-                return lastLine;
-            }
-            fileReader.close();
-        } catch (FileNotFoundException e) {
-            logger.error("read file first line failed, file is null", e);
-        } catch (IOException e) {
-            logger.error("read file first line failed, IOException", e);
-        }
-        return null;
     }
 
     /**

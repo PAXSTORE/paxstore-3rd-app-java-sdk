@@ -7,7 +7,7 @@ PAXSTORE 3rd App Java SDK provides the basic java APIs for third party developer
 
 Gradle:
 
-    implementation 'com.whatspos.sdk:paxstore-3rd-app-java-sdk:9.6.3'
+    implementation 'com.whatspos.sdk:paxstore-3rd-app-java-sdk:9.7.0'
 
 ## API Usage
 
