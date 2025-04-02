@@ -401,6 +401,7 @@ public class ParamApi extends BaseApi {
     public SdkObject updateDownloadStatus(String actionId, int status, int errorCode, String remarks) {
         String requestUrl = updateStatusUrl.replace("{actionId}", actionId);
         SdkRequest request = new SdkRequest(requestUrl);
+        request.setRequestBody("");
         request.setRequestMethod(SdkRequest.RequestMethod.PUT);
         request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
         request.addRequestParam(REQ_PARAM_STATUS, Integer.toString(status));
