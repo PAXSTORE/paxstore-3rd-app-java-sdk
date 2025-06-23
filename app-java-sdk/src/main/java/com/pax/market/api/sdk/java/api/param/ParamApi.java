@@ -150,9 +150,7 @@ public class ParamApi extends BaseApi {
     public String calculateSHA256(String filePath) {
         File file = new File(filePath);
         if (file.isFile() && file.exists()) {
-            try {
-                FileInputStream inputStream = new FileInputStream(file);
-
+            try (FileInputStream inputStream = new FileInputStream(file)) {
                 return  SHA256Utils.sha256Hex(inputStream);
             } catch (IOException e) {
                 logger.error("calculateSHA256 error:" + e);
@@ -752,11 +750,12 @@ public class ParamApi extends BaseApi {
             System.out.println("parseDownloadParamXml error, File not exists or not a valid xml");
             return xmlData;
         }
+        InputStreamReader isr = null;
         try {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
-            InputStreamReader isr = new InputStreamReader(new FileInputStream(xmlFile), StandardCharsets.UTF_8);
+            isr = new InputStreamReader(new FileInputStream(xmlFile), StandardCharsets.UTF_8);
             Document doc = dBuilder.parse(new InputSource(isr));
 
             NodeList nodeList = doc.getDocumentElement().getChildNodes();
@@ -769,6 +768,14 @@ public class ParamApi extends BaseApi {
             }
         } catch (Exception e) {
             throw new ParseXMLException(e);
+        } finally {
+            if (isr != null) {
+                try {
+                    isr.close(); // 确保关闭
+                } catch (IOException e) {
+                    logger.error("close inputStream failed：" + e);
+                }
+            }
         }
         return xmlData;
     }
@@ -779,11 +786,12 @@ public class ParamApi extends BaseApi {
             System.out.println("parseDownloadParamXmlWithOrder error, File not exists or not a valid xml");
             return xmlData;
         }
+        InputStreamReader isr = null;
         try {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
-            InputStreamReader isr = new InputStreamReader(new FileInputStream(xmlFile), StandardCharsets.UTF_8);
+            isr = new InputStreamReader(new FileInputStream(xmlFile), StandardCharsets.UTF_8);
             Document doc = dBuilder.parse(new InputSource(isr));
 
             NodeList nodeList = doc.getDocumentElement().getChildNodes();
@@ -796,6 +804,14 @@ public class ParamApi extends BaseApi {
             }
         } catch (Exception e) {
             throw new ParseXMLException(e);
+        } finally {
+            if (isr != null) {
+                try {
+                    isr.close(); // 显式关闭
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         return xmlData;
     }
