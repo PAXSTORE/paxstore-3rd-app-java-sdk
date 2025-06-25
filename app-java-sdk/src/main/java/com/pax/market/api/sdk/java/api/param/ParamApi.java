@@ -121,6 +121,8 @@ public class ParamApi extends BaseApi {
     private static final String DOWNLOAD_SUCCESS = "Success";
     private static final String FILE_DOWNLOAD_SUCCESS = "Params downloaded";
     private static final String SAVEPATH_CANNOT_BE_NULL = "Save path can not be empty";
+    private static final String ERROR_NO_PARAMS = "No params to download";
+    private static final String ERROR_NO_LAST_SUCCESS_PARAMS = "No last successful parameter download task is found";
 
     /**
      * The constant downloadParamUrl.
@@ -466,8 +468,8 @@ public class ParamApi extends BaseApi {
             result.setMessage(paramListObject.getMessage());
             return result;
         } else if (paramListObject.getTotalCount() == 0) {
-            result.setBusinessCode(-10);
-            result.setMessage("No params to download");
+            result.setBusinessCode(ResultCode.PARAM_NO_PARAMS_TASK.getCode());
+            result.setMessage(ERROR_NO_PARAMS);
             return result;
         }
 
@@ -633,6 +635,10 @@ public class ParamApi extends BaseApi {
         if (paramObject.getBusinessCode() != ResultCode.SUCCESS.getCode()) {
             result.setBusinessCode(paramObject.getBusinessCode());
             result.setMessage(paramObject.getMessage());
+            return result;
+        } else if (paramObject.getDownloadUrl() == null) {
+            result.setBusinessCode(ResultCode.PARAM_NO_LAST_SUCCESS_FOUND.getCode());
+            result.setMessage(ERROR_NO_LAST_SUCCESS_PARAMS);
             return result;
         }
 
