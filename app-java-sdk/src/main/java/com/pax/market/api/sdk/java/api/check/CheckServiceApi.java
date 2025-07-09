@@ -16,6 +16,7 @@ public class CheckServiceApi extends BaseApi {
 
 
     private final Logger logger = LoggerFactory.getLogger(UpdateApi.class.getSimpleName());
+    private static final String REQ_PARAM_SUB_STATUS = "status";
 
     /**
      * The constant checkServiceUrl.
@@ -24,6 +25,7 @@ public class CheckServiceApi extends BaseApi {
     protected static final String checkTerminalStatusUrl = "v1/3rdApps/terminal/status";
 
     protected static final String checkSolutionUsageUrl = "v1/3rdApps/solution/usage";
+    protected static final String uploadSolutionSubStatusUrl = "v1/3rdApps/solution/sync";
 
     public CheckServiceApi(String baseUrl, String appKey, String appSecret, String terminalSN) {
         super(baseUrl, appKey, appSecret, terminalSN);
@@ -91,6 +93,15 @@ public class CheckServiceApi extends BaseApi {
         request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
         request.addHeader(Constants.CONTENT_TYPE, Constants.CONTENT_TYPE_JSON);
         request.setRequestMethod(SdkRequest.RequestMethod.POST);
+        request.setRequestBody("");
+        return JsonUtils.fromJson(call(request), SdkObject.class);
+    }
+
+    public SdkObject uploadSolutionSubStatus(boolean isSubscribe) {
+        SdkRequest request = new SdkRequest(uploadSolutionSubStatusUrl);
+        request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
+        request.addRequestParam(REQ_PARAM_SUB_STATUS, String.valueOf(isSubscribe));
+        request.setRequestMethod(SdkRequest.RequestMethod.PUT);
         request.setRequestBody("");
         return JsonUtils.fromJson(call(request), SdkObject.class);
     }
