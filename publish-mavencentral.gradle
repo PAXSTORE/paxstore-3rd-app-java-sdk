@@ -1,5 +1,6 @@
-apply plugin: 'maven'
-apply plugin: 'signing'
+apply plugin:  "java-library"
+apply plugin: "maven-publish"
+apply plugin: "signing"
 
 
 ext["signing.keyId"] = ''
@@ -21,80 +22,86 @@ if (secretPropsFile.exists()) {
 }
 
 
-def PUBLISH_GROUP_ID = 'com.whatspos.sdk' //这里可以不是直接申请时候的groupId只要开头是就可以
+def PUBLISH_GROUP_ID = 'com.whatspos.sdk'
 
 def PUBLISH_ARTIFACT_ID = "paxstore-3rd-app-java-sdk"
 
-def PUBLISH_VERSION = "9.8.0.04211118-SNAPSHOT"
 
-// 当你发布的是一个纯java的依赖，那么就需要把下面的方法打开因为纯java的依赖，maven那边要求提供完整的javadoc，
-// 但是aar不需要提供，也无法提供，因为下面的task javadocJar命令无法被识别
-task javadocJar(type: Jar) {
-    classifier = 'javadoc'
-    from javadoc
+java {
+    withJavadocJar()
+    withSourcesJar()
 }
 
-task sourcesJar(type: Jar) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
 
-artifacts {
-    archives javadocJar, sourcesJar
-}
+publishing {
+    publications {
+        javaSdk(MavenPublication) { //you can replace "javaSdk" with any name you like
+            groupId =PUBLISH_GROUP_ID
+            artifactId =PUBLISH_ARTIFACT_ID
 
-//签名
-signing {
-    required { gradle.taskGraph.hasTask("uploadArchives") }
-    sign configurations.archives
-}
+            from components.java
 
-uploadArchives {
-    repositories {
-        mavenDeployer {
-
-            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
-            repository(url: "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                authentication(userName: ossrhUsername, password: ossrhPassword)
-            }
-
-            snapshotRepository(url: "https://s01.oss.sonatype.org/content/repositories/snapshots/") {
-                authentication(userName: ossrhUsername, password: ossrhPassword)
-            }
-
-            pom.groupId = PUBLISH_GROUP_ID
-            pom.artifactId = PUBLISH_ARTIFACT_ID
-            pom.version = PUBLISH_VERSION
-
-            pom.project {
-                name 'paxstore-3rd-app-java-sdk'
-                packaging 'jar' //我这里发布的是安卓的包，所有写的aar,如果你要发布纯jar包，那就写jar
+            pom {
+                name ='paxstore-3rd-app-java-sdk'
                 // optionally artifactId can be defined here
-                description 'PAXSTORE 3rd App JAVA SDK provides simple and easy-to-use service interfaces for third party developers to develop android apps on PAXSTORE.'
-                url 'https://github.com/PAXSTORE/paxstore-3rd-app-java-sdk' // 修改这里为你要发布的项目地址
+                description ='PAXSTORE 3rd App JAVA SDK provides simple and easy-to-use service interfaces for third party developers to develop android apps on PAXSTORE.'
+                url ='https://github.com/PAXSTORE/paxstore-3rd-app-java-sdk'
 
-                    scm {
-                    //修改成你的Git地址：
+                scm {
                     connection = 'scm:git:github.com/PAXSTORE/paxstore-3rd-app-java-sdk.git'
                     developerConnection = 'scm:git:ssh://github.com/PAXSTORE/paxstore-3rd-app-java-sdk.git'
-                    //分支地址：
                     url = 'https://github.com/PAXSTORE/paxstore-3rd-app-java-sdk/tree/master'
                 }
 
                 licenses {
                     license {
-                        name 'The Apache License, Version 2.0'
-                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        name = 'The Apache License, Version 2.0'
+                        url ='http://www.apache.org/licenses/LICENSE-2.0.txt'
                     }
                 }
 
                 developers {
-                    developer { // 这里改成自己的信息
-                        name 'Derek'
-                        email 'paxstore-support@paxsz.com'
+                    developer {
+                        name= 'Derek'
+                        email ='paxstore-support@paxsz.com'
                     }
                 }
             }
         }
     }
+
+    repositories {
+        if (project.version.endsWith('SNAPSHOT')) {
+            // snapshot can be uploaded to cloud directly
+            // you need to add below to your top level build.gradle to get this dependency
+            // maven { url "https://central.sonatype.com/repository/maven-snapshots/" }
+            maven {
+                url = "https://central.sonatype.com/repository/maven-snapshots/"
+                credentials {
+                    username = ossrhUsername
+                    password = ossrhPassword
+                }
+            }
+        } else {
+            // publish release version, files needed will be generated to build/staging-deploy
+            // zip com directory under staging-deploy file, and go to maven portal to release
+            maven {
+                url = layout.buildDirectory.dir('staging-deploy')
+            }
+        }
+    }
 }
+
+
+//this is an independent block
+// tow sign methods supported now
+signing {
+    // About GPG signing, please refer to https://central.sonatype.org/publish/requirements/gpg/
+//    def signingKey = file(System.getenv("GPG_ASC")).text
+//    def signingPassword = System.getenv("GPG_PASSPHARSE")
+//    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign publishing.publications.javaSdk
+}
+
+
+

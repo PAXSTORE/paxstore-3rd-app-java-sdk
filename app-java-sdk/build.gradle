@@ -5,7 +5,10 @@ import java.util.regex.Pattern
 
 apply from: "${rootProject.projectDir}/publish-mavencentral.gradle"
 
-
+//  avoid upload maven fail when generate annotations for methods
+javadoc {
+    options.addStringOption('Xdoclint:none', '-quiet')
+}
 
 dependencies {
     implementation 'com.google.code.gson:gson:2.9.0'
@@ -68,3 +71,8 @@ compileJava.source generateSdkVersion.outputs.files, sourceSets.main.java
 sourceCompatibility = "1.8"
 targetCompatibility = "1.8"
 
+
+// make sure to clean before any publish to avoid duplicate files
+tasks.named('publish') {
+    dependsOn 'clean'
+}

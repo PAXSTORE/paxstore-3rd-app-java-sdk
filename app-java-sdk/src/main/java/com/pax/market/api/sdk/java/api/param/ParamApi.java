@@ -121,6 +121,8 @@ public class ParamApi extends BaseApi {
     private static final String DOWNLOAD_SUCCESS = "Success";
     private static final String FILE_DOWNLOAD_SUCCESS = "Params downloaded";
     private static final String SAVEPATH_CANNOT_BE_NULL = "Save path can not be empty";
+    private static final String ERROR_NO_PARAMS = "No params to download";
+    private static final String ERROR_NO_LAST_SUCCESS_PARAMS = "No last successful parameter download task is found";
 
     /**
      * The constant downloadParamUrl.
@@ -150,9 +152,7 @@ public class ParamApi extends BaseApi {
     public String calculateSHA256(String filePath) {
         File file = new File(filePath);
         if (file.isFile() && file.exists()) {
-            try {
-                FileInputStream inputStream = new FileInputStream(file);
-
+            try (FileInputStream inputStream = new FileInputStream(file)) {
                 return  SHA256Utils.sha256Hex(inputStream);
             } catch (IOException e) {
                 logger.error("calculateSHA256 error:" + e);
@@ -401,6 +401,7 @@ public class ParamApi extends BaseApi {
     public SdkObject updateDownloadStatus(String actionId, int status, int errorCode, String remarks) {
         String requestUrl = updateStatusUrl.replace("{actionId}", actionId);
         SdkRequest request = new SdkRequest(requestUrl);
+        request.setRequestBody("");
         request.setRequestMethod(SdkRequest.RequestMethod.PUT);
         request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
         request.addRequestParam(REQ_PARAM_STATUS, Integer.toString(status));
@@ -467,8 +468,8 @@ public class ParamApi extends BaseApi {
             result.setMessage(paramListObject.getMessage());
             return result;
         } else if (paramListObject.getTotalCount() == 0) {
-            result.setBusinessCode(-10);
-            result.setMessage("No params to download");
+            result.setBusinessCode(ResultCode.PARAM_NO_PARAMS_TASK.getCode());
+            result.setMessage(ERROR_NO_PARAMS);
             return result;
         }
 
@@ -635,6 +636,10 @@ public class ParamApi extends BaseApi {
             result.setBusinessCode(paramObject.getBusinessCode());
             result.setMessage(paramObject.getMessage());
             return result;
+        } else if (paramObject.getDownloadUrl() == null) {
+            result.setBusinessCode(ResultCode.PARAM_NO_LAST_SUCCESS_FOUND.getCode());
+            result.setMessage(ERROR_NO_LAST_SUCCESS_PARAMS);
+            return result;
         }
 
         saveFilePath = saveFilePath + File.separator + paramObject.getActionId();
@@ -751,11 +756,12 @@ public class ParamApi extends BaseApi {
             System.out.println("parseDownloadParamXml error, File not exists or not a valid xml");
             return xmlData;
         }
+        InputStreamReader isr = null;
         try {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
-            InputStreamReader isr = new InputStreamReader(new FileInputStream(xmlFile), StandardCharsets.UTF_8);
+            isr = new InputStreamReader(new FileInputStream(xmlFile), StandardCharsets.UTF_8);
             Document doc = dBuilder.parse(new InputSource(isr));
 
             NodeList nodeList = doc.getDocumentElement().getChildNodes();
@@ -768,6 +774,14 @@ public class ParamApi extends BaseApi {
             }
         } catch (Exception e) {
             throw new ParseXMLException(e);
+        } finally {
+            if (isr != null) {
+                try {
+                    isr.close(); // 确保关闭
+                } catch (IOException e) {
+                    logger.error("close inputStream failed：" + e);
+                }
+            }
         }
         return xmlData;
     }
@@ -778,11 +792,12 @@ public class ParamApi extends BaseApi {
             System.out.println("parseDownloadParamXmlWithOrder error, File not exists or not a valid xml");
             return xmlData;
         }
+        InputStreamReader isr = null;
         try {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
-            InputStreamReader isr = new InputStreamReader(new FileInputStream(xmlFile), StandardCharsets.UTF_8);
+            isr = new InputStreamReader(new FileInputStream(xmlFile), StandardCharsets.UTF_8);
             Document doc = dBuilder.parse(new InputSource(isr));
 
             NodeList nodeList = doc.getDocumentElement().getChildNodes();
@@ -795,6 +810,14 @@ public class ParamApi extends BaseApi {
             }
         } catch (Exception e) {
             throw new ParseXMLException(e);
+        } finally {
+            if (isr != null) {
+                try {
+                    isr.close(); // 显式关闭
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         }
         return xmlData;
     }
