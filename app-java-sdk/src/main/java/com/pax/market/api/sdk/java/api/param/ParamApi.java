@@ -14,6 +14,7 @@ package com.pax.market.api.sdk.java.api.param;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
+import com.pax.market.api.sdk.java.api.param.dto.UploadLocalParamDto;
 import com.pax.market.api.sdk.java.base.api.BaseApi;
 import com.pax.market.api.sdk.java.base.constant.Constants;
 import com.pax.market.api.sdk.java.base.constant.ResultCode;
@@ -140,7 +141,10 @@ public class ParamApi extends BaseApi {
      * Get last success param url
      */
     protected static String lastSuccessParamUrl = "v1/3rdApps/param/last/success";
-
+    /**
+     *  sync local param list
+     */
+    protected static String syncLocalParamUrl = "v1/3rdApps/sync/installed/param";
     private final Logger logger = LoggerFactory.getLogger(ParamApi.class);
 
     private long lastGetTime = -1;
@@ -163,6 +167,20 @@ public class ParamApi extends BaseApi {
 
     public void setBaseUrl(String baseUrl) {
         super.getDefaultClient().setBaseUrl(baseUrl);
+    }
+
+    /**
+     * upload Local ParamList
+     *
+     * @param uploadLocalParamDto the versionCode
+     * @return the paramList
+     */
+    public SdkObject uploadLocalParamList(UploadLocalParamDto uploadLocalParamDto) {
+        SdkRequest request = new SdkRequest(syncLocalParamUrl);
+        request.addHeader(Constants.REQ_HEADER_SN, getTerminalSN());
+        request.setRequestBody(JsonUtils.toJson(uploadLocalParamDto));
+        request.setRequestMethod(SdkRequest.RequestMethod.POST);
+        return JsonUtils.fromJson(call(request), SdkObject.class);
     }
 
     /**
