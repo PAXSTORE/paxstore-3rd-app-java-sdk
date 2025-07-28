@@ -3,6 +3,7 @@ package com.pax.market.api.sdk.java.base.dto;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 /**
  * This is for aar use, not for users.
@@ -21,6 +22,9 @@ public class InnerDownloadResultObject extends SdkObject {
     LastFailObject lastFailObject;
     @SerializedName("actionList")
     ArrayList<Long> actionList;
+
+    @SerializedName("idPathMap")
+    LinkedHashMap<String, String> idPathMap;
 
     public LastFailObject getLastFailObject() {
         return lastFailObject;
@@ -46,11 +50,23 @@ public class InnerDownloadResultObject extends SdkObject {
         return actionList;
     }
 
+
+    public LinkedHashMap<String, String> getIdPathMap() {
+        return idPathMap;
+    }
+
+    public void setIdPathMap(LinkedHashMap<String, String> idPathMap) {
+        this.idPathMap = idPathMap;
+    }
+
+
     @Override
     public String toString() {
         return "InnerDownloadResultObject{" +
                 "paramSavePath='" + paramSavePath + '\'' +
                 ", lastFailObject=" + lastFailObject +
+                ", actionList=" + actionList +
+                ", idPathMap=" + idPathMap +
                 '}';
     }
 }
