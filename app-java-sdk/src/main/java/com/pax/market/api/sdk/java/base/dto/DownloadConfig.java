@@ -37,17 +37,31 @@ public class DownloadConfig implements Serializable {
         boolean applyResultNeeded = false; //default false
         boolean separateFolder = true; //default true
 
+        /**
+         * default false
+         * when it is set true, sha256 will be verified after param is downloaded
+         * @param verifySha256
+         * @return
+         */
         public Builder enableVerifySha256(boolean verifySha256) {
             this.verifySha256 = verifySha256;
             return this;
         }
 
+        /**
+         * default false
+         * when it is set true, app will need to update task final result.
+         * It can update whether the parameters are applied successfully
+         * @param needApplyResult
+         * @return
+         */
         public Builder enableNeedApplyResult(boolean needApplyResult) {
             this.applyResultNeeded = needApplyResult;
             return this;
         }
 
         /**
+         * default true
          * this should be set true, when your application supports parameter partial download
          * @param separateFolder
          * @return
