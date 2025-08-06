@@ -19,6 +19,7 @@ import com.pax.market.api.sdk.java.base.api.BaseApi;
 import com.pax.market.api.sdk.java.base.constant.Constants;
 import com.pax.market.api.sdk.java.base.constant.ResultCode;
 import com.pax.market.api.sdk.java.base.dto.DownloadResultObject;
+import com.pax.market.api.sdk.java.base.dto.DownloadedObject;
 import com.pax.market.api.sdk.java.base.dto.InnerDownloadResultObject;
 import com.pax.market.api.sdk.java.base.dto.LastFailObject;
 import com.pax.market.api.sdk.java.base.dto.ParamListObject;
@@ -50,8 +51,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -578,7 +579,7 @@ public class ParamApi extends BaseApi {
             return result;
         }
 
-        //get paramList
+        //get downloadedParamList
         ParamListObject paramListObject = getParamDownloadList(packageName, versionCode);
         InnerDownloadResultObject paramReturnResult = checkParamListResult(paramListObject, result);
         if (paramReturnResult != null) return paramReturnResult;
@@ -593,11 +594,15 @@ public class ParamApi extends BaseApi {
         //download each param
 
         String remarks = null;
-        LinkedHashMap<String, String> idPathMap = new LinkedHashMap<>();
+        LinkedList<DownloadedObject> downloadedParamList = new LinkedList<>();
 
         for (ParamObject paramObject : paramListObject.getList()) {
             String folderPath = saveFilePath + File.separator +paramObject.getActionId();
-            idPathMap.put(String.valueOf(paramObject.getActionId()), folderPath);
+            DownloadedObject downloadedObject = new DownloadedObject();
+            downloadedObject.setActionId(paramObject.getActionId());
+            downloadedObject.setPartial(paramObject.getIsPartial());
+            downloadedObject.setPath(folderPath);
+            downloadedParamList.add(downloadedObject);
             if (paramObject.isWifiOnly() && mobileNetAvailable) { // If this task not allowed, stop downloading params.
                 updateDownloadStatus(String.valueOf(paramObject.getActionId()),
                         CODE_NONE_ERROR, CODE_NONE_ERROR, ERROR_CELLULAR_NOT_ALLOWED);
@@ -618,11 +623,11 @@ public class ParamApi extends BaseApi {
 
         if (remarks != null) {
             // Since download failed, result of updating action is not concerned, just return the result of download failed reason
-            deleteDownloadedParams(idPathMap);
+            deleteDownloadedParams(downloadedParamList);
             updateActionListByRemarks(paramListObject, result, remarks);
         } else {
             // add idPathMap after download succeed.
-            result.setIdPathMap(idPathMap);
+            result.setDownloadedParamList(downloadedParamList);
             if (!needApplyStatus) {
                 SdkObject updateResultObj = updateActionListByRemarks(paramListObject, result, remarks);
                 if (updateResultObj.getBusinessCode() != ResultCode.SUCCESS.getCode()) {
@@ -655,11 +660,11 @@ public class ParamApi extends BaseApi {
 
     /**
      * delete downloaded params
-     * @param idPathMap the param paths
+     * @param downloadedParamList the param paths
      */
-    private static void deleteDownloadedParams(LinkedHashMap<String, String> idPathMap) {
-        for (Map.Entry<String, String> entry : idPathMap.entrySet()) {
-            FileUtils.delFolder(entry.getValue());
+    private static void deleteDownloadedParams(LinkedList<DownloadedObject> downloadedParamList) {
+        for (DownloadedObject downloadedObject : downloadedParamList) {
+            FileUtils.delFolder(downloadedObject.getPath());
         }
     }
 
@@ -759,7 +764,7 @@ public class ParamApi extends BaseApi {
         resultObject.setBusinessCode(downloadResultObject.getBusinessCode());
         resultObject.setParamSavePath(saveFilePath);
         resultObject.setActionList(downloadResultObject.getActionList());
-        resultObject.setIdPathMap(downloadResultObject.getIdPathMap());
+        resultObject.setDownloadedParamList(downloadResultObject.getDownloadedParamList());
         if (resultObject.getBusinessCode() != 0) {
             logger.error("Download Result:" + "errorCode: " + resultObject.getBusinessCode() + " errorMessage: " + resultObject.getMessage());
         }
