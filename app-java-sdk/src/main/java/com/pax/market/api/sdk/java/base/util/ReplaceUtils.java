@@ -371,9 +371,15 @@ public class ReplaceUtils {
             for (Map.Entry<String, JsonElement> jsonEntry : jsonObject.entrySet()) {
                 if (jsonEntry.getValue().isJsonPrimitive() && jsonEntry.getValue().getAsJsonPrimitive().isString()) {
                     String currentValue = jsonEntry.getValue().getAsString();
+
                     if (currentValue.equals(placeholder)) {
                         // Replace the entire string value directly
                         jsonObject.addProperty(jsonEntry.getKey(), value);
+                    } else if (currentValue.contains(placeholder)) {
+                        // combo type variables
+                        placeholder = escapeExprSpecialWord(placeholder);
+                        currentValue = currentValue.replaceAll(String.format("(?i)%s", placeholder), Matcher.quoteReplacement(value));
+                        jsonObject.addProperty(jsonEntry.getKey(), currentValue);
                     }
                 }
             }
