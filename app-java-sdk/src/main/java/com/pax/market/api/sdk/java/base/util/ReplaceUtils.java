@@ -377,8 +377,8 @@ public class ReplaceUtils {
                         jsonObject.addProperty(jsonEntry.getKey(), value);
                     } else if (currentValue.contains(placeholder)) {
                         // combo type variables
-                        placeholder = escapeExprSpecialWord(placeholder);
-                        currentValue = currentValue.replaceAll(String.format("(?i)%s", placeholder), Matcher.quoteReplacement(value));
+                        String placeholderStr = escapeExprSpecialWord(placeholder);
+                        currentValue = currentValue.replaceAll(String.format("(?i)%s", placeholderStr), Matcher.quoteReplacement(value));
                         jsonObject.addProperty(jsonEntry.getKey(), currentValue);
                     }
                 }
