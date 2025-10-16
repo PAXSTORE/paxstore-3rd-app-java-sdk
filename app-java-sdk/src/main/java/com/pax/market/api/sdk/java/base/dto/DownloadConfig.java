@@ -3,7 +3,7 @@ package com.pax.market.api.sdk.java.base.dto;
 import java.io.Serializable;
 
 public class DownloadConfig implements Serializable {
-
+    private static final long serialVersionUID = 1L;
 
     private boolean verifySha256;
     private boolean applyResultNeeded;
