@@ -90,7 +90,7 @@ public abstract class HttpUtils {
 	private static String pingHostItem(String host, Proxy proxy, String basicAuthorization, PasswordAuthentication passwordAuthentication) {
 		logger.error("Ping host start:");
 		HttpLoggingInterceptor mLoggingInterceptor = new HttpLoggingInterceptor();
-		mLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.HEADERS);
+		mLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
 		OkHttpClient.Builder httpClientBuilder = OK_HTTP_CLIENT.newBuilder()
 				.addInterceptor(mLoggingInterceptor)
 				.retryOnConnectionFailure(false)
@@ -152,7 +152,7 @@ public abstract class HttpUtils {
 		boolean clearCredentials = false;
 		try {
 			HttpLoggingInterceptor mLoggingInterceptor = new HttpLoggingInterceptor();
-			mLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.HEADERS);
+			mLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BASIC);
 
 			OkHttpClient.Builder httpClientBuilder = OK_HTTP_CLIENT.newBuilder()
 					.addInterceptor(mLoggingInterceptor)
