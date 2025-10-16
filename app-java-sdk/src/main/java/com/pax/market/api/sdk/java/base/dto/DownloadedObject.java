@@ -3,6 +3,7 @@ package com.pax.market.api.sdk.java.base.dto;
 import java.io.Serializable;
 
 public class DownloadedObject implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     private long actionId;
     private String path;
