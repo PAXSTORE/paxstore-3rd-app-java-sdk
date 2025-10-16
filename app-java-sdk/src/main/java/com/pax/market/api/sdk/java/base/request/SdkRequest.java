@@ -15,6 +15,8 @@ package com.pax.market.api.sdk.java.base.request;
 import java.util.HashMap;
 import java.util.Map;
 
+import okhttp3.RequestBody;
+
 /**
  * Created by fanjun on 2016/11/10.
  */
@@ -48,6 +50,8 @@ public class SdkRequest {
      * The Save file path.
      */
     protected String saveFilePath;                                  // 文件保存路径
+    protected RequestBody multipartRequestBody;
+    protected String encryptBody;
 
     /**
      * Instantiates a new Sdk request.
@@ -221,6 +225,7 @@ public class SdkRequest {
          * Post request method.
          */
         POST("POST"),
+        MULTIPART_POST("MULTIPART_POST"),
         /**
          * Put request method.
          */
@@ -262,5 +267,21 @@ public class SdkRequest {
      */
     public void setSaveFilePath(String saveFilePath) {
         this.saveFilePath = saveFilePath;
+    }
+
+    public RequestBody getMultipartRequestBody() {
+        return multipartRequestBody;
+    }
+
+    public void setMultipartRequestBody(RequestBody multipartRequestBody) {
+        this.multipartRequestBody = multipartRequestBody;
+    }
+
+    public String getEncryptBody() {
+        return encryptBody;
+    }
+
+    public void setEncryptBody(String encryptBody) {
+        this.encryptBody = encryptBody;
     }
 }
