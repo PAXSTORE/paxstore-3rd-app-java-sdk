@@ -496,10 +496,17 @@ public class ParamApi extends BaseApi {
 
         saveFilePath = saveFilePath + File.separator + paramListObject.getList().get(0).getActionId(); // use first actionId as temp folder name
         String remarks = null;
-
+        LinkedList<DownloadedObject> downloadedParamList = new LinkedList<>();
         for (ParamObject paramObject : paramListObject.getList()) {
+
+            DownloadedObject downloadedObject = new DownloadedObject();
+            downloadedObject.setActionId(paramObject.getActionId());
+            downloadedObject.setPartial(paramObject.getIsPartial());
+            downloadedObject.setEffectiveTime(paramObject.getEffectiveTime());
+            downloadedObject.setPath(saveFilePath);
+            downloadedParamList.add(downloadedObject);
+
             if (paramObject.isWifiOnly() && mobileNetAvailable) { // If this task not allowed, stop downloading params.
-                ParamListObject cellularForbidList = new ParamListObject();
                 updateDownloadStatus(String.valueOf(paramObject.getActionId()),
                         CODE_NONE_ERROR, CODE_NONE_ERROR, ERROR_CELLULAR_NOT_ALLOWED);
                 result.setBusinessCode(ResultCode.SDK_DOWNLOAD_WITH_CELLULAR_NOT_ALLOWED.getCode());
@@ -521,6 +528,7 @@ public class ParamApi extends BaseApi {
             FileUtils.delFolder(saveFilePath);
             updateActionListByRemarks(paramListObject, result, remarks);
         } else {
+            result.setDownloadedParamList(downloadedParamList);
             if (!needApplyStatus) {
                 SdkObject updateResultObj = updateActionListByRemarks(paramListObject, result, remarks);
                 if (updateResultObj.getBusinessCode() != ResultCode.SUCCESS.getCode()) {
@@ -532,17 +540,18 @@ public class ParamApi extends BaseApi {
                     result.setBusinessCode(ResultCode.SUCCESS.getCode());
                     result.setMessage(DOWNLOAD_SUCCESS);
                 }
-            } else { // 如果需要把参数的apply状态上送， 那么这里就不要把任务更新为结束
-                // 当下载成功之后， 就把文件解压到上级目录
+            } else {
+                //If you need to upload the 'apply' status of the parameter, do not update the task to 'end' here
+                //After the download is successful, unzip the file to the parent directory
                 FileUtils.moveToFatherFolder(saveFilePath);
-                // 这里就是把所有的任务不要立即更新为成功， 而是等待更新
-                // 这里更新为参数下载成功， 等待apply
+                //This is to not immediately update all tasks as successful, but to wait for updates
+                //Updated here as parameter download successful, waiting for apply
                 result.setBusinessCode(ResultCode.SUCCESS.getCode());
                 result.setMessage(FILE_DOWNLOAD_SUCCESS);
                 List<UpdateActionObject> updateBatchBody1 = getUpdateBatchBody(paramListObject, REMARKS_CODE_PARAM_DOWNLOADED, ACT_STATUS_PENDING, CODE_NONE_ERROR);
                 updateDownloadStatusBatch(updateBatchBody1);
-                ArrayList<Long> actionIdList = transferToIdList(paramListObject.getList()); // 这里不可能为空， 所以不需要判断
-                if (result.getActionList() != null) { // 可能之前已经有被igonre的item了， 那么追加即可
+                ArrayList<Long> actionIdList = transferToIdList(paramListObject.getList()); // This cannot be empty, so there is no need to make a judgment
+                if (result.getActionList() != null) { // Perhaps there were already items that were previously categorized by Igonre, so simply add them
                     result.getActionList().addAll(actionIdList);
                 } else {
                     result.setActionList(actionIdList);
@@ -602,8 +611,8 @@ public class ParamApi extends BaseApi {
             downloadedObject.setActionId(paramObject.getActionId());
             downloadedObject.setPartial(paramObject.getIsPartial());
             downloadedObject.setEffectiveTime(paramObject.getEffectiveTime());
-
             downloadedObject.setPath(folderPath);
+
             downloadedParamList.add(downloadedObject);
             if (paramObject.isWifiOnly() && mobileNetAvailable) { // If this task not allowed, stop downloading params.
                 updateDownloadStatus(String.valueOf(paramObject.getActionId()),
@@ -639,16 +648,20 @@ public class ParamApi extends BaseApi {
                     result.setBusinessCode(ResultCode.SUCCESS.getCode());
                     result.setMessage(DOWNLOAD_SUCCESS);
                 }
-            } else { // 如果需要把参数的apply状态上送， 那么这里就不要把任务更新为结束
-                // 当下载成功之后， 就把文件解压到上级目录
-                // 这里就是把所有的任务不要立即更新为成功， 而是等待更新
-                // 这里更新为参数下载成功， 等待apply
+            } else {
+                /**
+                 *      If you need to upload the 'apply' status of the parameter, do not update the task to 'end' here
+                 *      After the download is successful, unzip the file to the parent directory
+                 *      This is to not immediately update all tasks as successful, but to wait for updates
+                 *      Updated here as parameter download successful, waiting for apply
+                 */
                 result.setBusinessCode(ResultCode.SUCCESS.getCode());
                 result.setMessage(FILE_DOWNLOAD_SUCCESS);
                 List<UpdateActionObject> updateBatchBody1 = getUpdateBatchBody(paramListObject, REMARKS_CODE_PARAM_DOWNLOADED, ACT_STATUS_PENDING, CODE_NONE_ERROR);
                 updateDownloadStatusBatch(updateBatchBody1);
-                ArrayList<Long> actionIdList = transferToIdList(paramListObject.getList()); // 这里不可能为空， 所以不需要判断
-                if (result.getActionList() != null) { // 可能之前已经有被igonre的item了， 那么追加即可
+                ArrayList<Long> actionIdList = transferToIdList(paramListObject.getList()); // This cannot be empty, so there is no need to make a judgment
+
+                if (result.getActionList() != null) { // Perhaps there were already items that were previously categorized by Igonre, so simply add them
                     result.getActionList().addAll(actionIdList);
                 } else {
                     result.setActionList(actionIdList);
@@ -934,7 +947,7 @@ public class ParamApi extends BaseApi {
         } finally {
             if (isr != null) {
                 try {
-                    isr.close(); // 确保关闭
+                    isr.close();
                 } catch (IOException e) {
                     logger.error("close inputStream failed：" + e);
                 }
@@ -970,7 +983,7 @@ public class ParamApi extends BaseApi {
         } finally {
             if (isr != null) {
                 try {
-                    isr.close(); // 显式关闭
+                    isr.close();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
