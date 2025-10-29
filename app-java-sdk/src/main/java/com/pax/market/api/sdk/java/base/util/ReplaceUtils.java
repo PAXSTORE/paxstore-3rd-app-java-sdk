@@ -366,7 +366,6 @@ public class ReplaceUtils {
             }
             String value = paramsVariableObject.getValue();
 
-            logger.warn("key: " + paramsVariableObject.getKey() + "> value:" + paramsVariableObject.getValue());
             // Traverse all the properties of a JSON object
             for (Map.Entry<String, JsonElement> jsonEntry : jsonObject.entrySet()) {
                 if (jsonEntry.getValue().isJsonPrimitive() && jsonEntry.getValue().getAsJsonPrimitive().isString()) {
