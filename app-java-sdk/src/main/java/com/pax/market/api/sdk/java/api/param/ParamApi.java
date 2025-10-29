@@ -503,7 +503,7 @@ public class ParamApi extends BaseApi {
             downloadedObject.setActionId(paramObject.getActionId());
             downloadedObject.setPartial(paramObject.getIsPartial());
             downloadedObject.setEffectiveTime(paramObject.getEffectiveTime());
-            downloadedObject.setPath(saveFilePath);
+            downloadedObject.setPath(saveFilePath.substring(0, saveFilePath.lastIndexOf(File.separator)));
             downloadedParamList.add(downloadedObject);
 
             if (paramObject.isWifiOnly() && mobileNetAvailable) { // If this task not allowed, stop downloading params.
