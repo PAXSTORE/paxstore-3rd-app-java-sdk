@@ -474,6 +474,7 @@ public class ParamApi extends BaseApi {
                                                     boolean verySha256, boolean needApplyStatus, List<Long> downloadedList) {
         logger.debug("downloadParamToPath: start");
         InnerDownloadResultObject result = new InnerDownloadResultObject();
+        String inputFilePath = saveFilePath;
         if (saveFilePath == null || "".equals(saveFilePath.trim())) {
             result.setBusinessCode(ResultCode.SDK_FILE_NOT_FOUND.getCode());
             result.setMessage(JsonUtils.getSdkJson(ResultCode.SDK_FILE_NOT_FOUND.getCode(), SAVEPATH_CANNOT_BE_NULL));
@@ -503,7 +504,7 @@ public class ParamApi extends BaseApi {
             downloadedObject.setActionId(paramObject.getActionId());
             downloadedObject.setPartial(paramObject.getIsPartial());
             downloadedObject.setEffectiveTime(paramObject.getEffectiveTime());
-            downloadedObject.setPath(saveFilePath.substring(0, saveFilePath.lastIndexOf(File.separator)));
+            downloadedObject.setPath(inputFilePath);
             downloadedParamList.add(downloadedObject);
 
             if (paramObject.isWifiOnly() && mobileNetAvailable) { // If this task not allowed, stop downloading params.
