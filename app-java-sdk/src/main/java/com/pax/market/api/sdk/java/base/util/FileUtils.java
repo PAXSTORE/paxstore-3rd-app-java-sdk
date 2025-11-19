@@ -79,7 +79,7 @@ public class FileUtils {
         File[] files = new File(pathName).listFiles();
         for (File startFile : files) {
             try {
-                if (startFile.renameTo(new File(endPath + startFile.getName()))) {
+                if (startFile.renameTo(new File(endPath, startFile.getName()))) {
                 } else {
                     System.out.println(startFile.getName() + " >> File is failed to move!");
                     return false;

@@ -8,6 +8,7 @@ public class DownloadedObject implements Serializable {
     private long actionId;
     private String path;
     private boolean isPartial;
+    private Long effectiveTime;
 
     public long getActionId() {
         return actionId;
@@ -33,12 +34,21 @@ public class DownloadedObject implements Serializable {
         isPartial = partial;
     }
 
+    public Long getEffectiveTime() {
+        return effectiveTime;
+    }
+
+    public void setEffectiveTime(Long effectiveTime) {
+        this.effectiveTime = effectiveTime;
+    }
+
     @Override
     public String toString() {
         return "DownloadedObject{" +
                 "actionId=" + actionId +
                 ", path='" + path + '\'' +
                 ", isPartial=" + isPartial +
+                ", effectiveTime=" + effectiveTime +
                 '}';
     }
 }

@@ -51,6 +51,8 @@ public class ParamObject extends SdkObject {
     @SerializedName("isPartial")
     private boolean isPartial;
 
+    @SerializedName("effectiveTime")
+    private Long effectiveTime;
 
 
     public long getActionId() {
@@ -164,6 +166,14 @@ public class ParamObject extends SdkObject {
         this.isPartial = isPartial;
     }
 
+    public Long getEffectiveTime() {
+        return effectiveTime;
+    }
+
+    public void setEffectiveTime(Long effectiveTime) {
+        this.effectiveTime = effectiveTime;
+    }
+
     @Override
     public String toString() {
         return "ParamObject{" +
@@ -176,6 +186,7 @@ public class ParamObject extends SdkObject {
                 ", wifiOnly=" + wifiOnly +
                 ", cookieDto=" + cookieDto +
                 ", isPartial=" + isPartial +
+                ", effectiveTime=" + effectiveTime +
                 '}';
     }
 }
