@@ -4,6 +4,7 @@ package com.pax.market.api.sdk.java.base.dto;
 import com.google.gson.annotations.SerializedName;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 
 /**
@@ -20,6 +21,10 @@ public class DownloadResultObject extends SdkObject {
     @SerializedName("actionList")
     ArrayList<Long> actionList;
 
+    @SerializedName("paramList")
+    LinkedList<DownloadedObject> downloadedParamList;
+
+
     public String getParamSavePath() {
         return paramSavePath;
     }
@@ -35,6 +40,14 @@ public class DownloadResultObject extends SdkObject {
 
     public ArrayList<Long> getActionList() {
         return actionList;
+    }
+
+    public LinkedList<DownloadedObject> getDownloadedParamList() {
+        return downloadedParamList;
+    }
+
+    public void setDownloadedParamList(LinkedList<DownloadedObject> downloadedParamList) {
+        this.downloadedParamList = downloadedParamList;
     }
 
     @Override

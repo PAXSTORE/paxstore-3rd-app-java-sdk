@@ -48,6 +48,10 @@ public class ParamObject extends SdkObject {
 
 
 
+    @SerializedName("isPartial")
+    private boolean isPartial;
+
+
 
     public long getActionId() {
         return actionId;
@@ -151,6 +155,15 @@ public class ParamObject extends SdkObject {
         this.signature = signature;
     }
 
+
+    public boolean getIsPartial() {
+        return isPartial;
+    }
+
+    public void setIsPartial(boolean isPartial) {
+        this.isPartial = isPartial;
+    }
+
     @Override
     public String toString() {
         return "ParamObject{" +
@@ -162,6 +175,7 @@ public class ParamObject extends SdkObject {
                 ", md='" + m + '\'' +
                 ", wifiOnly=" + wifiOnly +
                 ", cookieDto=" + cookieDto +
+                ", isPartial=" + isPartial +
                 '}';
     }
 }
