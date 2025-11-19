@@ -83,16 +83,14 @@ public class ReplaceUtils {
         try {
             String fullFile = FileUtils.readFileToString(file);
             String replaceResult = fullFile;
+
+
             if (isJsonValidate(fullFile)) {
-                for (ParamsVariableObject paramsVariableObject : paramList) {
-                    String key = escapeExprSpecialWord(paramsVariableObject.getKey());
-                    String value = escapeJson(paramsVariableObject.getValue());
-                    if (paramsVariableObject.getKey().matches("#\\{([A-Za-z0-9-_.]+)\\}")) {
-                        replaceResult = replaceResult.replaceAll(String.format("(?i)%s", key), value);
-                    }
-                }
 
                 Gson gson = new GsonBuilder().create();
+                replaceResult = simpleReplaceSafe(gson, fullFile, paramList);
+
+
                 replaceResult = processJsonReplacement(gson, replaceResult, paramList);
 
                 //rewrite file
@@ -282,7 +280,7 @@ public class ReplaceUtils {
 
     private static String escapeJson(String input) {
         if (!StringUtils.isEmpty(input)) {
-            String[] fbsArr = {"\\", "\"", "\\/"};
+            String[] fbsArr = {"\\", "\"", "\\/", "$"};
             for (String key : fbsArr) {
                 if (input.contains(key)) {
                     input = input.replace(key, "\\\\\\" + key);
@@ -352,6 +350,42 @@ public class ReplaceUtils {
             throw new ParseXMLException(e);
         }
         return resultMap;
+    }
+
+    //A simpler yet functionally explicit version assumes that placeholders are only present in the top-level string values
+    public static String simpleReplaceSafe(Gson gson, String jsonString, List<ParamsVariableObject> paramList) {
+        JsonObject jsonObject = gson.fromJson(jsonString, JsonObject.class).getAsJsonObject();
+
+
+        for (ParamsVariableObject paramsVariableObject : paramList) {
+
+            String placeholder =  paramsVariableObject.getKey() ;
+            if(!paramsVariableObject.getKey().matches("#\\{([A-Za-z0-9-_.]+)\\}")) {
+                logger.warn("skip in #{xxx} key : "+ paramsVariableObject.getKey() + "> value:" + paramsVariableObject.getValue());
+                continue;
+            }
+            String value = paramsVariableObject.getValue();
+
+            logger.warn("key: " + paramsVariableObject.getKey() + "> value:" + paramsVariableObject.getValue());
+            // Traverse all the properties of a JSON object
+            for (Map.Entry<String, JsonElement> jsonEntry : jsonObject.entrySet()) {
+                if (jsonEntry.getValue().isJsonPrimitive() && jsonEntry.getValue().getAsJsonPrimitive().isString()) {
+                    String currentValue = jsonEntry.getValue().getAsString();
+
+                    if (currentValue.equals(placeholder)) {
+                        // Replace the entire string value directly
+                        jsonObject.addProperty(jsonEntry.getKey(), value);
+                    } else if (currentValue.contains(placeholder)) {
+                        // combo type variables
+                        String placeholderStr = escapeExprSpecialWord(placeholder);
+                        currentValue = currentValue.replaceAll(String.format("(?i)%s", placeholderStr), Matcher.quoteReplacement(value));
+                        jsonObject.addProperty(jsonEntry.getKey(), currentValue);
+                    }
+                }
+            }
+        }
+
+        return gson.toJson(jsonObject);
     }
 
 }

@@ -48,6 +48,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -144,7 +145,7 @@ public abstract class HttpUtils {
 	 * @param passwordAuthentication the passwordAuthentication
 	 * @return  the string
 	 */
-	public static String request(String requestUrl, SdkRequest.RequestMethod requestMethod, int connectTimeout, int readTimeout, int writeTimeout, String userData,
+	public static String request(String requestUrl, SdkRequest.RequestMethod requestMethod, int connectTimeout, int readTimeout, int writeTimeout, String userData, RequestBody multipartBody,
 								 Map<String, String> headerMap, String saveFilePath, Proxy proxy, String basicAuthorization, PasswordAuthentication passwordAuthentication) {
 		FileOutputStream fileOutputStream = null;
 		String filePath = null;
@@ -176,6 +177,9 @@ public abstract class HttpUtils {
 			switch (requestMethod) {
 				case POST:
 					requestBuilder.post(RequestBody.create(JSON, userData));
+					break;
+				case MULTIPART_POST:
+					requestBuilder.post(multipartBody);
 					break;
 				case PUT:
 					requestBuilder.put(RequestBody.create(JSON, userData));

@@ -22,7 +22,6 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
-import java.util.Random;
 
 /**
  * Created by zcy on 2016/12/1 0001.
@@ -59,7 +58,7 @@ public class FileUtils {
         String ALLCHAR = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
         StringBuilder sb = new StringBuilder();
-        Random random = new SecureRandom();
+        SecureRandom random = new SecureRandom();
         for (int i = 0; i < length; i++) {
             sb.append(ALLCHAR.charAt(random.nextInt(ALLCHAR.length())));
         }

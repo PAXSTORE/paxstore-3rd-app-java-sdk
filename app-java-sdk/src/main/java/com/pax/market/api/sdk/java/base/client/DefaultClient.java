@@ -16,7 +16,6 @@ import com.pax.market.api.sdk.java.Version;
 import com.pax.market.api.sdk.java.base.constant.Constants;
 import com.pax.market.api.sdk.java.base.constant.ResultCode;
 import com.pax.market.api.sdk.java.base.request.SdkRequest;
-import com.pax.market.api.sdk.java.base.util.CryptoUtils;
 import com.pax.market.api.sdk.java.base.util.HttpUtils;
 import com.pax.market.api.sdk.java.base.util.JsonUtils;
 import com.pax.market.api.sdk.java.base.util.SHA256Utils;
@@ -30,10 +29,6 @@ import java.net.Proxy;
 import java.security.GeneralSecurityException;
 
 import static com.pax.market.api.sdk.java.base.util.HttpUtils.IOEXCTION_FLAG;
-
-import javax.crypto.Mac;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 /**
  * Client
@@ -161,7 +156,13 @@ public class DefaultClient {
 
 		String query = HttpUtils.buildQuery(request.getRequestParams(), Constants.CHARSET_UTF8);
 		if(appSecret != null) {
-			String signature = SHA256Utils.signRequest(query, request.getRequestBody(), appSecret, signMethod);
+			String signature;
+			if (null != request.getEncryptBody()) {
+				signature = SHA256Utils.signRequest(query, request.getEncryptBody(), appSecret, signMethod);
+			} else {
+				signature = SHA256Utils.signRequest(query, request.getRequestBody(), appSecret, signMethod);
+			}
+
 			request.addHeader(Constants.SIGNATURE, signature);
 		}
 		if (Constants.SIGN_METHOD_SHA256.equals(signMethod)) {
@@ -171,7 +172,7 @@ public class DefaultClient {
 //		logger.info(" --> {} {}", request.getRequestMethod().getValue(), requestUrl);
 
 		response = HttpUtils.request(requestUrl, request.getRequestMethod(), connectTimeout, readTimeout, writeTimeout, request.getRequestBody(),
-					request.getHeaderMap(), request.getSaveFilePath(), proxy, basicAuthorization, passwordAuthentication);
+				request.getMultipartRequestBody(), request.getHeaderMap(), request.getSaveFilePath(), proxy, basicAuthorization, passwordAuthentication);
 		return response;
 	}
 
