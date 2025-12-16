@@ -3,6 +3,14 @@ apply plugin: 'java-library'
 import java.util.regex.Pattern
 
 
+java {
+    toolchain { languageVersion = JavaLanguageVersion.of(17) }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.release = 8
+}
+
 apply from: "${rootProject.projectDir}/publish-mavencentral.gradle"
 
 //  avoid upload maven fail when generate annotations for methods
