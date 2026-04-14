@@ -12,8 +12,11 @@
 package com.pax.market.api.sdk.java.base.util;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.pax.market.api.sdk.java.base.constant.ResultCode;
 import com.pax.market.api.sdk.java.base.dto.SdkObject;
+
+import java.lang.reflect.Type;
 
 
 /**
@@ -123,5 +126,10 @@ public class JsonUtils {
         sdkObject.setBusinessCode(resultCode);
         sdkObject.setMessage(message);
         return toJson(sdkObject);
+    }
+
+    public static <T> T fromJson(String jsonStr, Class<?> rawType, Class<?> parameterType) {
+        Type type = TypeToken.getParameterized(rawType, parameterType).getType();
+        return gson.fromJson(jsonStr, type);
     }
 }
