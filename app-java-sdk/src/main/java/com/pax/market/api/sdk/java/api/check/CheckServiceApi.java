@@ -38,7 +38,8 @@ public class CheckServiceApi extends BaseApi {
     public enum ServiceType {
 
         LAUNCHER_UP("launcherup"),
-        INDUSTRY_SOLUTION("industry_solution");
+        INDUSTRY_SOLUTION("industry_solution"),
+        NEBULA("nebula");
 
         ServiceType(String value) {
             this.value = value;
