@@ -33,6 +33,7 @@ import java.util.regex.Matcher;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 /**
  * Created by zhangchenyang on 2018/2/26.
@@ -41,6 +42,27 @@ public class ReplaceUtils {
 
 
     private static final Logger logger = LoggerFactory.getLogger(ReplaceUtils.class.getSimpleName());
+
+    /**
+     * Create a secure DocumentBuilderFactory with XXE prevention features enabled.
+     * <p>
+     * This method disables DOCTYPE declarations, external general entities,
+     * external parameter entities, and external DTD loading to prevent
+     * XML External Entity (XXE) attacks (CWE-611).
+     *
+     * @return a secure DocumentBuilderFactory
+     * @throws ParserConfigurationException if the factory cannot be configured
+     */
+    public static DocumentBuilderFactory createSecureDocumentBuilderFactory() throws ParserConfigurationException {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+        factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+        factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+        factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+        factory.setXIncludeAware(false);
+        factory.setExpandEntityReferences(false);
+        return factory;
+    }
 
     public static boolean replaceParams(String filePath, String paramVariables) {
         List<ParamsVariableObject> paramList = exchangeValues(paramVariables);
@@ -334,7 +356,7 @@ public class ReplaceUtils {
             return resultMap;
         }
         try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilderFactory factory = createSecureDocumentBuilderFactory();
             DocumentBuilder builder = factory.newDocumentBuilder();
             ByteArrayInputStream input = new ByteArrayInputStream(transMessage.getBytes(StandardCharsets.UTF_8));
             Document document = builder.parse(input);
