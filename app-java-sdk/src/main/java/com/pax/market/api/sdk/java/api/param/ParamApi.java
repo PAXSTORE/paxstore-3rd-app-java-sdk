@@ -929,7 +929,7 @@ public class ParamApi extends BaseApi {
         }
         InputStreamReader isr = null;
         try {
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilderFactory dbFactory = ReplaceUtils.createSecureDocumentBuilderFactory();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
             isr = new InputStreamReader(new FileInputStream(xmlFile), StandardCharsets.UTF_8);
@@ -965,7 +965,7 @@ public class ParamApi extends BaseApi {
         }
         InputStreamReader isr = null;
         try {
-            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilderFactory dbFactory = ReplaceUtils.createSecureDocumentBuilderFactory();
             DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
 
             isr = new InputStreamReader(new FileInputStream(xmlFile), StandardCharsets.UTF_8);
