@@ -139,11 +139,20 @@ public final class ZipUtil {
         return true;
     }
 
-    private static void writeEachFile(File source, ZipInputStream zis, ZipEntry entry) {
+    private static void writeEachFile(File source, ZipInputStream zis, ZipEntry entry) throws IOException {
         FileOutputStream fos = null;
         BufferedOutputStream bos = null;
         try {
             File target = new File(source.getParent(), entry.getName());
+
+            // Zip Slip protection: ensure the canonical path of the extracted file
+            // stays within the intended extraction directory
+            String canonicalDestDir = new File(source.getParent()).getCanonicalPath();
+            String canonicalTarget = target.getCanonicalPath();
+            if (!canonicalTarget.startsWith(canonicalDestDir + File.separator)) {
+                throw new IOException("Entry is outside of the target dir: " + entry.getName());
+            }
+
             if (!target.getParentFile().exists()) {
                 // create father folder
                 target.getParentFile().mkdirs();
@@ -157,8 +166,6 @@ public final class ZipUtil {
                 bos.write(buffer, 0, read);
             }
             bos.flush();
-        } catch (IOException e) {
-            logger.error("error writeEachFile", e);
         } finally {
             IOUtil.closeQuietly(fos, bos);
         }

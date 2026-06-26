@@ -31,8 +31,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 /**
  * Created by zhangchenyang on 2018/2/26.
@@ -41,6 +43,62 @@ public class ReplaceUtils {
 
 
     private static final Logger logger = LoggerFactory.getLogger(ReplaceUtils.class.getSimpleName());
+
+    /**
+     * Create a secure DocumentBuilderFactory with XXE prevention features enabled.
+     * <p>
+     * This method attempts to disable DOCTYPE declarations, external general entities,
+     * external parameter entities, and external DTD loading to prevent
+     * XML External Entity (XXE) attacks (CWE-611).
+     * <p>
+     * Each security feature is set in its own try-catch block for cross-platform
+     * compatibility. On desktop JDK (Xerces-based), all features are applied.
+     * On Android (Expat-based), unsupported features are gracefully skipped —
+     * Android's Expat parser does not resolve external entities by default,
+     * so XXE protection is inherently maintained.
+     *
+     * @return a secure DocumentBuilderFactory
+     * @throws ParserConfigurationException if the factory cannot be created
+     */
+    public static DocumentBuilderFactory createSecureDocumentBuilderFactory() throws ParserConfigurationException {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        try {
+            factory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+        } catch (ParserConfigurationException e) {
+            logger.info("XML feature 'disallow-doctype-decl' is not supported by this parser, skipped.");
+        }
+        try {
+            factory.setFeature("http://xml.org/sax/features/external-general-entities", false);
+        } catch (ParserConfigurationException e) {
+            logger.info("XML feature 'external-general-entities' is not supported by this parser, skipped.");
+        }
+        try {
+            factory.setFeature("http://xml.org/sax/features/external-parameter-entities", false);
+        } catch (ParserConfigurationException e) {
+            logger.info("XML feature 'external-parameter-entities' is not supported by this parser, skipped.");
+        }
+        try {
+            factory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
+        } catch (ParserConfigurationException e) {
+            logger.info("XML feature 'load-external-dtd' is not supported by this parser, skipped.");
+        }
+        try {
+            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        } catch (ParserConfigurationException e) {
+            logger.info("XML feature 'FEATURE_SECURE_PROCESSING' is not supported by this parser, skipped.");
+        }
+        try {
+            factory.setXIncludeAware(false);
+        } catch (UnsupportedOperationException e) {
+            logger.info("setXIncludeAware is not supported by this parser, skipped.");
+        }
+        try {
+            factory.setExpandEntityReferences(false);
+        } catch (UnsupportedOperationException e) {
+            logger.info("setExpandEntityReferences is not supported by this parser, skipped.");
+        }
+        return factory;
+    }
 
     public static boolean replaceParams(String filePath, String paramVariables) {
         List<ParamsVariableObject> paramList = exchangeValues(paramVariables);
@@ -334,7 +392,7 @@ public class ReplaceUtils {
             return resultMap;
         }
         try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilderFactory factory = createSecureDocumentBuilderFactory();
             DocumentBuilder builder = factory.newDocumentBuilder();
             ByteArrayInputStream input = new ByteArrayInputStream(transMessage.getBytes(StandardCharsets.UTF_8));
             Document document = builder.parse(input);
